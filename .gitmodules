@@ -1,0 +1,3 @@
+[submodule "requirements/liburing"]
+	path = requirements/liburing
+	url = https://github.com/axboe/liburing
