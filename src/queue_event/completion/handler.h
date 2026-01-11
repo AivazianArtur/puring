@@ -31,7 +31,7 @@ typedef struct {
 
 // Functions
 
-cqe* completed_jobs(UringRequestObject* ring);
-bool is_job_completed(UringRequestObject*  ring, cqe* job);
-cqe* wait(UringRequestObject* ring, cqe* job);
-void ack_job(UringRequestObject* ring, cqe* job);
+cqe* completed_jobs(UringObject* ring);
+bool is_job_completed(UringObject*  ring, cqe* job);
+cqe* wait(UringObject* ring, cqe* job);
+void ack_job(UringObject* ring, cqe* job);

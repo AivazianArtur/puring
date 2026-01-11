@@ -26,7 +26,7 @@
     // io_uring_submit(&ring);
 // }
 
-sqe* get_sqe(UringRequestObject* ring)
+sqe* get_sqe(UringObject* ring)
 /* Retrieve a free submission queue entry (SQE). */
 {
     // TODO: Python Logic
@@ -35,7 +35,7 @@ sqe* get_sqe(UringRequestObject* ring)
     sqe->wrapped_sqe = &internal_sqe;
 }
 
-void send(UringRequestObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
+void send(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
 /* */
 {
     // TODO: Python Logic
@@ -51,7 +51,7 @@ void send(UringRequestObject* ring, sqe* sqe, int fd, void *buf, struct user_dat
 }
 
 
-void send_and_wait(UringRequestObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
+void send_and_wait(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
 /* Submit SQEs and block until at least wait_nr completions arrive. */
 {
     // TODO: Python Logic
@@ -69,7 +69,7 @@ void send_and_wait(UringRequestObject* ring, sqe* sqe, int fd, void *buf, struct
 
 
 // TODO: Build in next version
-// void send_and_wait_timeout(UringRequestObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
+// void send_and_wait_timeout(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
 // /* Submit SQEs and block until at least wait_nr completions arrive. */
 // {
 //     // TODO: Python Logic
@@ -85,7 +85,7 @@ void send_and_wait(UringRequestObject* ring, sqe* sqe, int fd, void *buf, struct
 //     io_uring_submit_and_wait(&ring);
 // }
 
-sqe_health health(UringRequestObject* ring)
+sqe_health health(UringObject* ring)
 {
     int ready_job_amount = io_uring_sq_ready(&ring);
     int space_left = io_uring_sq_space_left(&ring);
