@@ -1,4 +1,4 @@
-# include "construction/handler.c"
+#include "puring.h"
 
 // Ring Wrapper (for request(TEMP: maybe for everything))
 typedef struct {
@@ -7,4 +7,4 @@ typedef struct {
     // PyObject *future;       // The Python asyncio.Future to wake up
     int fd;                 // File descriptor
     void *buffer;           // The buffer where Kernel puts data
-} UringRequestObject;
+} UringObject;

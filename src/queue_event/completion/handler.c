@@ -15,7 +15,7 @@
     // void io_uring_cq_advance(struct io_uring *ring, unsigned nr); - Manually advance the CQ head by nr entries.
 // }
 
-cqe* completed_jobs(UringRequestObject* ring)
+cqe* completed_jobs(UringObject* ring)
 /** Return the number of available CQEs. */
 {
     // TODO: Adapt for python + Logic
@@ -24,7 +24,7 @@ cqe* completed_jobs(UringRequestObject* ring)
     return list_of_completed_jobs;
 }
 
-bool is_job_completed(UringRequestObject*  ring, cqe* job)
+bool is_job_completed(UringObject*  ring, cqe* job)
 /** Non-blocking check for a completion. Non-blocking*/
 {
     // TODO: Adapt for python + Logic
@@ -36,7 +36,7 @@ bool is_job_completed(UringRequestObject*  ring, cqe* job)
     return false;
 }
 
-cqe* wait(UringRequestObject* ring, cqe* job)
+cqe* wait(UringtObject* ring, cqe* job)
 /** Block until a completion queue entry (CQE) is available. */
 {
     if (!ring | !job) {
@@ -46,7 +46,7 @@ cqe* wait(UringRequestObject* ring, cqe* job)
     io_uring_wait_cqe(&(ring->ring), &cqe)
 }
 
-void ack_job(UringRequestObject* ring, cqe* job)
+void ack_job(UringObject* ring, cqe* job)
 /** Mark a CQE as consumed. */ 
 {
     // TODO: Pyton logic
@@ -54,7 +54,7 @@ void ack_job(UringRequestObject* ring, cqe* job)
 }
 
 /* TODO: Build in next versions*/
-// void ack_job(UringRequestObject* ring, )
+// void ack_job(UringObject* ring, )
 // /* Manually advance the CQ head by nr entries. */ 
 // {
 //     io_uring_cq_advance(*(ring->ring), unsigned nr);
