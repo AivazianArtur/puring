@@ -96,9 +96,6 @@ typedef struct {
 
 
 /* Functions */
-int puring_init(
-    struct io_uring *ring,
-    ring_initialization_params *params,
-    memory_params *memory_params,
-)
-void puring_exit(struct io_uring *ring)
+PyObject* puring_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+int puring_init(PuringObject *self, PyObject *args, PyObject *kwargs);
+void puring_close(PuringObject *self);
