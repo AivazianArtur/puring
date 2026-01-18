@@ -77,3 +77,51 @@ static PyTypeObject UringType = {
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = PyType_GenericNew,
 };
+
+
+// Method Registration
+// Method Table
+static PyMethodDef uring_methods[] = {
+    {"init",  uring_new, METH_VARARGS, "Create new uring"},
+    {"free",  uring_init, METH_VARARGS, "Init uring"},
+    {"add",  uring_close, METH_VARARGS, "Close uring"},
+    {NULL, NULL, 0, NULL}        /* Sentinel */
+};
+
+
+// Initialization of module
+static int
+uring_module_exec(PyObject *m)
+{
+    if (PyType_Ready(&UringType) < 0) {
+        return -1;
+    }
+
+    if (PyModule_AddObjectRef(m, "uring", (PyObject *) &UringType) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static PyModuleDef_Slot uring_module_slots[] = {
+    {Py_mod_exec, uring_module_exec},
+    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_NOT_SUPPORTED},
+    {0, NULL}
+};
+
+
+static PyModuleDef uring_module = {
+    .m_base = PyModuleDef_HEAD_INIT,
+    .m_name = "uring",
+    .m_doc = "Module with main uring object",
+    .m_size = 0,
+    .m_slots = uring_module_slots,
+    .m_methods = uring_methods,  // TEMP: Maybe now its module's funcs, need to be Class methods
+};
+
+PyMODINIT_FUNC
+PyInit_custom(void)
+{
+    return PyModuleDef_Init(&uring_module);
+}
