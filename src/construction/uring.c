@@ -1,8 +1,8 @@
 #include "liburing.h"
 #include "handler.h"
 
-/* The __new__ method */
-PyObject* puring_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
+
+PyObject* uring_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     PuringObject *self = (PuringObject *) type->tp_alloc(type, 0);
     
     if (self != NULL) {
@@ -18,7 +18,7 @@ PyObject* puring_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 }
 
 
-int puring_init(PuringObject *self, PyObject *args, PyObject *kwds) {
+int uring_init(PuringObject *self, PyObject *args, PyObject *kwds) {
     /**
         TODO: Write description
     */
@@ -59,6 +59,6 @@ int puring_init(PuringObject *self, PyObject *args, PyObject *kwds) {
     return result; // TEMP: OR return 0?
 }
 
-void puring_close(PuringObject *self) {
+void uring_close(PuringObject *self) {
     // io_uring_queue_exit(ring);
 }

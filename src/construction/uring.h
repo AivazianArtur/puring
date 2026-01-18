@@ -1,3 +1,4 @@
+#pragma once  // Alternative of `include guards (IFNDEF)`
 #include <stdio.h>
 #include <stdint.h>
 
@@ -95,7 +96,21 @@ typedef struct {
 } memory_params;
 
 
+/* Main Objects */
+
+/* Ring Wrapper*/
+typedef struct {
+    PyObject_HEAD
+    struct io_uring ring;
+    RequestRegistry registry; 
+    bool initialized;
+    int fd;                 // File descriptor
+    void *buffer;           // The buffer where Kernel puts data
+} UringObject;
+
+
 /* Functions */
-PyObject* puring_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
-int puring_init(PuringObject *self, PyObject *args, PyObject *kwargs);
-void puring_close(PuringObject *self);
+PyObject* uring_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+int uring_init(PuringObject *self, PyObject *args, PyObject *kwargs);
+void uring_close(PuringObject *self);
+
