@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
-
 #include "liburing.h"
+#include "uring.h"
 
 // Structures
 enum cqe_flags {
@@ -31,7 +31,7 @@ typedef struct {
 
 // Functions
 
-cqe* completed_jobs(UringObject* ring);
-bool is_job_completed(UringObject*  ring, cqe* job);
-cqe* wait(UringObject* ring, cqe* job);
-void ack_job(UringObject* ring, cqe* job);
+cqe* completed_jobs(Uring* ring);
+bool is_job_completed(Uring*  ring, cqe* job);
+cqe* wait(Uring* ring, cqe* job);
+void ack_job(Uring* ring, cqe* job);

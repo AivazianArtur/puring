@@ -1,5 +1,6 @@
 #include "liburing.h"
 #include "handler.h"
+#include "uring.h"
 
 // void sqe_usage_draft_example() {
     // API
@@ -26,7 +27,7 @@
     // io_uring_submit(&ring);
 // }
 
-sqe* get_sqe(UringObject* ring)
+sqe* get_sqe(Uring* ring)
 /* Retrieve a free submission queue entry (SQE). */
 {
     // TODO: Python Logic
@@ -35,7 +36,7 @@ sqe* get_sqe(UringObject* ring)
     sqe->wrapped_sqe = &internal_sqe;
 }
 
-void send(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
+void send(Uring* ring, sqe* sqe, int fd, void *buf, struct user_data)
 /* */
 {
     // TODO: Python Logic
@@ -51,7 +52,7 @@ void send(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
 }
 
 
-void send_and_wait(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
+void send_and_wait(Uring* ring, sqe* sqe, int fd, void *buf, struct user_data)
 /* Submit SQEs and block until at least wait_nr completions arrive. */
 {
     // TODO: Python Logic
@@ -68,8 +69,19 @@ void send_and_wait(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_d
 }
 
 
+sqe_health health(Uring* ring)
+{
+    int ready_job_amount = io_uring_sq_ready(&ring);
+    int space_left = io_uring_sq_space_left(&ring);
+    struct sqe_health health;
+    health->ready_job_amount = ready_job_amount;
+    health->space_left = space_left;
+    return health;
+}
+
+
 // TODO: Build in next version
-// void send_and_wait_timeout(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_data)
+// void send_and_wait_timeout(Uring* ring, sqe* sqe, int fd, void *buf, struct user_data)
 // /* Submit SQEs and block until at least wait_nr completions arrive. */
 // {
 //     // TODO: Python Logic
@@ -84,13 +96,3 @@ void send_and_wait(UringObject* ring, sqe* sqe, int fd, void *buf, struct user_d
 
 //     io_uring_submit_and_wait(&ring);
 // }
-
-sqe_health health(UringObject* ring)
-{
-    int ready_job_amount = io_uring_sq_ready(&ring);
-    int space_left = io_uring_sq_space_left(&ring);
-    struct sqe_health health;
-    health->ready_job_amount = ready_job_amount;
-    health->space_left = space_left;
-    return health;
-}

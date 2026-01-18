@@ -60,6 +60,18 @@ static PyTypeObject RequestRegistryType = {
     .tp_new = PyType_GenericNew,
 };
 
+// Method Registration
+// Method Table
+static PyMethodDef registry_methods[] = {
+    {"init",  registry_init, METH_VARARGS, "Initialize the array of pointers to NULL"},
+    {"free",  registry_free, METH_VARARGS, "Remove registry"},
+    {"add",  registry_add, METH_VARARGS, "Find a free slot, store the object, return the index"},
+    {"get",  registry_get, METH_VARARGS, "Get the object"},
+    {"remove",  registry_remove, METH_VARARGS, "Clear the slot"},
+    {NULL, NULL, 0, NULL}        /* Sentinel */
+};
+
+
 
 // Initialization of module
 static int
@@ -82,15 +94,6 @@ static PyModuleDef_Slot registry_module_slots[] = {
     {0, NULL}
 };
 
-// Method Table
-static PyMethodDef registry_methods[] = {
-    ...
-    {"system",  spam_system, METH_VARARGS,
-     "Execute a shell command."},
-    ...
-    {NULL, NULL, 0, NULL}        /* Sentinel */
-};
-
 
 static PyModuleDef registry_module = {
     .m_base = PyModuleDef_HEAD_INIT,
@@ -98,7 +101,7 @@ static PyModuleDef registry_module = {
     .m_doc = "Module, that contains Shadow registry for features",
     .m_size = 0,
     .m_slots = registry_module_slots,
-    .m_methods = spam_methods,
+    .m_methods = registry_methods,  // TEMP: Maybe now its module's funcs, need to be Class methods
 };
 
 PyMODINIT_FUNC
