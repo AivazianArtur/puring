@@ -1,5 +1,6 @@
 #include "liburing.h"
 #include "handler.h"
+#include "uring.h"
 
 // void cqe_usage_draft_example() {
     // API
@@ -15,7 +16,7 @@
     // void io_uring_cq_advance(struct io_uring *ring, unsigned nr); - Manually advance the CQ head by nr entries.
 // }
 
-cqe* completed_jobs(UringObject* ring)
+cqe* completed_jobs(Uring* ring)
 /** Return the number of available CQEs. */
 {
     // TODO: Adapt for python + Logic
@@ -24,7 +25,7 @@ cqe* completed_jobs(UringObject* ring)
     return list_of_completed_jobs;
 }
 
-bool is_job_completed(UringObject*  ring, cqe* job)
+bool is_job_completed(Uring*  ring, cqe* job)
 /** Non-blocking check for a completion. Non-blocking*/
 {
     // TODO: Adapt for python + Logic
@@ -36,7 +37,7 @@ bool is_job_completed(UringObject*  ring, cqe* job)
     return false;
 }
 
-cqe* wait(UringtObject* ring, cqe* job)
+cqe* wait(Uring* ring, cqe* job)
 /** Block until a completion queue entry (CQE) is available. */
 {
     if (!ring | !job) {
@@ -46,7 +47,7 @@ cqe* wait(UringtObject* ring, cqe* job)
     io_uring_wait_cqe(&(ring->ring), &cqe)
 }
 
-void ack_job(UringObject* ring, cqe* job)
+void ack_job(Uring* ring, cqe* job)
 /** Mark a CQE as consumed. */ 
 {
     // TODO: Pyton logic
@@ -54,7 +55,7 @@ void ack_job(UringObject* ring, cqe* job)
 }
 
 /* TODO: Build in next versions*/
-// void ack_job(UringObject* ring, )
+// void ack_job(Uring* ring, )
 // /* Manually advance the CQ head by nr entries. */ 
 // {
 //     io_uring_cq_advance(*(ring->ring), unsigned nr);

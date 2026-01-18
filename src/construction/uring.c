@@ -1,9 +1,9 @@
 #include "liburing.h"
-#include "handler.h"
+#include "uring.h"
 
 
 PyObject* uring_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-    PuringObject *self = (PuringObject *) type->tp_alloc(type, 0);
+    Uring *self = (Uring *) type->tp_alloc(type, 0);
     
     if (self != NULL) {
         self->initialized = false;
@@ -18,7 +18,7 @@ PyObject* uring_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 }
 
 
-int uring_init(PuringObject *self, PyObject *args, PyObject *kwds) {
+int uring_init(Uring *self, PyObject *args, PyObject *kwds) {
     /**
         TODO: Write description
     */
@@ -59,6 +59,21 @@ int uring_init(PuringObject *self, PyObject *args, PyObject *kwds) {
     return result; // TEMP: OR return 0?
 }
 
-void uring_close(PuringObject *self) {
+void uring_close(Uring *self) {
     // io_uring_queue_exit(ring);
 }
+
+
+//
+/* Python adaptation*/
+//
+static PyTypeObject UringType = {
+    // TODO: Set properly
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "puring.construction.uring.Uring",
+    .tp_doc = PyDoc_STR("Main Uring object"),
+    .tp_basicsize = sizeof(Uring),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+};

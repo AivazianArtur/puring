@@ -1,6 +1,7 @@
 #pragma once  // Alternative of `include guards (IFNDEF)`
 #include <stdio.h>
 #include <stdint.h>
+#include "registry.h"
 
 /* Structs */
 enum ring_flags
@@ -106,11 +107,11 @@ typedef struct {
     bool initialized;
     int fd;                 // File descriptor
     void *buffer;           // The buffer where Kernel puts data
-} UringObject;
+} Uring;
 
 
 /* Functions */
 PyObject* uring_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
-int uring_init(PuringObject *self, PyObject *args, PyObject *kwargs);
-void uring_close(PuringObject *self);
+int uring_init(Uring *self, PyObject *args, PyObject *kwargs);
+void uring_close(Uring *self);
 
