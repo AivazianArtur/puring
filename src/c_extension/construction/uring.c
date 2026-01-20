@@ -1,5 +1,6 @@
 #include "liburing.h"
 #include "uring.h"
+#include "registry.h"
 
 
 PyObject* uring_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {

@@ -3,7 +3,7 @@
 typedef struct {
     /** Wrapper of liburing's io_uring_sqe with only non-internal fields;  */
 
-    // TODO: For every OPOCODE(operation) create their own function
+    // TODO: For every OPCODE(operation) create their own function
     // TODO: Checking on init
 
     // TODO:
