@@ -20,10 +20,6 @@ PyObject* uring_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 
 
 int uring_init(Uring *self, PyObject *args, PyObject *kwds) {
-    /**
-        TODO: Write description
-    */
-
     memory_params memory_params = NULL;
     ring_initialization_params *params = NULL,
 
