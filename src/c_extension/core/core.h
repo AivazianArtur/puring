@@ -1,9 +1,14 @@
-#pragma once  // Alternative of `include guards (IFNDEF)`
+#pragma once
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 #include <stdio.h>
 #include <stdint.h>
 #include "registry.h"
 
+
 /* Structs */
+/* Ring */
+
 enum ring_flags
 {
     /**
@@ -97,21 +102,23 @@ typedef struct {
 } memory_params;
 
 
-/* Main Objects */
+/* Request Registry */
 
-/* Ring Wrapper*/
 typedef struct {
-    PyObject_HEAD
-    struct io_uring ring;
-    RequestRegistry registry; 
-    bool initialized;
-    int fd;                 // File descriptor
-    void *buffer;           // The buffer where Kernel puts data
-} Uring;
-
+    PyObject **objects;
+    unsigned int size;  // Should match ring entries (e.g., 256)
+} RequestRegistry;
 
 /* Functions */
-PyObject* uring_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
-int uring_init(Uring *self, PyObject *args, PyObject *kwargs);
-void uring_close(Uring *self);
 
+/* Ring */
+void ring_new(void);
+int ring_init(void);
+void ring_close(void);
+
+/* Request Registry */
+int registry_init(RequestRegistry *reg, unsigned int size);
+void registry_free(RequestRegistry *reg);
+int registry_add(RequestRegistry *reg, PyObject *obj);
+PyObject* registry_get(RequestRegistry *reg, int index);
+void registry_remove(RequestRegistry *reg, int index);
