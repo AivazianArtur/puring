@@ -1,4 +1,3 @@
-// (Featrues) Registry
 #include "registry.h"
 
 int registry_init(RequestRegistry *reg, unsigned int size)
