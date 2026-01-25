@@ -31,5 +31,3 @@ PyObject *UringLoop_run(UringLoop *, PyObject *);
 PyObject *UringLoop_stop(UringLoop *, PyObject *);
 PyObject *UringLoop_close(UringLoop *, PyObject *);
 
-// Macros
-#define ASSERT_LOOP_THREAD(loop) // TODO: Check if call is from loop
