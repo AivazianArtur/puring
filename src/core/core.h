@@ -3,6 +3,7 @@
 #include <Python.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "registry.h"
 
 
@@ -103,11 +104,29 @@ typedef struct {
 
 
 /* Request Registry */
-
+// ---------------------------------------------------------
+// 1. The Request Slot (Single Entry)
+// ---------------------------------------------------------
 typedef struct {
-    PyObject **objects;
-    unsigned int size;  // Should match ring entries (e.g., 256)
+    uint64_t user_data;     // We store the Index here for verification
+    PyObject *future;       // The asyncio Future object
+    PyObject *buffer;       // The Python Buffer (bytes/bytearray/memoryview)
+    int opcode;             // Opcode for debugging (IORING_OP_READ, etc.)
+} RequestSlot;
+
+// ---------------------------------------------------------
+// 2. The Registry Manager
+// ---------------------------------------------------------
+typedef struct {
+    RequestSlot *slots;     // The actual array of data
+    
+    // Free List Implementation (O(1) allocation)
+    int *free_indices;      // Stack of available indices
+    int top;                // Stack pointer (index of the top element)
+    
+    unsigned int size;      // Total capacity (e.g., 1024)
 } RequestRegistry;
+
 
 /* Functions */
 
@@ -118,7 +137,13 @@ void ring_close(void);
 
 /* Request Registry */
 int registry_init(RequestRegistry *reg, unsigned int size);
-void registry_free(RequestRegistry *reg);
-int registry_add(RequestRegistry *reg, PyObject *obj);
-PyObject* registry_get(RequestRegistry *reg, int index);
+void registry_destroy(RequestRegistry *reg);
+
+// Returns the index (req_id) to pass to io_uring, or -1 if full.
+int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int opcode);
+
+// Retrieve the slot data using the index (called during completion)
+RequestSlot* registry_get(RequestRegistry *reg, int index);
+
+// Clear the slot and return the index to the free list (called after completion)
 void registry_remove(RequestRegistry *reg, int index);
