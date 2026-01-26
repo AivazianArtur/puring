@@ -44,9 +44,14 @@ PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 
 void UringLoop_dealloc(UringLoop *self)
 {
+    if (self->py_loop) {
+        Py_XDECREF(self->py_loop);
+    }
+
+    ring_destroy(self->ring);
+    registry_destroy(self->registry);
+
     Py_TYPE(self)->tp_free((PyObject *)self);
-    self->py_loop = loop;
-    Py_DECREF(loop);
 }
 
 

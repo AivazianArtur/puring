@@ -33,14 +33,12 @@ RequestRegistry* registry_new(unsigned int size)
 
 void registry_destroy(RequestRegistry *reg)
 {
-    // 1. Clean up any lingering Python objects
     if (reg->slots) {
         for (unsigned int i = 0; i < reg->size; i++) {
-            // Decref Future
             if (reg->slots[i].future) {
                 Py_DECREF(reg->slots[i].future);
             }
-            // Decref Buffer
+
             if (reg->slots[i].buffer) {
                 Py_DECREF(reg->slots[i].buffer);
             }
@@ -48,12 +46,10 @@ void registry_destroy(RequestRegistry *reg)
         free(reg->slots);
     }
 
-    // 2. Free the stack
     if (reg->free_indices) {
         free(reg->free_indices);
     }
     
-    // Reset struct to safe state
     reg->slots = NULL;
     reg->free_indices = NULL;
     reg->size = 0;
@@ -62,28 +58,21 @@ void registry_destroy(RequestRegistry *reg)
 
 int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int opcode) 
 {
-    // 1. Check if we have space
     if (reg->top < 0) {
-        return -1; // Registry is full!
+        return -1;
     }
 
-    // 2. Pop a free index from the stack
     int index = reg->free_indices[reg->top];
     reg->top--;
 
-    // 3. Populate the slot
     RequestSlot *slot = &reg->slots[index];
     
     slot->user_data = (uint64_t)index;
     slot->opcode = opcode;
 
-    // 4. Handle Python Objects (Reference Counting is CRITICAL)
-    
-    // Future: We MUST own it so it doesn't disappear
     slot->future = future;
     Py_INCREF(future); 
 
-    // Buffer: Optional (some ops like Accept don't have a Python buffer yet)
     if (buffer != NULL) {
         slot->buffer = buffer;
         Py_INCREF(buffer);
@@ -91,7 +80,7 @@ int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int o
         slot->buffer = NULL;
     }
 
-    return index; // This index goes into sqe->user_data
+    return index;
 }
 
 RequestSlot* registry_get(RequestRegistry *reg, int index) 
