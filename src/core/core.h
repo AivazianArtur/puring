@@ -1,15 +1,18 @@
 #pragma once
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+#include "liburing.h"
 #include "registry.h"
 
 
 /* Structs */
-/* Ring */
 
+/* Ring */
 enum ring_flags
 {
     /**
@@ -37,7 +40,7 @@ enum ring_flags
     SQE_MIXED,  // (1U << 19)
 }
 
-
+io_uring_params
 enum ring_features
 {
     /**
@@ -91,7 +94,8 @@ typedef struct
 } ring_initialization_params;
 
 
-typedef struct {
+typedef struct 
+{
     void *user_buf;
     size_t user_buf_size;
 
@@ -104,9 +108,7 @@ typedef struct {
 
 
 /* Request Registry */
-// ---------------------------------------------------------
-// 1. The Request Slot (Single Entry)
-// ---------------------------------------------------------
+#define DEFAULT_REGISTRY_SIZE = 128 
 typedef struct {
     uint64_t user_data;     // We store the Index here for verification
     PyObject *future;       // The asyncio Future object
@@ -114,9 +116,6 @@ typedef struct {
     int opcode;             // Opcode for debugging (IORING_OP_READ, etc.)
 } RequestSlot;
 
-// ---------------------------------------------------------
-// 2. The Registry Manager
-// ---------------------------------------------------------
 typedef struct {
     RequestSlot *slots;     // The actual array of data
     
@@ -131,12 +130,12 @@ typedef struct {
 /* Functions */
 
 /* Ring */
-void ring_new(void);
+io_uring* ring_new(void);
 int ring_init(void);
-void ring_close(void);
+void ring_destroy(void);
 
 /* Request Registry */
-int registry_init(RequestRegistry *reg, unsigned int size);
+RequestRegistry* registry_new(unsigned int size);
 void registry_destroy(RequestRegistry *reg);
 
 // Returns the index (req_id) to pass to io_uring, or -1 if full.

@@ -1,24 +1,19 @@
-#include "liburing.h"
-#include "uring.h"
-#include "registry.h"
+#include "core.h"
 
+io_uring* ring_new(void) {
+    struct io_uring ring;
+    struct io_uring_params p;
 
-void ring_new(void) {
-    Uring *self = (Uring *) type->tp_alloc(type, 0);
-    
-    if (self != NULL) {
-        self->initialized = false;
-        
-        memset(&self->ring, 0, sizeof(struct io_uring));
-        
-        self->registry.objects = NULL;
-        self->registry.size = 0;
+    if (io_uring_queue_init(8, &ring, 0) < 0) {
+        perror("io_uring_queue_init");
+        return 1;
     }
-    return (PyObject *) self;  //  <--TypeCasting
+    return ring;
 }
 
 
 int ring_init(void) {
+
     memory_params memory_params = NULL;
     ring_initialization_params *params = NULL,
 
@@ -55,6 +50,6 @@ int ring_init(void) {
     return result; // TEMP: OR return 0?
 }
 
-void ring_close() {
-    // io_uring_queue_exit(ring);
+void ring_destroy(io_uring* ring) {
+    io_uring_queue_exit(ring);
 }
