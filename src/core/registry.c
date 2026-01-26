@@ -1,31 +1,38 @@
-#include "registry.h"
+#include "core.h"
 
 
-int registry_init(RequestRegistry *reg, unsigned int size) {
-    // 1. Allocate the slots (The data)
-    reg->slots = calloc(size, sizeof(RequestSlot));
-    if (!reg->slots) return -1;
-
-    // 2. Allocate the Free List (The stack of available IDs)
-    reg->free_indices = malloc(size * sizeof(int));
-    if (!reg->free_indices) {
-        free(reg->slots);
-        return -1;
+RequestRegistry* registry_new(unsigned int size) 
+{
+    RequestRegistry* registry = malloc(sizeof(RequestRegistry));
+    if (!registry) {
+        perror("Cant allocate memory while creating registry");
+        return NULL;
     }
 
-    // 3. Fill the Free List
-    // Initially, ALL indices (0 to size-1) are free.
+    registry->slots = calloc(size, sizeof(RequestSlot));
+    if (!registry->slots) {
+        size = DEFAULT_REGISTRY_SIZE;
+    }
+
+    registry->free_indices = malloc(size * sizeof(int));
+    if (!registry->free_indices) {
+        free(registry->slots);
+        perror("Cant allocate memory for `free_indices` while creating registry");
+        return NULL;
+    }
+
     for (int i = 0; i < size; i++) {
-        reg->free_indices[i] = i;
+        registry->free_indices[i] = i;
     }
     
-    reg->top = size - 1; // Point to the last element
-    reg->size = size;
+    registry->top = size - 1;
+    registry->size = size;
 
-    return 0;
+    return registry;
 }
 
-void registry_destroy(RequestRegistry *reg) {
+void registry_destroy(RequestRegistry *reg)
+{
     // 1. Clean up any lingering Python objects
     if (reg->slots) {
         for (unsigned int i = 0; i < reg->size; i++) {
@@ -53,7 +60,8 @@ void registry_destroy(RequestRegistry *reg) {
     reg->top = -1;
 }
 
-int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int opcode) {
+int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int opcode) 
+{
     // 1. Check if we have space
     if (reg->top < 0) {
         return -1; // Registry is full!
@@ -86,7 +94,8 @@ int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int o
     return index; // This index goes into sqe->user_data
 }
 
-RequestSlot* registry_get(RequestRegistry *reg, int index) {
+RequestSlot* registry_get(RequestRegistry *reg, int index) 
+{
     if (index < 0 || index >= reg->size) {
         return NULL;
     }
@@ -95,7 +104,8 @@ RequestSlot* registry_get(RequestRegistry *reg, int index) {
     return &reg->slots[index];
 }
 
-void registry_remove(RequestRegistry *reg, int index) {
+void registry_remove(RequestRegistry *reg, int index) 
+{
     if (index < 0 || index >= reg->size) return;
 
     RequestSlot *slot = &reg->slots[index];

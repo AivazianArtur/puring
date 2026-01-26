@@ -1,36 +1,116 @@
 #include "loop.h"
 #include "macroses.c"
+#include "core/core.h"
 
 
-PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+static *PyObject
+PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
+    static char *kwlist[] = {"registry_size", NULL};
+    int registry_size;
 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &registry_size))
+        registry_size = NULL;
+
+    io_uring* ring = ring_new();
+    if (!uring_loop) {
+        perror("Error while allocating memory for ring");
+        return NULL;
+    }
+
+    RequestRegistry* registry = registry_new(registry_size);
+    if (!uring_loop) {
+        perror("Error while allocating memory for registry");
+        ring_destroy(void);
+        return NULL;
+    }
+
+    UringLoop *uring_loop = (UringLoop *)PyObject_New(UringLoop, &UringLoopType);
+    if (!uring_loop) {
+        perror("Error while allocating memory for loop wrapper");
+        ring_destroy(void);
+        registry_destroy(registry);
+        return NULL;
+    }
+
+    uring_loop->ring = ring;
+    uring_loop->registry = registry;
+    uring_loop->initializaed = false;
+    uring_loop->closing = false;
+
+    return (PyObject *)uring_loop;
 }
 
-void UringLoop_dealloc(UringLoop *self);
-{
 
+void UringLoop_dealloc(UringLoop *self)
+{
+    Py_TYPE(self)->tp_free((PyObject *)self);
+    self->py_loop = loop;
+    Py_DECREF(loop);
 }
 
 
-int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs);
+int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
+{
+    ///
+    // self->py_loop = loop;
+    // Py_INCREF(loop);
+    ///
+    ASSERT_LOOP_THREAD(self);
+
+    memory_params memory_params = NULL;
+    ring_initialization_params *params = NULL,
+
+    static char *kwlist[] = {"memory_params", "ring_initialization_parans", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Ii", kwlist, &memory_params, &ring_initialization_params))
+        return -1;
+
+    // TODO: 1 - Serialize args
+    // TODO: 2 - Initialize the Shadow Registry, if err - PyErr_NoMemory();
+    // TODO: 3 - Route initialization
+
+    if (memory_params) {
+        // TODO
+        if (!params) {
+            params = {0}
+        }
+        result = io_uring_queue_init_mem(),  // TODO: Good name, not `resutlt`
+    }
+    else if (params) {
+        // TODO
+        result = io_uring_queue_init_params(8, ring, params);
+    }
+    else {
+        result = io_uring_queue_init(0, ring, 0);
+    }
+    
+    if (result < 0) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+    self->initialized = true;
+    return result; // TEMP: OR return 0?
+}
+
+
+PyObject *UringLoop_run(UringLoop self*, PyObject *args)
+{
+    ASSERT_LOOP_THREAD(self);
+
+    // io_uring_wait_cqe
+    // registry_get
+    // io_uring_cqe_seen();
+    // Future.set_result();
+}
+
+PyObject *UringLoop_stop(UringLoop *self, PyObject *args)
 {
     ASSERT_LOOP_THREAD(self);
 }
 
-
-
-PyObject *UringLoop_run(UringLoop self*, PyObject *args);
-{
-    ASSERT_LOOP_THREAD(self);
-}
-
-PyObject *UringLoop_stop(UringLoop *self, PyObject *args);
-{
-    ASSERT_LOOP_THREAD(self);
-}
-
-PyObject *UringLoop_close(UringLoop *self, PyObject *args);
+PyObject *UringLoop_close(UringLoop *self, PyObject *args)
 {
     ASSERT_LOOP_THREAD(self);
 }
@@ -69,11 +149,11 @@ static PyMethodDef uring_loop_methods[] = {
 static int
 uring_loop_module_exec(PyObject *m)
 {
-    if (PyType_Ready(&UringType) < 0) {
+    if (PyType_Ready(&UringLoopType) < 0) {
         return -1;
     }
 
-    if (PyModule_AddObjectRef(m, "uring", (PyObject *) &UringType) < 0) {
+    if (PyModule_AddObjectRef(m, "uring", (PyObject *) &UringLoopType) < 0) {
         return -1;
     }
 
