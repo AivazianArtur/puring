@@ -9,9 +9,13 @@ RequestRegistry* registry_new(unsigned int size)
         return NULL;
     }
 
-    registry->slots = calloc(size, sizeof(RequestSlot));
     if (!registry->slots) {
         size = DEFAULT_REGISTRY_SIZE;
+    }
+    registry->slots = calloc(size, sizeof(RequestSlot));
+    if (!(registry->slots)) {
+        perror("Cant allocate memory while creating registry");
+        return NULL;
     }
 
     registry->free_indices = malloc(size * sizeof(int));

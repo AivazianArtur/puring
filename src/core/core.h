@@ -91,7 +91,7 @@ typedef struct
     uint32_t linked_ring; // wq_fd  File descriptor of another io_uring, Used with IORING_SETUP_ATTACH_WQ
     offset sqring_offsets;
     offset cqring_offsets;
-} ring_initialization_params;
+} ring_init_params;
 
 
 typedef struct 
