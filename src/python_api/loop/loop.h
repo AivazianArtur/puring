@@ -31,3 +31,7 @@ PyObject *UringLoop_run(UringLoop *, PyObject *);
 PyObject *UringLoop_stop(UringLoop *, PyObject *);
 PyObject *UringLoop_close(UringLoop *, PyObject *);
 
+// Helpers
+PyObject* _set_loop(void);
+int _parse_memory_params(PyObject *obj, memory_params *out);
+int _parse_ring_init_params(PyObject *obj, ring_initialization_params *out);
