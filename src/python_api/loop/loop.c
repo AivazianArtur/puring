@@ -3,17 +3,16 @@
 #include "core/core.h"
 
 
-static *PyObject
-PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+static PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = {"registry_size", NULL};
     int registry_size;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &registry_size))
-        registry_size = NULL;
+        registry_size = 0;
 
-    io_uring* ring = ring_new();
-    if (!uring_loop) {
+    io_uring* ring = malloc(sizeof(io_uring));
+    if (!ring) {
         PyErr_NoMemory("Error while allocating memory for ring");
         return NULL;
     }
@@ -33,9 +32,9 @@ PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    PyObject* python_loop = _set_loop(void);
+    PyObject* python_loop = _set_loop();
     if (!python_loop) {
-        // Log already inside func
+        PyErr_SetString(PyExc_TypeError, "Error while creating loop");
         ring_destroy(ring);
         registry_destroy(registry);
         Py_TYPE(uring_loop)->tp_free((PyObject *)uring_loop);
@@ -46,29 +45,33 @@ PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     uring_loop->ring = ring;
     uring_loop->registry = registry;
     uring_loop->py_loop = python_loop;
-    uring_loop->initializaed = false;
+    uring_loop->initialized = false;
     uring_loop->closing = false;
 
     return (PyObject *)uring_loop;
 }
 
-
-void UringLoop_dealloc(UringLoop *self)
+static void UringLoop_dealloc(UringLoop *self)
 {
     ASSERT_LOOP_THREAD(self);
-    uring_loop->closing = true;
+
+    self->closing = true;
     if (self->py_loop) {
         Py_XDECREF(self->py_loop);
     }
 
-    ring_destroy(self->ring);
-    registry_destroy(self->registry);
+    if (self->ring) {
+        ring_destroy(self->ring);
+    }
+    if (self->registry) {
+        registry_destroy(self->registry);
+    }
 
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 
-int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
+static int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self);
 

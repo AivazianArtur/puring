@@ -1,5 +1,6 @@
 #pragma once
 #define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
 
 #include <stdio.h>
@@ -108,7 +109,7 @@ typedef struct
 
 
 /* Request Registry */
-#define DEFAULT_REGISTRY_SIZE = 128 
+#define DEFAULT_REGISTRY_SIZE 128 
 typedef struct {
     uint64_t user_data;     // We store the Index here for verification
     PyObject *future;       // The asyncio Future object
@@ -130,9 +131,8 @@ typedef struct {
 /* Functions */
 
 /* Ring */
-io_uring* ring_new(void);
-int ring_init(void);
-void ring_destroy(void);
+int ring_init(memory_params *memory_params, ring_init_params *params);
+void ring_destroy(io_uring* ring);
 
 /* Request Registry */
 RequestRegistry* registry_new(unsigned int size);

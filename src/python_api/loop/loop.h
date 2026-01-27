@@ -23,9 +23,9 @@ typedef struct {
 
 
 /* Functions */
-PyObject *UringLoop_new(PyTypeObject *, PyObject *, PyObject *);
-int UringLoop_init(UringLoop *, PyObject *, PyObject *);
-void UringLoop_dealloc(UringLoop *);
+static PyObject *UringLoop_new(PyTypeObject *, PyObject *, PyObject *);
+static int UringLoop_init(UringLoop *, PyObject *, PyObject *);
+static void UringLoop_dealloc(UringLoop *);
 
 PyObject *UringLoop_run(UringLoop *, PyObject *);
 PyObject *UringLoop_stop(UringLoop *, PyObject *);

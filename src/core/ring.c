@@ -1,16 +1,5 @@
 #include "core.h"
 
-io_uring* ring_new(void) {
-    struct io_uring ring;
-    struct io_uring_params p;
-
-    if (io_uring_queue_init(8, &ring, 0) < 0) {
-        perror("io_uring_queue_init");
-        return 1;
-    }
-    return ring;
-}
-
 
 int ring_init(memory_params *memory_params, ring_init_params *params)
 {

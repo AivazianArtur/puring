@@ -1,51 +1,24 @@
 #include "loop.h"
 
-
 PyObject* _set_loop(void)
 {
     PyObject *asyncio = PyImport_ImportModule("asyncio");
-    if (!asyncio) {
-        PyErr_SetString(PyExc_TypeError, "Cant import asyncio");
-        ring_destroy(self->ring);
-        registry_destroy(self->registry);
-        Py_TYPE(self)->tp_free((PyObject *)self);
-        return NULL;
-    }
+    if (!asyncio) return NULL;
 
     PyObject *new_loop_fn = PyObject_GetAttrString(asyncio, "new_event_loop");
     PyObject *loop = PyObject_CallNoArgs(new_loop_fn);
     Py_DECREF(new_loop_fn);
-
-    if (!loop) {
-        PyErr_SetString(PyExc_TypeError, "Loop is not created");
-        ring_destroy(self->ring);
-        registry_destroy(self->registry);
-        Py_TYPE(self)->tp_free((PyObject *)self);
-        Py_DECREF(loop);
-        Py_DECREF(asyncio);
-        return NULL;
-    }
-
-    PyObject *set_loop_fn = PyObject_GetAttrString(asyncio, "set_event_loop");
-    PyObject *args = PyTuple_Pack(1, loop);
-    PyObject *res = PyObject_CallObject(set_loop_fn, args);
-
-    Py_DECREF(args);
-    Py_DECREF(set_loop_fn);
     Py_DECREF(asyncio);
 
-    if (!res) {
-        PyErr_SetString(PyExc_TypeError, "Loop is not created");
-        ring_destroy(self->ring);
-        registry_destroy(self->registry);
-        Py_TYPE(self)->tp_free((PyObject *)self);
-        Py_DECREF(loop);
-        return NULL;
-    }
-    Py_DECREF(res);
+    if (!loop) return NULL;
 
-    // Here derefing to ref on next step for clear owneship
-    Py_DECREF(loop);
+    PyObject *set_loop_fn = PyObject_GetAttrString(PyImport_ImportModule("asyncio"), "set_event_loop");
+    PyObject *args = PyTuple_Pack(1, loop);
+    PyObject *res = PyObject_CallObject(set_loop_fn, args);
+    Py_DECREF(set_loop_fn);
+    Py_DECREF(args);
+    Py_XDECREF(res);
+
     return loop;
 }
 
