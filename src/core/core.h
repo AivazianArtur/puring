@@ -134,15 +134,11 @@ typedef struct {
 int ring_init(memory_params *memory_params, ring_init_params *params);
 void ring_destroy(io_uring* ring);
 
-/* Request Registry */
 RequestRegistry* registry_new(unsigned int size);
 void registry_destroy(RequestRegistry *reg);
 
-// Returns the index (req_id) to pass to io_uring, or -1 if full.
 int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int opcode);
 
-// Retrieve the slot data using the index (called during completion)
 RequestSlot* registry_get(RequestRegistry *reg, int index);
 
-// Clear the slot and return the index to the free list (called after completion)
 void registry_remove(RequestRegistry *reg, int index);

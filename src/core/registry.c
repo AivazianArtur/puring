@@ -9,7 +9,7 @@ RequestRegistry* registry_new(unsigned int size)
         return NULL;
     }
 
-    if (!registry->slots) {
+    if (size == 0) {
         size = DEFAULT_REGISTRY_SIZE;
     }
     registry->slots = calloc(size, sizeof(RequestSlot));
@@ -113,6 +113,9 @@ void registry_remove(RequestRegistry *reg, int index)
         slot->buffer = NULL;
     }
 
+    if (slot->opcode) {
+        slot->opcode = NULL;
+    }
     // 2. Push index back onto the Free List Stack
     // (We know top < size because we just freed one)
     reg->top++;
