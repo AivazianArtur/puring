@@ -6,8 +6,6 @@
 
 #include "liburing.h"
 
-#include "core/core.h"
-
 
 /* Functions */
 int open_file(int dfd, struct io_uring *ring, const char *path);

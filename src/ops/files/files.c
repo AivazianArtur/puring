@@ -46,7 +46,7 @@ int read(
     return 0;
 }
 
-void write(int fd, struct io_uring *ring, const void *buf)
+int write(int fd, struct io_uring *ring, const void *buf)
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
     if (!sqe) {
@@ -61,7 +61,7 @@ void write(int fd, struct io_uring *ring, const void *buf)
     return 0;
 }
 
-void close(int fd, struct io_uring *ring)
+int close(int fd, struct io_uring *ring)
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
     if (!sqe) {
@@ -77,7 +77,7 @@ void close(int fd, struct io_uring *ring)
     return 0;
 }
 
-void stat(
+int stat(
     int dfd,
     struct io_uring *ring,
     const char *path,
@@ -100,7 +100,7 @@ void stat(
     return 0;
 }
 
-void fsync(
+int fsync(
     int fd, 
     struct io_uring *ring,
     // unsigned fsync_flags,  TODO
@@ -119,3 +119,7 @@ void fsync(
     io_uring_submit(&ring);
     return 0;
 }
+
+// TODO: Vector ops
+// io_uring_prep_sendmsg
+// io_uring_prep_recvmsg
