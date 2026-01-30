@@ -21,6 +21,7 @@ int tcp_socket(struct io_uring *ring)
     return 0;
 }
 
+
 int udp_socket(struct io_uring *ring)
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -40,6 +41,7 @@ int udp_socket(struct io_uring *ring)
     io_uring_submit(ring);
     return 0;
 }
+
 
 int unix_stream(struct io_uring *ring)
 {
@@ -61,6 +63,7 @@ int unix_stream(struct io_uring *ring)
     return 0;
 }
 
+
 int unix_dgram(struct io_uring *ring)
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -80,7 +83,6 @@ int unix_dgram(struct io_uring *ring)
     io_uring_submit(ring);
     return 0;
 }
-
 
 
 int bind(
@@ -104,6 +106,7 @@ int bind(
     return 0;
 }
 
+
 int listen(
     struct io_uring *ring,
     int fd,
@@ -123,6 +126,7 @@ int listen(
     return 0;
 }
 
+
 int connect(
     struct io_uring *ring,
     int fd,
@@ -134,6 +138,11 @@ int connect(
     if (!sqe) {
         fprintf(stderr, "SQE is not available\n");
         return -1;
+        
+
+
+
+
     }
 
     io_uring_prep_connect(sqe, fd, addr, addrlen);
@@ -142,6 +151,7 @@ int connect(
     io_uring_submit(ring);
     return 0;
 }
+
 
 int send(
     struct io_uring *ring,
@@ -163,6 +173,7 @@ int send(
     io_uring_submit(ring);
     return 0;
 }
+
 
 int recv(
     struct io_uring *ring,
@@ -186,6 +197,7 @@ int recv(
 
 }
 
+
 int accept(
     struct io_uring *ring,
     int sockfd,
@@ -207,6 +219,7 @@ int accept(
     return 0;
 
 }
+
 
 int close(
     struct io_uring *ring,

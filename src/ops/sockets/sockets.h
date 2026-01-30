@@ -8,10 +8,12 @@
 
 
 /* Functions */
+// Init functions - their Future become socket, so next works with socket
 int tcp_socket(struct io_uring *ring);
 int udp_socket(struct io_uring *ring);
 int unix_stream(struct io_uring *ring);
 int unix_dgram(struct io_uring *ring);
+
 
 int bind(
     struct io_uring *ring,

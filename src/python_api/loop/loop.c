@@ -53,8 +53,6 @@ static PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwa
 
 static void UringLoop_dealloc(UringLoop *self)
 {
-    ASSERT_LOOP_THREAD(self);
-
     self->closing = true;
     if (self->py_loop) {
         Py_XDECREF(self->py_loop);
@@ -97,21 +95,6 @@ static int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
     return 0;
 }
 
-
-PyObject *UringLoop_run(UringLoop self*, PyObject *args)
-{
-    ASSERT_LOOP_THREAD(self);
-
-    // io_uring_wait_cqe
-    // registry_get
-    // io_uring_cqe_seen();
-    // Future.set_result();
-}
-
-PyObject *UringLoop_stop(UringLoop *self, PyObject *args)
-{
-    ASSERT_LOOP_THREAD(self);
-}
 
 PyObject *UringLoop_close(UringLoop *self, PyObject *args)
 {
