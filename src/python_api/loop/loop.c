@@ -51,23 +51,6 @@ static PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwa
     return (PyObject *)uring_loop;
 }
 
-static void UringLoop_dealloc(UringLoop *self)
-{
-    self->closing = true;
-    if (self->py_loop) {
-        Py_XDECREF(self->py_loop);
-    }
-
-    if (self->ring) {
-        ring_destroy(self->ring);
-    }
-    if (self->registry) {
-        registry_destroy(self->registry);
-    }
-
-    Py_TYPE(self)->tp_free((PyObject *)self);
-}
-
 
 static int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 {
@@ -93,6 +76,24 @@ static int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 
     self->initialized = true;
     return 0;
+}
+
+
+static void UringLoop_dealloc(UringLoop *self)
+{
+    self->closing = true;
+    if (self->py_loop) {
+        Py_XDECREF(self->py_loop);
+    }
+
+    if (self->ring) {
+        ring_destroy(self->ring);
+    }
+    if (self->registry) {
+        registry_destroy(self->registry);
+    }
+
+    Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 

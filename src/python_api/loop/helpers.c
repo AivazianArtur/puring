@@ -61,7 +61,7 @@ int _parse_memory_params(PyObject *obj, memory_params *out)
 }
 
 
-int _parse_ring_init_params(PyObject *obj, ring_initialization_params *out)
+int _parse_ring_init_params(PyObject *obj, ring_init_params *out)
 {
     PyObject *v;
 

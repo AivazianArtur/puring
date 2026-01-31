@@ -5,6 +5,7 @@
 #include <linux/openat2.h>
 
 #include "liburing.h"
+#include "loop.h"
 
 
 /* Functions */
@@ -22,17 +23,20 @@ int bind(
     socklen_t addrlen, 
     const void *buf,
 );
+
 int listen(
     struct io_uring *ring,
     int fd,
     int backlog,
 );
+
 int connect(
     struct io_uring *ring,
     int fd,
     const struct sockaddr *addr, 
     socklen_t addrlen,
 );
+
 int send(
     struct io_uring *ring,
     int sockfd,
@@ -40,6 +44,7 @@ int send(
     size_t len,
     int flags,
 );
+
 int recv(
     struct io_uring *ring,
     int sockfd,
@@ -47,6 +52,7 @@ int recv(
     size_t len,
     int flags,
 );
+
 int accept(
     struct io_uring *ring,
     int sockfd,
@@ -54,6 +60,7 @@ int accept(
     size_t len,
     int flags,
 );
+
 int close(
     struct io_uring *ring,
     int fd,
