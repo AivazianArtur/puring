@@ -1,5 +1,4 @@
 #include "files.h"
-// TODO: Opcodes now only for x86_64, need to adapt for x32 and arm
 
 
 static PyObject*
@@ -11,17 +10,18 @@ UringLoop_open(
 {
     ASSERT_LOOP_THREAD(self);
 
-    int *dfd = NULL;
-    static char *path = NULL;
+    int dfd = NULL;
+    static char path = NULL;
 
     static char *kwlist[] = {"dfd", "path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &dfd, &path))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, dfd, path))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
     PyObject *future = create_future(loop);
     if (!future) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
     }
 
@@ -53,10 +53,10 @@ UringLoop_read(
 {
     ASSERT_LOOP_THREAD(self);
 
-    int *fd = NULL;
+    int fd = NULL;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -64,6 +64,7 @@ UringLoop_read(
     PyObject *future = create_future(loop);
     if (!future) {
         return NULL;
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
     }
 
     int opcode = IORING_OP_READ;
@@ -93,16 +94,17 @@ UringLoop_write(
 {
     ASSERT_LOOP_THREAD(self);
 
-    int *fd = NULL;
+    int fd = NULL;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
     PyObject *future = create_future(loop);
     if (!future) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
     }
 
@@ -134,16 +136,17 @@ UringLoop_close(
 {
     ASSERT_LOOP_THREAD(self);
 
-    int *fd = NULL;
+    int fd = NULL;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
     PyObject *future = create_future(loop);
     if (!future) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
     }
 
@@ -175,17 +178,18 @@ UringLoop_stat(
 {
     ASSERT_LOOP_THREAD(self);
 
-    int *dfd = NULL;
-    static char *path = NULL;
+    int dfd = NULL;
+    static char path = NULL;
 
     static char *kwlist[] = {"dfd", "path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &dfd, &path))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, dfd, path))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
     PyObject *future = create_future(loop);
     if (!future) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
     }
 
@@ -217,16 +221,17 @@ UringLoop_fsync(
 {
     ASSERT_LOOP_THREAD(self);
 
-    int *fd = NULL;
+    int fd = NULL;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
     PyObject *future = create_future(loop);
     if (!future) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
     }
 

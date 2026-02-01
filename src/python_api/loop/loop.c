@@ -3,7 +3,8 @@
 #include "core/core.h"
 
 
-static PyObject *UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+static PyObject*
+UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = {"registry_size", NULL};
     int registry_size;
@@ -60,14 +61,13 @@ static int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
     PyObject *ring_init_params_obj = NULL;
 
     static char *kwlist[] = {"memory_params", "ring_init_params", NULL};
-    PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist, &memory_params_obj, &ring_init_params_obj);
+    PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist, &memory_params_obj, &ring_init_params_obj);
 
     memory_params *memory_params = NULL;
     ring_init_params *params = NULL;
 
-    _parse_memory_params(memory_params_obj, &mem);
-    _parse_ring_init_params(ring_init_params_obj, &ring);
-    
+    _parse_memory_params(memory_params_obj, &memory_params);
+    _parse_ring_init_params(ring_init_params_obj, &params);
    
     if (ring_init(&memory_params, &params) < 0) {
         PyErr_SetFromErrno(PyExc_OSError);

@@ -1,7 +1,8 @@
 #include "sockets.h"
 
 
-int tcp_socket(struct io_uring *ring) 
+
+int tcp_socket(struct io_uring *ring, int request_idx) 
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     if (!sqe) {
@@ -16,13 +17,15 @@ int tcp_socket(struct io_uring *ring)
 
     io_uring_prep_socket(sqe, domain, type, protocol, flags);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }
 
 
-int udp_socket(struct io_uring *ring)
+int udp_socket(struct io_uring *ring, int request_idx)
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     if (!sqe) {
@@ -37,13 +40,15 @@ int udp_socket(struct io_uring *ring)
 
     io_uring_prep_socket(sqe, domain, type, protocol, flags);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }
 
 
-int unix_stream(struct io_uring *ring)
+int unix_stream(struct io_uring *ring, int request_idx)
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     if (!sqe) {
@@ -58,13 +63,15 @@ int unix_stream(struct io_uring *ring)
 
     io_uring_prep_socket(sqe, domain, type, protocol, flags);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }
 
 
-int unix_dgram(struct io_uring *ring)
+int unix_dgram(struct io_uring *ring, int request_idx)
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     if (!sqe) {
@@ -79,7 +86,9 @@ int unix_dgram(struct io_uring *ring)
 
     io_uring_prep_socket(sqe, domain, type, protocol, flags);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }
@@ -87,6 +96,7 @@ int unix_dgram(struct io_uring *ring)
 
 int bind(
     struct io_uring *ring,
+    int request_idx,
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen, 
@@ -101,7 +111,9 @@ int bind(
 
     io_uring_prep_bind(sqe, fd, addr, addrlen);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }
@@ -109,6 +121,7 @@ int bind(
 
 int listen(
     struct io_uring *ring,
+    int request_idx,
     int fd,
     int backlog,
 )
@@ -121,7 +134,9 @@ int listen(
 
     io_uring_prep_listen(sqe, fd, backlog);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }
@@ -129,6 +144,7 @@ int listen(
 
 int connect(
     struct io_uring *ring,
+    int request_idx,
     int fd,
     const struct sockaddr *addr, 
     socklen_t addrlen,
@@ -138,16 +154,13 @@ int connect(
     if (!sqe) {
         fprintf(stderr, "SQE is not available\n");
         return -1;
-        
-
-
-
-
     }
 
     io_uring_prep_connect(sqe, fd, addr, addrlen);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }
@@ -155,6 +168,7 @@ int connect(
 
 int send(
     struct io_uring *ring,
+    int request_idx,
     int sockfd,
     const void *buf,
     size_t len,
@@ -169,7 +183,9 @@ int send(
 
     io_uring_prep_send(sqe, sockfd, buf, len, flags);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }
@@ -177,6 +193,7 @@ int send(
 
 int recv(
     struct io_uring *ring,
+    int request_idx,
     int sockfd,
 	void *buf,
     size_t len,
@@ -191,15 +208,17 @@ int recv(
 
     io_uring_prep_recv(sqe, sockfd, buf, len, flags);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
-
 }
 
 
 int accept(
     struct io_uring *ring,
+    int request_idx,
     int sockfd,
 	void *buf,
     size_t len,
@@ -214,16 +233,18 @@ int accept(
 
     io_uring_prep_accept(sqe, sockfd, buf, len, flags);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
-
 }
 
 
 int close(
     struct io_uring *ring,
-    int fd,
+    int request_idx,
+    int sockfd,
 ) 
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -232,12 +253,13 @@ int close(
         return -1;
     }
 
-    io_uring_prep_close(sqe, fd);
+    io_uring_prep_close(sqe, sockfd);
 
-    io_uring_sqe_set_data(sqe, NULL);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
-
 }
 
 // TOOD
