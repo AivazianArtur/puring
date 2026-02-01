@@ -77,12 +77,8 @@ int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int o
     slot->future = future;
     Py_INCREF(future); 
 
-    if (buffer != NULL) {
-        slot->buffer = buffer;
-        Py_INCREF(buffer);
-    } else {
-        slot->buffer = NULL;
-    }
+    slot->buffer = buffer;
+    if (buffer != NULL) Py_INCREF(buffer);
 
     return index;
 }

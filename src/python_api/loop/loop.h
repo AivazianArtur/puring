@@ -6,6 +6,9 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
+#include "future.h"
+
+
 typedef struct RequestRegistry RequestRegistry;
 
 /* Objects */

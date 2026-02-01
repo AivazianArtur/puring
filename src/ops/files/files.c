@@ -2,8 +2,9 @@
 
 
 int open_file(
-    int dfd,
     struct io_uring *ring,
+    int request_idx,
+    int dfd,
     const char *path,
     // int flags,  TODO
 	// mode_t mode
@@ -20,7 +21,10 @@ int open_file(
     };
 
     io_uring_prep_openat2(sqe, dfd, path, how);
-    io_uring_sqe_set_data(sqe, NULL);
+
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
     io_uring_submit(ring);
     return 0;
 }

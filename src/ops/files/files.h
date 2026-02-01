@@ -8,7 +8,7 @@
 
 
 /* Functions */
-int open_file(int dfd, struct io_uring *ring, const char *path);
+int open_file(struct io_uring *ring, int request_idx, int dfd, const char *path);
 
 int read(int fd, struct io_uring *ring, const void *buf);
 int write(int fd, struct io_uring *ring, const void *buf);

@@ -9,43 +9,43 @@
 #include "loop.h"
 
 
-static PyObject *UringLoop_open(
-    UringLoop* loop, 
+static PyObject* 
+UringLoop_open(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static int UringLoop_read(
-    UringLoop* loop, 
+static PyObject*
+UringLoop_read(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static void UringLoop_write(
-    UringLoop* loop, 
+static PyObject*
+UringLoop_write(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static PyObject *UringLoop_close(
-    UringLoop* loop, 
+static PyObject*
+UringLoop_close(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static int UringLoop_stat(
-    UringLoop* loop, 
+static PyObject*
+UringLoop_stat(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static void UringLoop_fsync(
-    UringLoop* loop, 
+static PyObject*
+UringLoop_fsync(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,

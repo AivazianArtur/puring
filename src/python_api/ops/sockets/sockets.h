@@ -19,81 +19,80 @@ typedef struct {
 } UringSocket;
 
 
-UringSocket *UringLoop_tcp_socket(
-    UringLoop* loop, 
+static PyObject* 
+UringLoop_tcp_socket(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-UringSocket *UringLoop_udp_socket(
-    UringLoop* loop, 
+static PyObject* 
+UringLoop_udp_socket(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-UringSocket *UringLoop_unix_stream(
-    UringLoop* loop, 
+static PyObject* 
+UringLoop_unix_stream(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-UringSocket *UringLoop_unix_dgram(
-    UringLoop* loop, 
+static PyObject* 
+UringLoop_unix_dgram(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
 
-static PyObject *UringSocket_bind(
-    UringSocket* socket, 
+static PyObject* 
+UringSocket_bind(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static PyObject *UringSocket_listen(
-    UringSocket* socket, 
+static PyObject* 
+UringSocket_listen(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static PyObject *UringSocket_connect(
-    UringSocket* socket, 
+static PyObject* 
+UringSocket_connect(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static PyObject *UringSocket_send(
-    UringSocket* socket, 
+static PyObject* 
+UringSocket_send(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static PyObject *UringSocket_recv(
-    UringSocket* socket, 
+static PyObject* 
+UringSocket_recv(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static PyObject *UringSocket_accept(
-    UringSocket* socket, 
+static PyObject* 
+UringSocket_accept(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
 
-static PyObject *UringSocket_close(
-    UringSocket* socket, 
+static PyObject* 
+UringSocket_close(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs,
 );
-
