@@ -52,8 +52,8 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     return (PyObject *)uring_loop;
 }
 
-
-static int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
+static PyObject*
+UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self);
 
@@ -79,7 +79,8 @@ static int UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 }
 
 
-static void UringLoop_dealloc(UringLoop *self)
+static PyObject*
+UringLoop_dealloc(UringLoop *self)
 {
     self->closing = true;
     if (self->py_loop) {
@@ -97,7 +98,8 @@ static void UringLoop_dealloc(UringLoop *self)
 }
 
 
-PyObject *UringLoop_close(UringLoop *self, PyObject *args)
+PyObject*
+UringLoop_close_loop(UringLoop *self, PyObject *args)
 {
     ASSERT_LOOP_THREAD(self);
 }
@@ -107,7 +109,6 @@ PyObject *UringLoop_close(UringLoop *self, PyObject *args)
 /* Python adaptation*/
 //
 static PyTypeObject UringLoopType = {
-    // TODO: Set properly
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "puring.src.python_api.loop.UringLoop",
     .tp_doc = PyDoc_STR("Rings with python loop"),
@@ -117,18 +118,31 @@ static PyTypeObject UringLoopType = {
     .tp_new = UringLoop_new,
     .tp_init = (initproc)UringLoop_init,
     .tp_dealloc = (destructor)UringLoop_dealloc,
+    .tp_methods = uring_loop_methods,
 };
 
 
 // Method Registration
 // Method Table
 static PyMethodDef uring_loop_methods[] = {
-    {'new',   uring_new,   METH_VARARGS, 'Create new uring'},
-    {'init',  uring_init,  METH_VARARGS, 'Init uring'},
-    {'run',   uring_run, METH_VARARGS, 'Run loop with uring'},
-    {'stop',   uring_stop, METH_VARARGS, 'Stop loop with uring'},
-    {'close',   uring_close, METH_VARARGS, 'Close loop with uring'},
-    {NULL, NULL, 0, NULL}        /* Sentinel */
+    // LOOP
+    {"close_loop", (PyCFunction)UringLoop_close_loop, METH_NOARGS,  "Close loop"},
+    // {"run",   (PyCFunction)UringLoop_run,   METH_NOARGS,  "Run loop"},
+    // {"stop",  (PyCFunction)UringLoop_stop,  METH_NOARGS,  "Stop loop"},
+
+    // OPS
+    // Files
+    {"open", UringLoop_open, METH_VARARGS | METH_KEYWORDS}
+    {"read", (PyCFunction)UringLoop_read, METH_NOARGS,  "Read file"},
+    {"close", (PyCFunction)UringLoop_close, METH_NOARGS,  "Close file"},
+    {"stat", (PyCFunction)UringLoop_stat, METH_NOARGS,  "File info"},
+    {"fsync", (PyCFunction)UringLoop_fsync, METH_NOARGS,  "Flush file buffer to file"},
+    // Sockets
+    {"tcp_socket", (PyCFunction)UringLoop_tcp_socket, METH_VARARGS | METH_KEYWORDS,  "Opens tcp-socket"},
+    {"udp_socket", (PyCFunction)UringLoop_udp_socket, METH_VARARGS | METH_KEYWORDS,  "Opens udp-socket"},
+    {"stream_socket", (PyCFunction)UringLoop_unix_stream, METH_VARARGS | METH_KEYWORDS,  "Opens unix stream-socket"},
+    {"dgram_socket", (PyCFunction)UringLoop_unix_dgram, METH_VARARGS | METH_KEYWORDS,  "Opens unix dgram-socket"},
+    {NULL, NULL, 0, NULL}
 };
 
 
@@ -160,7 +174,7 @@ static PyModuleDef uring_loop_module = {
     .m_doc = 'Module contains loop with uring',
     .m_size = 0,
     .m_slots = uring_loop_module_slots,
-    .m_methods = uring_loop_methods,  // TEMP: Maybe now its module's funcs, need to be Class methods
+    .m_methods = NULL,
 };
 
 PyMODINIT_FUNC

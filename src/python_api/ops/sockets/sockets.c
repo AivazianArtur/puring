@@ -137,6 +137,17 @@ UringLoop_unix_dgram(
 
 
 static PyObject*
+UringSocket_dealloc(UringSocket *self)
+{
+    self->closing = true;
+    if (self->py_loop) {
+        Py_XDECREF(self->py_loop);
+    }
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
+
+static PyObject*
 UringSocket_bind(
     PyObject *self,
     PyObject *args,
@@ -221,6 +232,7 @@ UringSocket_listen(
     }
     return future;
 }
+
 
 static PyObject*
 UringSocket_connect(
@@ -435,4 +447,74 @@ UringSocket_close(
         return NULL;
     }
     return future;
+}
+
+
+//
+/* Python adaptation*/
+//
+static PyTypeObject UringSocketType = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "puring.src.python_api.ops.sockets.UringSocket",
+    .tp_doc = PyDoc_STR("Puring socket adapter"),
+    .tp_basicsize = sizeof(UringSocket),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+    .tp_init = NULL,
+    .tp_dealloc = (destructor)UringSocket_dealloc,
+    .tp_methods = uring_socket_methods,
+};
+
+
+// Method Registration
+// Method Table
+static PyMethodDef uring_socket_methods[] = {
+    {"bind", (PyCFunction)UringSocket_bind, METH_NOARGS,  "Bind socket"},
+    {"listen", (PyCFunction)UringSocket_listen, METH_NOARGS,  "Listen socket"},
+    {"connect", (PyCFunction)UringSocket_connect, METH_NOARGS,  "Connect"},
+    {"send", (PyCFunction)UringSocket_send, METH_NOARGS,  "Send"},
+    {"recv", (PyCFunction)UringSocket_recv, METH_NOARGS,  "Recv"},
+    {"accept", (PyCFunction)UringSocket_accept, METH_NOARGS,  "Accept"},
+    {"close", (PyCFunction)UringSocket_close, METH_NOARGS,  "Close"},
+
+    {NULL, NULL, 0, NULL}
+};
+
+
+// Initialization of module
+static int
+uring_sock_module_exec(PyObject *m)
+{
+    if (PyType_Ready(&UringSocketType) < 0) {
+        return -1;
+    }
+
+    if (PyModule_AddObjectRef(m, "socket", (PyObject *) &UringSocketType) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static PyModuleDef_Slot uring_sock_module_slots[] = {
+    {Py_mod_exec, uring_sock_module_exec},
+    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_NOT_SUPPORTED},
+    {0, NULL}
+};
+
+
+static PyModuleDef uring_sock_module = {
+    .m_base = PyModuleDef_HEAD_INIT,
+    .m_name = 'socket',
+    .m_doc = 'Module contains socket wrapped for uring',
+    .m_size = 0,
+    .m_slots = uring_sock_module_slots,
+    .m_methods = NULL,
+};
+
+PyMODINIT_FUNC
+PyInit_custom(void)
+{
+    return PyModuleDef_Init(&uring_sock_module);
 }

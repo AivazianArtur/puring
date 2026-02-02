@@ -34,6 +34,7 @@ int read(
     struct io_uring *ring,
     int request_idx,
     int fd,
+    // void *buf,
     // __u64 offset,  TODO
 )
 {
@@ -44,6 +45,7 @@ int read(
     }
 
     __u64 offset = 0;
+    int buf = 0;
     // io_uring_prep_read_fixed <- with fix buffer, but need to do io_uring_register 
     io_uring_prep_read(sqe, fd, buf, sizeof(buf), offset);
 
@@ -59,6 +61,7 @@ int write(
     struct io_uring *ring,
     int request_idx,
     int fd,
+    // void *buf,
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
@@ -68,6 +71,8 @@ int write(
     }
 
     __u64 offset = 0;
+    int buf = 0;
+
     io_uring_prep_write(sqe, fd, buf, sizeof(buf), offset);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
@@ -82,6 +87,7 @@ int close(
     struct io_uring *ring,
     int request_idx,
     int fd,
+    // void *buf,
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(&ring);
@@ -91,6 +97,7 @@ int close(
     }
 
     __u64 offset = 0;
+    int buf = 0;
 
     io_uring_prep_close(sqe, fd);
 

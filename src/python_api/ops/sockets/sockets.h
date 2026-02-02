@@ -48,6 +48,10 @@ UringLoop_unix_dgram(
 );
 
 
+static PyObject*
+UringSocket_dealloc(UringSocket *self);
+
+
 static PyObject* 
 UringSocket_bind(
     PyObject *self,

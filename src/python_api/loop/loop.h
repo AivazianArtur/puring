@@ -40,7 +40,7 @@ static int UringLoop_init(
 
 static void UringLoop_dealloc(UringLoop *self);
 
-PyObject *UringLoop_close(UringLoop *self, PyObject *args);
+PyObject *UringLoop_close_loop(UringLoop *self, PyObject *args);
 
 // Helpers
 PyObject* _set_loop(void);
