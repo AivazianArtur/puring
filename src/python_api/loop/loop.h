@@ -7,6 +7,8 @@
 #include <stdbool.h>
 
 #include "future.h"
+#include "ops/files/files.h"
+#include "ops/sockets/sockets.h"
 
 
 typedef struct RequestRegistry RequestRegistry;

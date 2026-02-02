@@ -1,7 +1,6 @@
 #include "sockets.h"
 
 
-
 int tcp_socket(struct io_uring *ring, int request_idx) 
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);

@@ -8,11 +8,48 @@
 
 
 /* Functions */
-int open_file(struct io_uring *ring, int request_idx, int dfd, const char *path);
+int open_file(
+    struct io_uring *ring,
+    int request_idx,
+    int dfd,
+    const char *path,
+    // int flags,  TODO
+	// mode_t mode
+);
 
-int read(int fd, struct io_uring *ring, const void *buf);
-int write(int fd, struct io_uring *ring, const void *buf);
-int close(int fd, struct io_uring *ring);
+int read(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    // void *buf,
+    // __u64 offset,  TODO
+);
 
-int stat(int dfd, struct io_uring *ring, const char *path);
-int fsync(int fd, struct io_uring *ring);
+int write(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    // void *buf,
+);
+int close(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    // void *buf,
+);
+
+int stat(
+    struct io_uring *ring,
+    int request_idx,
+    int dfd,
+    const char *path,
+    // int flags,  TODO
+	// mode_t mode
+);
+
+int fsync(
+    struct io_uring *ring,
+    int request_idx,
+    int fd, 
+    // unsigned fsync_flags,  TODO
+);

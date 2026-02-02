@@ -10,14 +10,15 @@
 
 /* Functions */
 // Init functions - their Future become socket, so next works with socket
-int tcp_socket(struct io_uring *ring);
-int udp_socket(struct io_uring *ring);
-int unix_stream(struct io_uring *ring);
-int unix_dgram(struct io_uring *ring);
+int tcp_socket(struct io_uring *ring, int request_idx);
+int udp_socket(struct io_uring *ring, int request_idx);
+int unix_stream(struct io_uring *ring, int request_idx);
+int unix_dgram(struct io_uring *ring, int request_idx);
 
 
 int bind(
     struct io_uring *ring,
+    int request_idx,
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen, 
@@ -26,12 +27,14 @@ int bind(
 
 int listen(
     struct io_uring *ring,
+    int request_idx,
     int fd,
     int backlog,
 );
 
 int connect(
     struct io_uring *ring,
+    int request_idx,
     int fd,
     const struct sockaddr *addr, 
     socklen_t addrlen,
@@ -39,6 +42,7 @@ int connect(
 
 int send(
     struct io_uring *ring,
+    int request_idx,
     int sockfd,
     const void *buf,
     size_t len,
@@ -47,6 +51,7 @@ int send(
 
 int recv(
     struct io_uring *ring,
+    int request_idx,
     int sockfd,
 	void *buf,
     size_t len,
@@ -55,6 +60,7 @@ int recv(
 
 int accept(
     struct io_uring *ring,
+    int request_idx,
     int sockfd,
 	void *buf,
     size_t len,
@@ -63,5 +69,6 @@ int accept(
 
 int close(
     struct io_uring *ring,
-    int fd,
+    int request_idx,
+    int sockfd,
 );
