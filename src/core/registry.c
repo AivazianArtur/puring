@@ -9,7 +9,7 @@ RequestRegistry* registry_new(unsigned int size)
         return NULL;
     }
 
-    if (!registry->slots) {
+    if (size == 0) {
         size = DEFAULT_REGISTRY_SIZE;
     }
     registry->slots = calloc(size, sizeof(RequestSlot));
@@ -77,12 +77,8 @@ int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int o
     slot->future = future;
     Py_INCREF(future); 
 
-    if (buffer != NULL) {
-        slot->buffer = buffer;
-        Py_INCREF(buffer);
-    } else {
-        slot->buffer = NULL;
-    }
+    slot->buffer = buffer;
+    if (buffer != NULL) Py_INCREF(buffer);
 
     return index;
 }
@@ -113,6 +109,9 @@ void registry_remove(RequestRegistry *reg, int index)
         slot->buffer = NULL;
     }
 
+    if (slot->opcode) {
+        slot->opcode = NULL;
+    }
     // 2. Push index back onto the Free List Stack
     // (We know top < size because we just freed one)
     reg->top++;
