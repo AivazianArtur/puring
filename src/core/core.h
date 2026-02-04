@@ -142,3 +142,14 @@ int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int o
 RequestSlot* registry_get(RequestRegistry *reg, int index);
 
 void registry_remove(RequestRegistry *reg, int index);
+
+// Reader
+static void on_uring_ready(UringLoop *self);
+
+PyObject* 
+init_socket(int fd, PyObject *py_loop);
+
+static PyObject*
+_resolve_future(PyObject *self, PyObject *args);
+
+void uring_loop_register_fd(UringLoop *self);
