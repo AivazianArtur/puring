@@ -45,7 +45,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 }
 
 static int
-UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
+UringLoop_init(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self);
 
