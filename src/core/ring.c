@@ -23,5 +23,13 @@ int ring_init(memory_params *memory_params, ring_init_params *params)
 
 void ring_destroy(io_uring* ring) 
 {
+
+    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
+    // TODO: Create Retry setable loop, including accepting flags etc
+    if (!sqe) {
+        fprintf(stderr, "SQE is not available\n");
+        return -1;
+    }
+    io_uring_prep_cancel(sqe, user_data, IORING_ASYNC_CANCEL_ALL);
     io_uring_queue_exit(ring);
 }

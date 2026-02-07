@@ -39,7 +39,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     uring_loop->registry = registry;
     uring_loop->py_loop = python_loop;
     uring_loop->initialized = false;
-    uring_loop->closing = false;
+    uring_loop->is_closing = false;
 
     return (PyObject *)uring_loop;
 }
@@ -74,7 +74,6 @@ UringLoop_init(PyObject *self, PyObject *args, PyObject *kwargs)
 static void
 UringLoop_dealloc(UringLoop *self)
 {
-    self->closing = true;
     if (self->py_loop) {
         Py_XDECREF(self->py_loop);
     }
@@ -87,6 +86,19 @@ UringLoop_dealloc(UringLoop *self)
     }
 
     Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
+
+PyObject*
+UringLoop_close_loop(PyObject *self, PyObject *args)
+{
+    ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        return NULL;
+    }
+    self->is_closing = true;
+    // TEMP: Routing between fast/grace shutdown
+    fast_shutdown(self->ring, self->registry);  // TEMP: here ring should be addr? Now its object so need to debug
 }
 
 
@@ -113,13 +125,6 @@ py_uring_loop_register_fd(PyObject *self, PyObject *args)
     }
     Py_RETURN_NONE;
 }
-
-
-// PyObject*
-// UringLoop_close_loop(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }
 
 
 // In next versions
@@ -189,7 +194,7 @@ static PyMethodDef uring_loop_methods[] = {
 
     // OPS
     // Files
-    {"open", UringLoop_open, METH_VARARGS | METH_KEYWORDS}
+    {"open", (PyCFunction)UringLoop_open, METH_VARARGS | METH_KEYWORDS}
     {"read", (PyCFunction)UringLoop_read, METH_NOARGS,  "Read file"},
     {"close", (PyCFunction)UringLoop_close, METH_NOARGS,  "Close file"},
     {"stat", (PyCFunction)UringLoop_stat, METH_NOARGS,  "File info"},

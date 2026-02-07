@@ -11,6 +11,7 @@
 #include "ops/sockets/sockets.h"
 #include "core/core.h"
 
+
 typedef struct RequestRegistry RequestRegistry;
 
 /* Objects */
@@ -24,7 +25,7 @@ typedef struct {
     RequestRegistry *registry;
     unsigned int entries;
     bool initialized;
-    bool closing;
+    bool is_closing;
 } UringLoop;
 
 
@@ -38,12 +39,12 @@ UringLoop_init(PyObject *self, PyObject *args, PyObject *kwargs);
 static void 
 UringLoop_dealloc(UringLoop *self);
 
+static PyObject*
+UringLoop_close_loop(PyObject *self, PyObject *args);
+
 // TODO in next versions
 // static PyObject*
 // UringLoop_get_loop(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_close_loop(UringLoop *self, PyObject *args);
 
 // static PyObject*
 // UringLoop_run_forever(UringLoop *self, PyObject *args);

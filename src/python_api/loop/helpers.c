@@ -137,3 +137,18 @@ type_error:
     PyErr_SetString(PyExc_KeyError, "missing or invalid offset field");
     return 0;
 }
+
+void graceful_shutdown(io_uring* ring, RequestRegistry *reg) {
+    ring_destroy(ring);
+    registry_destroy(reg);
+
+    while (io_uring_peek_cqe(&loop→ring, &cqe) == 0) {
+        io_uring_cqe_seen(&loop→ring, cqe);
+    }
+}
+
+
+void fast_shutdown(io_uring* ring, RequestRegistry *reg) {
+    ring_destroy(ring);
+    registry_destroy(reg);
+}
