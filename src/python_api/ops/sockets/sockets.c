@@ -9,6 +9,10 @@ UringLoop_tcp_socket(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     PyObject *future = create_future(loop);
     if (!future) {
@@ -42,6 +46,10 @@ UringLoop_udp_socket(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     PyObject *future = create_future(loop);
     if (!future) {
@@ -76,6 +84,10 @@ UringLoop_unix_stream(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     PyObject *future = create_future(loop);
     if (!future) {
@@ -110,6 +122,10 @@ UringLoop_unix_dgram(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     PyObject *future = create_future(loop);
     if (!future) {
@@ -155,6 +171,10 @@ UringSocket_bind(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int fd = NULL;
     int addr = NULL;
@@ -199,6 +219,10 @@ UringSocket_listen(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int fd = NULL;
     int backlog = NULL;
@@ -242,6 +266,10 @@ UringSocket_connect(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int fd = NULL;
     const struct sockaddr *addr = NULL;
@@ -286,6 +314,10 @@ UringSocket_send(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int sockfd = NULL;
     int len = NULL;
@@ -329,6 +361,10 @@ UringSocket_recv(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int sockfd = NULL;
     int len = NULL;
@@ -372,6 +408,10 @@ UringSocket_accept(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int sockfd = NULL;
     int len = NULL;
@@ -416,6 +456,10 @@ UringSocket_close(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int sockfd = NULL;
 

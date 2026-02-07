@@ -134,7 +134,7 @@ int _parse_offset(PyObject *obj, offset *out)
     return 1;
 
 type_error:
-    PyErr_SetString(PyExc_KeyError, "missing or invalid offset field");
+    PyErr_SetString(PyExc_KeyError, "Missing or invalid offset field");
     return 0;
 }
 

@@ -99,6 +99,7 @@ UringLoop_close_loop(PyObject *self, PyObject *args)
     self->is_closing = true;
     // TEMP: Routing between fast/grace shutdown
     fast_shutdown(self->ring, self->registry);  // TEMP: here ring should be addr? Now its object so need to debug
+    Py_RETURN_NONE;
 }
 
 
