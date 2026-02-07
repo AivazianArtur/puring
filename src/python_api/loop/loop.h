@@ -11,6 +11,7 @@
 #include "ops/sockets/sockets.h"
 #include "core/core.h"
 
+
 typedef struct RequestRegistry RequestRegistry;
 
 /* Objects */
@@ -24,31 +25,26 @@ typedef struct {
     RequestRegistry *registry;
     unsigned int entries;
     bool initialized;
-    bool closing;
+    bool is_closing;
 } UringLoop;
 
 
 /* Functions */
 static PyObject*
-UringLoop_new(
-    PyTypeObject *type,
-    PyObject *args,
-    PyObject *kwargs,
-);
+UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 static int
-UringLoop_init(
-    UringLoop *self,
-    PyObject *args,
-    PyObject *kwargs,
-);
+UringLoop_init(PyObject *self, PyObject *args, PyObject *kwargs);
 
 static void 
 UringLoop_dealloc(UringLoop *self);
 
+static PyObject*
+UringLoop_close_loop(PyObject *self, PyObject *args);
+
 // TODO in next versions
 // static PyObject*
-// UringLoop_close_loop(UringLoop *self, PyObject *args);
+// UringLoop_get_loop(UringLoop *self, PyObject *args);
 
 // static PyObject*
 // UringLoop_run_forever(UringLoop *self, PyObject *args);
@@ -66,4 +62,4 @@ UringLoop_dealloc(UringLoop *self);
 // Helpers
 PyObject* _get_loop(void);
 int _parse_memory_params(PyObject *obj, memory_params *out);
-int _parse_ring_init_params(PyObject *obj, ring_initialization_params *out);
+int _parse_ring_init_params(PyObject *obj, ring_init_params *out)

@@ -9,6 +9,10 @@ UringLoop_open(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int dfd = NULL;
     static char path = NULL;
@@ -52,6 +56,10 @@ UringLoop_read(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int fd = NULL;
 
@@ -94,6 +102,10 @@ UringLoop_write(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int fd = NULL;
 
@@ -136,6 +148,10 @@ UringLoop_close(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int fd = NULL;
 
@@ -178,6 +194,10 @@ UringLoop_stat(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int dfd = NULL;
     static char path = NULL;
@@ -221,6 +241,10 @@ UringLoop_fsync(
 )
 {
     ASSERT_LOOP_THREAD(self);
+    if (self->is_closing) {
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        return NULL;
+    }
 
     int fd = NULL;
 
