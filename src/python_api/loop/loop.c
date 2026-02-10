@@ -26,6 +26,14 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
+    struct io_ruing *uring = malloc(sizeof(struct io_uring));
+    if (!uring){
+        PyErr_SetString(PyExc_TypeError, "Error while creating loop");
+        registry_destroy(registry);
+        Py_TYPE(uring_loop)->tp_free((PyObject *)uring_loop);
+        return NULL;
+    }
+
     PyObject* python_loop = _get_loop();
     if (!python_loop) {
         PyErr_SetString(PyExc_TypeError, "Error while creating loop");
@@ -35,7 +43,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     }
     Py_INCREF(python_loop);
 
-    uring_loop->ring = NULL;
+    uring_loop->ring = uring;
     uring_loop->registry = registry;
     uring_loop->py_loop = python_loop;
     uring_loop->initialized = false;
@@ -83,6 +91,7 @@ UringLoop_dealloc(UringLoop *self)
 
     if (self->ring) {
         ring_destroy(self->ring);
+        free(self->ring);
     }
     if (self->registry) {
         registry_destroy(self->registry);
@@ -134,7 +143,7 @@ py_uring_loop_register_fd(PyObject *self, PyObject *args)
     }
 
     // extract UringLoop* from py_loop object
-    UringLoop *loop = ((UringLoopObject *)py_loop)->loop;
+    UringLoop *loop = (UringLoop *)py_loop;
     if (!loop) {
         PyErr_SetString(PyExc_ValueError, "Invalid UringLoop object");
         return NULL;
@@ -215,7 +224,7 @@ static PyMethodDef uring_loop_methods[] = {
 
     // OPS
     // Files
-    {"open", (PyCFunction)UringLoop_open, METH_VARARGS | METH_KEYWORDS}
+    {"open", (PyCFunction)UringLoop_open, METH_VARARGS | METH_KEYWORDS},
     {"read", (PyCFunction)UringLoop_read, METH_NOARGS,  "Read file"},
     {"close", (PyCFunction)UringLoop_close, METH_NOARGS,  "Close file"},
     {"stat", (PyCFunction)UringLoop_stat, METH_NOARGS,  "File info"},
@@ -276,15 +285,15 @@ static PyMethodDef custom_methods[] = {
 
 static PyModuleDef uring_loop_module = {
     .m_base = PyModuleDef_HEAD_INIT,
-    .m_name = 'loop',
-    .m_doc = 'Module contains loop with uring',
+    .m_name = "loop",
+    .m_doc = "Module contains loop with uring",
     .m_size = 0,
     .m_slots = uring_loop_module_slots,
     .m_methods = custom_methods,
 };
 
 PyMODINIT_FUNC
-PyInit_custom(void)
+PyInit_loop(void)
 {
     PyObject *m = PyModule_Create(&custom_module);
     if (!m) return NULL;

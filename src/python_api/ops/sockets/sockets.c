@@ -136,6 +136,7 @@ UringLoop_unix_dgram(
     int opcode = IORING_OP_SOCKET;
     // For now whoile puring without buffer, we'll do it in next v.
     int buffer = 0;
+
     int request_idx = registry_add(loop->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -176,12 +177,12 @@ UringSocket_bind(
         return NULL;
     }
 
-    int fd = NULL;
-    int addr = NULL;
-    int addrlen = NULL;
+    int fd = 0;
+    int addr = 0;
+    int addrlen = 0;
 
     static char *kwlist[] = {"fd", "addr", "addrlen", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, fd, addr, addrlen))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, fd, &addr, &addrlen))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -224,11 +225,11 @@ UringSocket_listen(
         return NULL;
     }
 
-    int fd = NULL;
-    int backlog = NULL;
+    int fd = 0;
+    int backlog = 0;
 
     static char *kwlist[] = {"fd", "backlog", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, fd, backlog))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &fd, &backlog))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -271,12 +272,12 @@ UringSocket_connect(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
     const struct sockaddr *addr = NULL;
-    int addrlen = NULL;
+    int addrlen = 0;
 
     static char *kwlist[] = {"fd", "addr", "addrlen", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ioi", kwlist, fd, &addr, addrlen))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ioi", kwlist, &fd, &addr, &addrlen))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -319,12 +320,12 @@ UringSocket_send(
         return NULL;
     }
 
-    int sockfd = NULL;
-    int len = NULL;
-    int flags = NULL;
+    int sockfd = 0;
+    int len = 0;
+    int flags = 0;
 
     static char *kwlist[] = {"sockfd", "len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, sockfd, len, flags))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &sockfd, &len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -366,12 +367,12 @@ UringSocket_recv(
         return NULL;
     }
 
-    int sockfd = NULL;
-    int len = NULL;
-    int flags = NULL;
+    int sockfd = 0;
+    int len = 0;
+    int flags = 0;
 
     static char *kwlist[] = {"sockfd", "len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, sockfd, len, flags))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &sockfd, &len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -413,12 +414,12 @@ UringSocket_accept(
         return NULL;
     }
 
-    int sockfd = NULL;
-    int len = NULL;
-    int flags = NULL;
+    int sockfd = 0;
+    int len = 0;
+    int flags = 0;
 
     static char *kwlist[] = {"sockfd", "len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, sockfd, len, flags))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &sockfd, &len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -461,10 +462,10 @@ UringSocket_close(
         return NULL;
     }
 
-    int sockfd = NULL;
+    int sockfd = 0;
 
     static char *kwlist[] = {"sockfd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, sockfd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &sockfd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }

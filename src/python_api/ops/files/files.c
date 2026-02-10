@@ -18,7 +18,7 @@ UringLoop_open(
     static char path = NULL;
 
     static char *kwlist[] = {"dfd", "path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, dfd, path))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &dfd, &path))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -61,10 +61,10 @@ UringLoop_read(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -107,10 +107,10 @@ UringLoop_write(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -153,10 +153,10 @@ UringLoop_close(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -203,7 +203,7 @@ UringLoop_stat(
     static char path = NULL;
 
     static char *kwlist[] = {"dfd", "path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, dfd, path))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &dfd, &path))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -246,10 +246,10 @@ UringLoop_fsync(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
