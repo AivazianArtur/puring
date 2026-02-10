@@ -10,6 +10,7 @@
 #include "ops/files/files.h"
 #include "ops/sockets/sockets.h"
 #include "core/core.h"
+#include "l"
 
 
 typedef struct RequestRegistry RequestRegistry;
@@ -19,7 +20,7 @@ typedef struct RequestRegistry RequestRegistry;
 typedef struct {
     // Now its basicaly a driver, but in next versions it will be loop
     PyObject_HEAD
-    struct io_uring ring;
+    struct io_uring *ring;
     PyObject *py_loop;
     pid_t loop_tid;
     RequestRegistry *registry;
@@ -42,6 +43,9 @@ UringLoop_dealloc(UringLoop *self);
 static PyObject*
 UringLoop_close_loop(PyObject *self, PyObject *args);
 
+static PyObject *
+py_uring_loop_register_fd(PyObject *self, PyObject *args);
+
 // TODO in next versions
 // static PyObject*
 // UringLoop_get_loop(UringLoop *self, PyObject *args);
@@ -63,3 +67,5 @@ UringLoop_close_loop(PyObject *self, PyObject *args);
 PyObject* _get_loop(void);
 int _parse_memory_params(PyObject *obj, memory_params *out);
 int _parse_ring_init_params(PyObject *obj, ring_init_params *out)
+void fast_shutdown(io_uring* ring, RequestRegistry *reg); 
+void graceful_shutdown(io_uring* ring, RequestRegistry *reg);

@@ -8,20 +8,20 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = {"registry_size", NULL};
     int registry_size;
-
+    // TODO add loop_tid;
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &registry_size))
         registry_size = 0;
 
 
     RequestRegistry* registry = registry_new(registry_size);
     if (!uring_loop) {
-        PyErr_NoMemory("Error while allocating memory for registry");
+        PyErr_NoMemory();
         return NULL;
     }
 
     UringLoop *uring_loop = (UringLoop *)PyObject_New(UringLoop, &UringLoopType);
     if (!uring_loop) {
-        PyErr_NoMemory("Error while allocating memory for loop wrapper");
+        PyErr_NoMemory();
         registry_destroy(registry);
         return NULL;
     }
@@ -55,11 +55,14 @@ UringLoop_init(PyObject *self, PyObject *args, PyObject *kwargs)
     static char *kwlist[] = {"memory_params", "ring_init_params", NULL};
     PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist, &memory_params_obj, &ring_init_params_obj);
 
-    memory_params *memory_params = NULL;
-    ring_init_params *params = NULL;
+    memory_params memory_params;
+    ring_init_params params;
 
-    _parse_memory_params(memory_params_obj, &memory_params);
-    _parse_ring_init_params(ring_init_params_obj, &params);
+    if (!_parse_memory_params(memory_params_obj, &memory_params))
+        return -1;
+
+    if (!_parse_ring_init_params(ring_init_params_obj, &params))
+        return -1;
    
     if (ring_init(&memory_params, &params) < 0) {
         PyErr_SetFromErrno(PyExc_OSError);
@@ -93,12 +96,29 @@ PyObject*
 UringLoop_close_loop(PyObject *self, PyObject *args)
 {
     ASSERT_LOOP_THREAD(self);
+
     if (self->is_closing) {
-        return NULL;
+        return Py_RETURN_NONE;
     }
     self->is_closing = true;
+
     // TEMP: Routing between fast/grace shutdown
     fast_shutdown(self->ring, self->registry);  // TEMP: here ring should be addr? Now its object so need to debug
+
+    PyObject *res;
+    res = PyObject_CallMethodNoArgs(self->py_loop, "stop");  // TODO: call `stop uring loop`
+    if (res == NULL) {
+        PyErr_SetString(PyExc_ChildProcessError, "Error while stopping loop");
+        return -1;
+    }
+
+    res = PyObject_CallMethodNoArgs(self->py_loop, "close");
+    if (res == NULL) {
+        PyErr_SetString(PyExc_ChildProcessError, "Error while closing loop");
+        return -1;
+    }
+    Py_DECREF(res);
+
     Py_RETURN_NONE;
 }
 
