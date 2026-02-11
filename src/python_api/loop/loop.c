@@ -72,7 +72,7 @@ UringLoop_init(PyObject *self, PyObject *args, PyObject *kwargs)
     if (!_parse_ring_init_params(ring_init_params_obj, &params))
         return -1;
    
-    if (ring_init(&memory_params, &params) < 0) {
+    if (ring_init(&memory_params, &params, self->ring) < 0) {
         PyErr_SetFromErrno(PyExc_OSError);
         return -1;
     }
@@ -139,10 +139,9 @@ py_uring_loop_register_fd(PyObject *self, PyObject *args)
     int fd;
 
     if (!PyArg_ParseTuple(args, "Oi", &py_loop, &fd)) {
-        return NULL; // parsing failed
+        return NULL;
     }
 
-    // extract UringLoop* from py_loop object
     UringLoop *loop = (UringLoop *)py_loop;
     if (!loop) {
         PyErr_SetString(PyExc_ValueError, "Invalid UringLoop object");

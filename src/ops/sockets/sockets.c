@@ -19,9 +19,9 @@ int tcp_socket(struct io_uring *ring, int request_idx)
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
     return 0;
@@ -46,10 +46,9 @@ int udp_socket(struct io_uring *ring, int request_idx)
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
- 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
 
@@ -75,9 +74,9 @@ int unix_stream(struct io_uring *ring, int request_idx)
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
 
@@ -103,9 +102,9 @@ int unix_dgram(struct io_uring *ring, int request_idx)
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
     return 0;
@@ -132,9 +131,9 @@ int bind(
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
 
@@ -160,9 +159,9 @@ int listen(
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
     return 0;
@@ -188,9 +187,9 @@ int connect(
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
     return 0;
@@ -242,9 +241,9 @@ int recv(
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
     return 0;
@@ -271,9 +270,9 @@ int accept(
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
     return 0;
@@ -297,9 +296,9 @@ int close(
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
     return 0;

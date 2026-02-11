@@ -61,7 +61,11 @@ typedef struct {
 /* Functions */
 
 /* Ring */
-int ring_init(memory_params *memory_params, ring_init_params *params);
+int ring_init(
+    memory_params *memory_params,
+    ring_init_params *params,
+    struct io_uring *ring
+);
 void ring_destroy(struct io_uring* ring);
 
 RequestRegistry* registry_new(unsigned int size);
@@ -72,11 +76,3 @@ int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int o
 RequestSlot* registry_get(RequestRegistry *reg, int index);
 
 void registry_remove(RequestRegistry *reg, int index);
-
-// Reader
-static void on_uring_ready(UringLoop *self);
-
-PyObject* 
-init_socket(int fd, PyObject *py_loop);
-
-void uring_loop_register_fd(UringLoop *self);
