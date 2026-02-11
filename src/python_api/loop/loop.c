@@ -1,5 +1,5 @@
 #include "loop.h"
-#include "macroses.c"
+#include "macroses.h"
 #include "core/core.h"
 
 
@@ -277,7 +277,7 @@ static PyModuleDef_Slot uring_loop_module_slots[] = {
     {0, NULL}
 };
 
-static PyMethodDef custom_methods[] = {
+static PyMethodDef uring_methods[] = {
     {"add_uring_reader", py_uring_loop_register_fd, METH_VARARGS, "Register FD with UringLoop"},
     {NULL, NULL, 0, NULL}
 };
@@ -289,13 +289,13 @@ static PyModuleDef uring_loop_module = {
     .m_doc = "Module contains loop with uring",
     .m_size = 0,
     .m_slots = uring_loop_module_slots,
-    .m_methods = custom_methods,
+    .m_methods = uring_methods,
 };
 
 PyMODINIT_FUNC
-PyInit_loop(void)
+PyInit_uring(void)
 {
-    PyObject *m = PyModule_Create(&custom_module);
+    PyObject *m = PyModule_Create(&uring_loop_module);
     if (!m) return NULL;
 
     Py_INCREF(&UringLoopType);

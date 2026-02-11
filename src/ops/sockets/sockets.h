@@ -22,14 +22,14 @@ int bind(
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen, 
-    const void *buf,
+    const void *buf
 );
 
 int listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    int backlog,
+    int backlog
 );
 
 int connect(
@@ -37,7 +37,7 @@ int connect(
     int request_idx,
     int fd,
     const struct sockaddr *addr, 
-    socklen_t addrlen,
+    socklen_t addrlen
 );
 
 int send(
@@ -46,7 +46,7 @@ int send(
     int sockfd,
     const void *buf,
     size_t len,
-    int flags,
+    int flags
 );
 
 int recv(
@@ -55,7 +55,7 @@ int recv(
     int sockfd,
 	void *buf,
     size_t len,
-    int flags,
+    int flags
 );
 
 int accept(
@@ -64,11 +64,11 @@ int accept(
     int sockfd,
 	void *buf,
     size_t len,
-    int flags,
+    int flags
 );
 
 int close(
     struct io_uring *ring,
     int request_idx,
-    int sockfd,
+    int sockfd
 );

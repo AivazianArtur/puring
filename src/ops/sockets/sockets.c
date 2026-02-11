@@ -118,7 +118,7 @@ int bind(
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen, 
-    const void *buf,
+    const void *buf
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -146,7 +146,7 @@ int listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    int backlog,
+    int backlog
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -174,7 +174,7 @@ int connect(
     int request_idx,
     int fd,
     const struct sockaddr *addr, 
-    socklen_t addrlen,
+    socklen_t addrlen
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -203,7 +203,7 @@ int send(
     int sockfd,
     const void *buf,
     size_t len,
-    int flags,
+    int flags
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -228,7 +228,7 @@ int recv(
     int sockfd,
 	void *buf,
     size_t len,
-    int flags,
+    int flags
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -257,7 +257,7 @@ int accept(
     int sockfd,
 	void *buf,
     size_t len,
-    int flags,
+    int flags
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -283,7 +283,7 @@ int accept(
 int close(
     struct io_uring *ring,
     int request_idx,
-    int sockfd,
+    int sockfd
 ) 
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);

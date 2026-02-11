@@ -5,7 +5,7 @@ static PyObject*
 UringLoop_open(
     PyObject *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -52,7 +52,7 @@ static PyObject*
 UringLoop_read(
     PyObject *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -98,7 +98,7 @@ static PyObject*
 UringLoop_write(
     PyObject *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -144,7 +144,7 @@ static PyObject*
 UringLoop_close(
     PyObject *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -190,7 +190,7 @@ static PyObject*
 UringLoop_stat(
     PyObject *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -237,7 +237,7 @@ static PyObject*
 UringLoop_fsync(
     PyObject *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);

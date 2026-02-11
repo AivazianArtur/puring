@@ -5,7 +5,7 @@ int open_file(
     struct io_uring *ring,
     int request_idx,
     int dfd,
-    const char *path,
+    const char *path
     // int flags,  TODO
 	// mode_t mode
 )
@@ -37,7 +37,7 @@ int open_file(
 int read(
     struct io_uring *ring,
     int request_idx,
-    int fd,
+    int fd
     // void *buf,
     // __u64 offset,  TODO
 )
@@ -68,7 +68,7 @@ int read(
 int write(
     struct io_uring *ring,
     int request_idx,
-    int fd,
+    int fd
     // void *buf,
 )
 {
@@ -98,7 +98,7 @@ int write(
 int close(
     struct io_uring *ring,
     int request_idx,
-    int fd,
+    int fd
     // void *buf,
 )
 {
@@ -129,7 +129,7 @@ int stat(
     struct io_uring *ring,
     int request_idx,
     int dfd,
-    const char *path,
+    const char *path
     // int flags,  TODO
 	// mode_t mode
 )
@@ -160,7 +160,7 @@ int stat(
 int fsync(
     struct io_uring *ring,
     int request_idx,
-    int fd, 
+    int fd
     // unsigned fsync_flags,  TODO
 )
 {
