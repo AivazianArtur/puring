@@ -9,6 +9,7 @@
 #include "ops/sockets/sockets.h"
 #include "core/core.h"
 #include "reader/reader.h"
+#include "macroses/macroses.h"
 
 
 // typedef struct RequestRegistry RequestRegistry;
@@ -67,3 +68,5 @@ int _parse_memory_params(PyObject *obj, memory_params *out);
 int _parse_ring_init_params(PyObject *obj, ring_init_params *out);
 void fast_shutdown(struct io_uring* ring, RequestRegistry *reg); 
 void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg);
+int _parse_sq_offset(PyObject *obj, struct io_sqring_offsets *out);
+int _parse_cq_offset(PyObject *obj, struct io_cqring_offsets *out);

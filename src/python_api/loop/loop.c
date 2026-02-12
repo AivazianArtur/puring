@@ -1,6 +1,4 @@
 #include "loop.h"
-#include "macroses.h"
-#include "core/core.h"
 
 
 static PyObject*
@@ -14,7 +12,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 
 
     RequestRegistry* registry = registry_new(registry_size);
-    if (!uring_loop) {
+    if (!registry) {
         PyErr_NoMemory();
         return NULL;
     }
