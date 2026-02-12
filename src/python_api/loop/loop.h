@@ -34,7 +34,7 @@ static PyObject*
 UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 static int
-UringLoop_init(PyObject *self, PyObject *args, PyObject *kwargs);
+UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs);
 
 static void 
 UringLoop_dealloc(UringLoop *self);

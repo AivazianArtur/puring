@@ -24,7 +24,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    struct io_ruing *uring = malloc(sizeof(struct io_uring));
+    struct io_uring *uring = malloc(sizeof(struct io_uring));
     if (!uring){
         PyErr_SetString(PyExc_TypeError, "Error while creating loop");
         registry_destroy(registry);
@@ -51,7 +51,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 }
 
 static int
-UringLoop_init(PyObject *self, PyObject *args, PyObject *kwargs)
+UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self);
 
@@ -146,7 +146,7 @@ py_uring_loop_register_fd(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    int ret = uring_loop_register_fd(loop, fd);
+    int ret = uring_loop_register_fd(loop);
     if (ret < 0) {
         return PyErr_Format(PyExc_OSError, "Failed to register fd: %d", -ret);
     }
