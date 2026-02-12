@@ -85,7 +85,7 @@ UringLoop_read(
         return NULL;
     }
 
-    if (read(self->ring, request_idx, fd, buffer) < 0) {
+    if (uring_read(self->ring, request_idx, fd, buffer) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -131,7 +131,7 @@ UringLoop_write(
         return NULL;
     }
 
-    if (write(self->ring, request_idx, fd, buffer) < 0) {
+    if (uring_write(self->ring, request_idx, fd, buffer) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -177,7 +177,7 @@ UringLoop_close(
         return NULL;
     }
 
-    if (close(self->ring, request_idx, fd) < 0) {
+    if (uring_close(self->ring, request_idx, fd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -224,7 +224,7 @@ UringLoop_stat(
         return NULL;
     }
 
-    if (stat(self->ring, request_idx, dfd, path) < 0) {
+    if (uring_stat(self->ring, request_idx, dfd, path) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -270,7 +270,7 @@ UringLoop_fsync(
         return NULL;
     }
 
-    if (fsync(self->ring, request_idx, fd) < 0) {
+    if (uring_fsync(self->ring, request_idx, fd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;

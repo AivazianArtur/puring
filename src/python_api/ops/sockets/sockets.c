@@ -203,7 +203,7 @@ UringSocket_bind(
         return NULL;
     }
 
-    if (bind(self->ring, request_idx, fd, addr, (socklen_t)addrlen) < 0) {
+    if (uring_bind(self->ring, request_idx, fd, addr, (socklen_t)addrlen) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -250,7 +250,7 @@ UringSocket_listen(
         return NULL;
     }
 
-    if (listen(self->ring, request_idx, fd, backlog) < 0) {
+    if (uring_listen(self->ring, request_idx, fd, backlog) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -298,7 +298,7 @@ UringSocket_connect(
         return NULL;
     }
 
-    if (connect(self->ring, request_idx, fd, *addr, addrlen) < 0) {
+    if (uring_connect(self->ring, request_idx, fd, *addr, addrlen) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -346,7 +346,7 @@ UringSocket_send(
         return NULL;
     }
 
-    if (send(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
+    if (uring_send(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -393,7 +393,7 @@ UringSocket_recv(
         return NULL;
     }
 
-    if (recv(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
+    if (uring_recv(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -440,7 +440,7 @@ UringSocket_accept(
         return NULL;
     }
 
-    if (accept(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
+    if (uring_accept(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -486,7 +486,7 @@ UringSocket_close(
         return NULL;
     }
 
-    if (close(self->ring, request_idx, sockfd) < 0) {
+    if (uring_close(self->ring, request_idx, sockfd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;

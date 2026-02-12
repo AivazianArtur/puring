@@ -111,7 +111,7 @@ int unix_dgram(struct io_uring *ring, int request_idx)
 }
 
 
-int bind(
+int uring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -141,7 +141,7 @@ int bind(
 }
 
 
-int listen(
+int uring_listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -168,7 +168,7 @@ int listen(
 }
 
 
-int connect(
+int uring_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -196,7 +196,7 @@ int connect(
 }
 
 
-int send(
+int uring_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -221,7 +221,7 @@ int send(
 }
 
 
-int recv(
+int uring_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -250,7 +250,7 @@ int recv(
 }
 
 
-int accept(
+int uring_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -279,7 +279,7 @@ int accept(
 }
 
 
-int close(
+int uring_close(
     struct io_uring *ring,
     int request_idx,
     int sockfd
@@ -304,7 +304,7 @@ int close(
     return 0;
 }
 
-// TOOD
+// TODO
 // io_uring_prep_send_zc
 // io_uring_prep_multishot_accept
 // Vector ops

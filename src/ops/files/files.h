@@ -17,7 +17,7 @@ int open_file(
 	// mode_t mode
 );
 
-int read(
+int uring_read(
     struct io_uring *ring,
     int request_idx,
     int fd
@@ -25,20 +25,21 @@ int read(
     // __u64 offset,  TODO
 );
 
-int write(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    // void *buf,
-);
-int close(
+int uring_write(
     struct io_uring *ring,
     int request_idx,
     int fd
     // void *buf,
 );
 
-int stat(
+int uring_close(
+    struct io_uring *ring,
+    int request_idx,
+    int fd
+    // void *buf,
+);
+
+int uring_stat(
     struct io_uring *ring,
     int request_idx,
     int dfd,
@@ -47,7 +48,7 @@ int stat(
 	// mode_t mode
 );
 
-int fsync(
+int uring_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd

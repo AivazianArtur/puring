@@ -1,9 +1,9 @@
 #include "future.h"
 
 // DRAFT
-static PyObject* create_future(UringLoop *self) 
+PyObject* create_future(UringLoop *self) 
 {
-    if (!self->loop) {
+    if (!self->py_loop) {
         PyErr_SetString(PyExc_RuntimeError, "Ring loop not attached");
         return NULL;
     }

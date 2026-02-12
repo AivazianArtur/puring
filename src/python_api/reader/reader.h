@@ -1,8 +1,8 @@
 #include <Python.h>
-#include "loop.h"
-#include "socket.h"
-#include "registry.h"
+#include "loop/loop.h"
+#include "sockets/sockets.h"
 #include "core.h"
+#include "signals/signals.h"
 
 static void on_uring_ready(UringLoop *self);
 

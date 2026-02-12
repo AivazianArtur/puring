@@ -9,7 +9,6 @@
 
 #include "loop.h"
 
-typedef struct UringLoop UringLoop;
 
 typedef struct {
     PyObject_HEAD

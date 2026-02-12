@@ -10,7 +10,10 @@
 #include "liburing.h"
 
 
+/* Forward declarations */
 typedef struct UringLoop UringLoop;
+void uring_loop_register_fd(UringLoop *loop);
+
 
 typedef struct 
 {

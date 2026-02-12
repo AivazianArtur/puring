@@ -1,8 +1,6 @@
-#include "core.h"
-#include "signals.h"
+#include "reader.h"
 
-
-static void on_uring_ready(UringLoop *self)
+void on_uring_ready(UringLoop *self)
 {
     struct io_uring_cqe *cqe;
 
@@ -83,7 +81,7 @@ init_socket(int fd, PyObject *py_loop)
 }
 
 // Register reader
-static PyObject *py_on_uring_ready(PyObject *self, PyObject *args)
+PyObject *py_on_uring_ready(PyObject *self, PyObject *args)
 {
     PyObject *capsule;
     if (!PyArg_ParseTuple(args, "O", &capsule)) return NULL;

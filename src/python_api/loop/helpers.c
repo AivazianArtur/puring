@@ -138,13 +138,13 @@ type_error:
     return 0;
 }
 
-void fast_shutdown(io_uring* ring, RequestRegistry *reg) 
+void fast_shutdown(struct io_uring* ring, RequestRegistry *reg) 
 {
     ring_destroy(ring);
     registry_destroy(reg);
 }
 
-void graceful_shutdown(io_uring* ring, RequestRegistry *reg)
+void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg)
 {
     ring_destroy(ring);
     registry_destroy(reg);
