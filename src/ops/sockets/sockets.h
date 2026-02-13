@@ -68,7 +68,7 @@ int uring_accept(
     int flags
 );
 
-int uring_close(
+int uring_close_socket(
     struct io_uring *ring,
     int request_idx,
     int sockfd

@@ -1,9 +1,9 @@
 #include "sockets.h"
 
 
-static PyObject*
+PyObject*
 UringLoop_tcp_socket(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -14,7 +14,7 @@ UringLoop_tcp_socket(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -22,8 +22,9 @@ UringLoop_tcp_socket(
 
     int opcode = IORING_OP_SOCKET;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -38,9 +39,9 @@ UringLoop_tcp_socket(
     return future;
 }
 
-static PyObject*
+PyObject*
 UringLoop_udp_socket(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -51,7 +52,7 @@ UringLoop_udp_socket(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -59,8 +60,9 @@ UringLoop_udp_socket(
 
     int opcode = IORING_OP_SOCKET;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -76,9 +78,9 @@ UringLoop_udp_socket(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_unix_stream(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -89,7 +91,7 @@ UringLoop_unix_stream(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -97,8 +99,9 @@ UringLoop_unix_stream(
 
     int opcode = IORING_OP_SOCKET;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -114,9 +117,9 @@ UringLoop_unix_stream(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_unix_dgram(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -127,7 +130,7 @@ UringLoop_unix_dgram(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -135,9 +138,9 @@ UringLoop_unix_dgram(
 
     int opcode = IORING_OP_SOCKET;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
+    PyObject *buffer = NULL;
 
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -153,20 +156,20 @@ UringLoop_unix_dgram(
 }
 
 
-static PyObject*
+PyObject*
 UringSocket_dealloc(UringSocket *self)
 {
-    self->closing = true;
-    if (self->py_loop) {
-        Py_XDECREF(self->py_loop);
+    self->closed = true;
+    if (self->loop) {
+        Py_XDECREF(self->loop);
     }
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 
-static PyObject*
+PyObject*
 UringSocket_bind(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -177,33 +180,35 @@ UringSocket_bind(
         return NULL;
     }
 
-    int fd = 0;
-    int addr = 0;
-    int addrlen = 0;
+    PyObject *addr_obj;
+    int fd;
+    int addrlen;
 
     static char *kwlist[] = {"fd", "addr", "addrlen", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, fd, &addr, &addrlen))) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iOi", kwlist, &fd, &addr_obj, &addrlen)) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
+	// int opcode = IORING_OP_BIND;
+    int opcode = IORING_OP_SEND;  // TEMP: Now its wrong implementation
 
-    int opcode = IORING_OP_BIND;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+
+    int request_idx = registry_add(self->loop->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_bind(self->ring, request_idx, fd, addr, (socklen_t)addrlen) < 0) {
+    if (uring_bind(self->loop->ring, request_idx, fd, addr_obj, (socklen_t)addrlen, buffer) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -212,9 +217,9 @@ UringSocket_bind(
 }
 
 
-static PyObject*
+PyObject*
 UringSocket_listen(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -234,7 +239,7 @@ UringSocket_listen(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
@@ -242,15 +247,16 @@ UringSocket_listen(
 
     int opcode = IORING_OP_CONNECT;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+
+    int request_idx = registry_add(self->loop->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_listen(self->ring, request_idx, fd, backlog) < 0) {
+    if (uring_listen(self->loop->ring, request_idx, fd, backlog) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -259,9 +265,9 @@ UringSocket_listen(
 }
 
 
-static PyObject*
+PyObject*
 UringSocket_connect(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -273,16 +279,16 @@ UringSocket_connect(
     }
 
     int fd = 0;
-    const struct sockaddr *addr = NULL;
+    PyObject *addr_obj;
     int addrlen = 0;
 
     static char *kwlist[] = {"fd", "addr", "addrlen", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ioi", kwlist, &fd, &addr, &addrlen))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &fd, &addr_obj, &addrlen))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
@@ -290,15 +296,15 @@ UringSocket_connect(
 
     int opcode = IORING_OP_CONNECT;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->loop->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_connect(self->ring, request_idx, fd, *addr, addrlen) < 0) {
+    if (uring_connect(self->loop->ring, request_idx, fd, addr_obj, addrlen) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -307,9 +313,9 @@ UringSocket_connect(
 }
 
 
-static PyObject*
+PyObject*
 UringSocket_send(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -330,7 +336,7 @@ UringSocket_send(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
@@ -338,15 +344,15 @@ UringSocket_send(
 
     int opcode = IORING_OP_SEND;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->loop->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_send(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
+    if (uring_send(self->loop->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -354,9 +360,9 @@ UringSocket_send(
     return future;
 }
 
-static PyObject*
+PyObject*
 UringSocket_recv(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -377,7 +383,7 @@ UringSocket_recv(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
@@ -385,15 +391,15 @@ UringSocket_recv(
 
     int opcode = IORING_OP_RECV;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->loop->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_recv(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
+    if (uring_recv(self->loop->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -401,9 +407,9 @@ UringSocket_recv(
     return future;
 }
 
-static PyObject*
+PyObject*
 UringSocket_accept(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -424,7 +430,7 @@ UringSocket_accept(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
@@ -432,15 +438,15 @@ UringSocket_accept(
 
     int opcode = IORING_OP_ACCEPT;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->loop->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_accept(self->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
+    if (uring_accept(self->loop->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -449,9 +455,9 @@ UringSocket_accept(
 }
 
 
-static PyObject*
+PyObject*
 UringSocket_close(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -470,7 +476,7 @@ UringSocket_close(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
@@ -478,15 +484,15 @@ UringSocket_close(
 
     int opcode = IORING_OP_CLOSE;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->loop->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_close(self->ring, request_idx, sockfd) < 0) {
+    if (uring_close_close(self->loop->ring, request_idx, sockfd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;

@@ -1,9 +1,9 @@
 #include "files.h"
 
 
-static PyObject*
+PyObject*
 UringLoop_open(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -23,7 +23,7 @@ UringLoop_open(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -31,8 +31,8 @@ UringLoop_open(
 
     int opcode = IORING_OP_OPENAT2;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -48,9 +48,9 @@ UringLoop_open(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_read(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -69,7 +69,7 @@ UringLoop_read(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         return NULL;
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
@@ -77,8 +77,8 @@ UringLoop_read(
 
     int opcode = IORING_OP_READ;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -94,9 +94,9 @@ UringLoop_read(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_write(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -115,7 +115,7 @@ UringLoop_write(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -123,8 +123,8 @@ UringLoop_write(
 
     int opcode = IORING_OP_WRITE;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -140,9 +140,9 @@ UringLoop_write(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_close(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -161,7 +161,7 @@ UringLoop_close(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -169,15 +169,15 @@ UringLoop_close(
 
     int opcode = IORING_OP_CLOSE;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_close(self->ring, request_idx, fd) < 0) {
+    if (uring_close_file(self->ring, request_idx, fd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -186,9 +186,9 @@ UringLoop_close(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_stat(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -208,7 +208,7 @@ UringLoop_stat(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -216,8 +216,8 @@ UringLoop_stat(
 
     int opcode = IORING_OP_STATX;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -233,9 +233,9 @@ UringLoop_stat(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_fsync(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -254,7 +254,7 @@ UringLoop_fsync(
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -262,8 +262,8 @@ UringLoop_fsync(
 
     int opcode = IORING_OP_FSYNC;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, buffer, opcode);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");

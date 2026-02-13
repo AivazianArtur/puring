@@ -6,47 +6,50 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
-#include "loop.h"
+#include "python_api/loop/loop.h"
 
 
-static PyObject* 
+typedef struct UringLoop UringLoop;
+
+
+PyObject* 
 UringLoop_open(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_read(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_write(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_close(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_stat(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_fsync(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
     PyObject *kwargs
 );

@@ -14,40 +14,40 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     RequestRegistry* registry = registry_new(registry_size);
     if (!registry) {
         PyErr_NoMemory();
-        return NULL;
+        Py_RETURN_NONE;
     }
 
-    UringLoop *uring_loop = (UringLoop *)PyObject_New(UringLoop, &UringLoopType);
-    if (!uring_loop) {
+    UringLoop *self = (UringLoop *)type->tp_alloc(type, 0);
+    if (!self) {
         PyErr_NoMemory();
         registry_destroy(registry);
-        return NULL;
+        Py_RETURN_NONE;
     }
 
     struct io_uring *uring = malloc(sizeof(struct io_uring));
     if (!uring){
         PyErr_SetString(PyExc_TypeError, "Error while creating loop");
         registry_destroy(registry);
-        Py_TYPE(uring_loop)->tp_free((PyObject *)uring_loop);
-        return NULL;
+        Py_TYPE(self)->tp_free((PyObject *)self);
+        Py_RETURN_NONE;
     }
 
     PyObject* python_loop = _get_loop();
     if (!python_loop) {
         PyErr_SetString(PyExc_TypeError, "Error while creating loop");
         registry_destroy(registry);
-        Py_TYPE(uring_loop)->tp_free((PyObject *)uring_loop);
-        return NULL;
+        Py_TYPE(self)->tp_free((PyObject *)self);
+        Py_RETURN_NONE;
     }
     Py_INCREF(python_loop);
 
-    uring_loop->ring = uring;
-    uring_loop->registry = registry;
-    uring_loop->py_loop = python_loop;
-    uring_loop->initialized = false;
-    uring_loop->is_closing = false;
+    self->ring = uring;
+    self->registry = registry;
+    self->py_loop = python_loop;
+    self->initialized = false;
+    self->is_closing = false;
 
-    return (PyObject *)uring_loop;
+    return (PyObject *)self;
 }
 
 static int
@@ -59,7 +59,8 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
     PyObject *ring_init_params_obj = NULL;
 
     static char *kwlist[] = {"memory_params", "ring_init_params", NULL};
-    PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist, &memory_params_obj, &ring_init_params_obj);
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist, &memory_params_obj, &ring_init_params_obj))
+        return -1;
 
     memory_params memory_params;
     ring_init_params params;
@@ -100,32 +101,31 @@ UringLoop_dealloc(UringLoop *self)
 
 
 PyObject*
-UringLoop_close_loop(PyObject *self, PyObject *args)
+UringLoop_close_loop(UringLoop *self, PyObject *args)
 {
     ASSERT_LOOP_THREAD(self);
 
     if (self->is_closing) {
-        return Py_RETURN_NONE;
+        Py_RETURN_NONE;
     }
     self->is_closing = true;
 
     // TEMP: Routing between fast/grace shutdown
     fast_shutdown(self->ring, self->registry);  // TEMP: here ring should be addr? Now its object so need to debug
 
-    PyObject *res;
-    res = PyObject_CallMethodNoArgs(self->py_loop, "stop");  // TODO: call `stop uring loop`
-    if (res == NULL) {
+    PyObject *stop_res = PyObject_CallMethod(self->py_loop, "stop", NULL);
+    if (stop_res == NULL) {
         PyErr_SetString(PyExc_ChildProcessError, "Error while stopping loop");
         return -1;
     }
+    Py_DECREF(stop_res);
 
-    res = PyObject_CallMethodNoArgs(self->py_loop, "close");
-    if (res == NULL) {
+    PyObject *close_res = PyObject_CallMethod(self->py_loop, "close", NULL);
+    if (close_res == NULL) {
         PyErr_SetString(PyExc_ChildProcessError, "Error while closing loop");
         return -1;
     }
-    Py_DECREF(res);
-
+    Py_DECREF(close_res);
     Py_RETURN_NONE;
 }
 
@@ -146,10 +146,7 @@ py_uring_loop_register_fd(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    int ret = uring_loop_register_fd(loop);
-    if (ret < 0) {
-        return PyErr_Format(PyExc_OSError, "Failed to register fd: %d", -ret);
-    }
+    uring_loop_register_fd(loop);
     Py_RETURN_NONE;
 }
 
@@ -183,32 +180,6 @@ py_uring_loop_register_fd(PyObject *self, PyObject *args)
 //
 /* Python adaptation*/
 //
-static PyTypeObject UringLoopType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "puring.src.python_api.loop.UringLoop",
-    .tp_doc = PyDoc_STR("Rings with python loop"),
-    .tp_basicsize = sizeof(UringLoop),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_new = UringLoop_new,
-    .tp_init = (initproc)UringLoop_init,
-    .tp_dealloc = (destructor)UringLoop_dealloc,
-    .tp_methods = uring_loop_methods,
-};
-
-
-static PyTypeObject UringSocketType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "puring.src.python_api.ops.sockets.UringSocket",
-    .tp_doc = PyDoc_STR("Puring socket adapter"),
-    .tp_basicsize = sizeof(UringSocket),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_new = PyType_GenericNew,
-    .tp_init = NULL,
-    .tp_dealloc = (destructor)UringSocket_dealloc,
-    .tp_methods = uring_socket_methods,
-};
 
 
 // Method Registration
@@ -247,6 +218,33 @@ static PyMethodDef uring_socket_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
+static PyTypeObject UringLoopType = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "puring.src.python_api.loop.UringLoop",
+    .tp_doc = PyDoc_STR("Rings with python loop"),
+    .tp_basicsize = sizeof(UringLoop),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = UringLoop_new,
+    .tp_init = (initproc)UringLoop_init,
+    .tp_dealloc = (destructor)UringLoop_dealloc,
+    .tp_methods = uring_loop_methods,
+};
+
+
+static PyTypeObject UringSocketType = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "puring.src.python_api.ops.sockets.UringSocket",
+    .tp_doc = PyDoc_STR("Puring socket adapter"),
+    .tp_basicsize = sizeof(UringSocket),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+    .tp_init = NULL,
+    .tp_dealloc = (destructor)UringSocket_dealloc,
+    .tp_methods = uring_socket_methods,
+};
+
 
 // Initialization of module
 static int
@@ -269,7 +267,6 @@ uring_loop_module_exec(PyObject *m)
 
 static PyModuleDef_Slot uring_loop_module_slots[] = {
     {Py_mod_exec, uring_loop_module_exec},
-    {Py_mod_exec, uring_sock_module_exec},
     {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_NOT_SUPPORTED},
     {0, NULL}
 };

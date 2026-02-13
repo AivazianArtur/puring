@@ -99,7 +99,7 @@ int uring_write(
 }
 
 
-int uring_close(
+int uring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd

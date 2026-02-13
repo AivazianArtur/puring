@@ -13,7 +13,7 @@ bool is_future_canceled(
         return false;
     }
 
-    io_uring_cqe_seen(&self->ring, cqe);
-    registry_remove(self->registry, index);
+    io_uring_cqe_seen(&ring, cqe);
+    registry_remove(registry, index);
     return true;
 }

@@ -5,8 +5,8 @@
 #include <liburing.h>
 #include <sys/types.h>
 #include <stdbool.h>
-#include "ops/files/files.h"
-#include "ops/sockets/sockets.h"
+#include "python_api/ops/files/files.h"
+#include "python_api/ops/sockets/sockets.h"
 #include "core/core.h"
 #include "reader/reader.h"
 #include "macroses/macroses.h"
@@ -28,6 +28,8 @@ typedef struct UringLoop {
     bool is_closing;
 } UringLoop;
 
+static PyTypeObject UringLoopType;
+static PyTypeObject UringSocketType;
 
 /* Functions */
 static PyObject*
@@ -40,7 +42,7 @@ static void
 UringLoop_dealloc(UringLoop *self);
 
 static PyObject*
-UringLoop_close_loop(PyObject *self, PyObject *args);
+UringLoop_close_loop(UringLoop *self, PyObject *args);
 
 static PyObject *
 py_uring_loop_register_fd(PyObject *self, PyObject *args);

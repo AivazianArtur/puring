@@ -267,6 +267,9 @@ int uring_accept(
 
     io_uring_prep_accept(sqe, sockfd, buf, len, flags);
 
+    // socklen_t addrlen = sizeof(addr);
+    // io_uring_prep_accept(sqe, sockfd, (struct sockaddr *)&addr, &addrlen, flags);
+
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
@@ -279,7 +282,7 @@ int uring_accept(
 }
 
 
-int uring_close(
+int uring_close_socket(
     struct io_uring *ring,
     int request_idx,
     int sockfd

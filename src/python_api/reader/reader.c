@@ -74,7 +74,7 @@ init_socket(int fd, PyObject *py_loop)
 
     sock->sock_fd = fd;
     sock->loop = py_loop;
-    sock->close = false;
+    sock->closed = false;
     Py_INCREF(py_loop);
 
     return (PyObject *)sock;

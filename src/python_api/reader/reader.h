@@ -1,5 +1,5 @@
 #include <Python.h>
-#include "loop/loop.h"
+#include "python_api/loop/loop.h"
 #include "sockets/sockets.h"
 #include "core.h"
 #include "signals/signals.h"
