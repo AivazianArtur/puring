@@ -492,7 +492,7 @@ UringSocket_close(
         return NULL;
     }
 
-    if (uring_close_close(self->loop->ring, request_idx, sockfd) < 0) {
+    if (uring_close_socket(self->loop->ring, request_idx, sockfd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
