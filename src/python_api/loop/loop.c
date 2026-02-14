@@ -287,16 +287,7 @@ static PyModuleDef uring_loop_module = {
 };
 
 PyMODINIT_FUNC
-PyInit_uring(void)
+PyInit_puring(void)
 {
-    PyObject *m = PyModule_Create(&uring_loop_module);
-    if (!m) return NULL;
-
-    Py_INCREF(&UringLoopType);
-    Py_INCREF(&UringSocketType);
-
-    PyModule_AddObject(m, "UringLoop", (PyObject *)&UringLoopType);
-    PyModule_AddObject(m, "UringSocket", (PyObject *)&UringSocketType);
-
-    return m;
+    return PyModuleDef_Init(&uring_loop_module);
 }

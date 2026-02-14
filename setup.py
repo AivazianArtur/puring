@@ -1,21 +1,34 @@
+import os
 from setuptools import setup, Extension
 from pathlib import Path
 
-src = Path('src')
 
+liburing_dir = os.path.join('requirements', 'liburing', 'src')
+liburing_include = os.path.join(liburing_dir, 'include')
+liburing_lib = liburing_dir
+
+src = Path('src')
 sources = [str(p) for p in src.rglob('*.c')]
 
 ext = Extension(
-    name='loop',
+    'puring',
     sources=sources,
     include_dirs=[
         'src',
         'src/core',
         'src/ops',
         'src/python_api',
+        'requirements/liburing',
+        'requirements/liburing/src',
+        'requirements/liburing/include',
+    ],
+    library_dirs=[
+        'requirements/liburing/src',
     ],
     libraries=['uring'],
-    extra_compile_args=['-O2', '-Wall', '-Wextra'],
+    extra_link_args=[
+        '-Wl,-rpath,$ORIGIN/../requirements/liburing/src'
+    ],
 )
 
 setup(

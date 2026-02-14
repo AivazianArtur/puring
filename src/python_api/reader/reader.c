@@ -100,7 +100,7 @@ static PyMethodDef py_uring_reader_cb_def = {
 // Simple version
 void uring_loop_register_fd(UringLoop *loop)
 {
-    int uring_fd = io_uring_get_ring_fd(&loop->ring);
+    int uring_fd = loop->ring->ring_fd;
     PyObject *capsule = PyCapsule_New(loop, "uring_loop", NULL);
 
     PyObject *callback = PyCFunction_New(&py_uring_reader_cb_def, capsule);

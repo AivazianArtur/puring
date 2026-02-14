@@ -125,7 +125,6 @@ int uring_bind(
         fprintf(stderr, "SQE is not available\n");
         return -1;
     }
-
     io_uring_prep_bind(sqe, fd, addr, addrlen);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
