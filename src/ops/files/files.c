@@ -16,8 +16,9 @@ int open_file(
         return -1;
     }
     struct open_how how = {
-        .flags = O_RDONLY,
-        .mode = 0,
+        // TODO: O_APPEND to append, basically need to implement getting this as param
+        .flags = O_RDWR | O_CREAT,
+        .mode = 0644,
     };
 
     io_uring_prep_openat2(sqe, dfd, path, &how);
@@ -37,41 +38,31 @@ int open_file(
 int uring_read(
     struct io_uring *ring,
     int request_idx,
-    int fd
-    // void *buf,
+    int fd,
+    char *buf,
+    Py_ssize_t size 
     // __u64 offset,  TODO
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
+    if (!sqe)
         return -1;
-    }
 
-    __u64 offset = 0;
+    io_uring_prep_read(sqe, fd, buf, size, 0);
 
-    int size = 1024;
-    char *buf = malloc(size);
-    // io_uring_prep_read_fixed <- with fix buffer, but need to do io_uring_register 
-    io_uring_prep_read(sqe, fd, buf, sizeof(buf), offset);
+    io_uring_sqe_set_data(sqe, (void *)(uintptr_t)request_idx);
 
-    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
-    io_uring_sqe_set_data(sqe, rings_data_pointer);
-
-    int result = io_uring_submit(ring);
-    if (result < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
-        return 0;
-    }
-    return 0;
+    int ret = io_uring_submit(ring);
+    return ret < 0 ? -1 : 0;
 }
 
 
 int uring_write(
     struct io_uring *ring,
     int request_idx,
-    int fd
-    // void *buf,
+    int fd,
+    char *buf,
+    Py_ssize_t size 
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -82,10 +73,7 @@ int uring_write(
 
     __u64 offset = 0;
 
-    int size = 1024;
-    char *buf = malloc(size);
-
-    io_uring_prep_write(sqe, fd, buf, sizeof(buf), offset);
+    io_uring_prep_write(sqe, fd, buf, size, offset);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);

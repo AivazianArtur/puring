@@ -6,59 +6,55 @@ void on_uring_ready(UringLoop *self)
 
     PyGILState_STATE gstate = PyGILState_Ensure();
 
-    while (io_uring_peek_cqe(&(self->ring), &cqe) == 0)
-    {
+    if (io_uring_peek_cqe(self->ring, &cqe) != 0) {
+        PyGILState_Release(gstate);
+        return;
+    }
+
+    do {
         int index = (int)(uintptr_t)cqe->user_data;
         RequestSlot *slot = registry_get(self->registry, index);
-        if (!slot || !slot->future)
-        {
-            io_uring_cqe_seen(&(self->ring), cqe);
-            continue;
-        }
-
-        if (is_future_canceled) {
+        if (!slot || !slot->future) {
+            io_uring_cqe_seen(self->ring, cqe);
             continue;
         }
 
         PyObject *result = NULL;
         PyObject *exc = NULL;
 
-        if (cqe->res < 0)
-        {
-            PyObject *exc;
-            exc = PyObject_CallFunction(
-                PyExc_OSError, "i", -cqe->res
-            );
-            PyObject_CallMethod(slot->future, "set_exception", "O", exc);
-            Py_DECREF(exc);
-        }
-        else
-        {
-            PyObject *result;
-            switch (slot->opcode)
-            {
-            case IORING_OP_READ:
-                result = PyBytes_FromStringAndSize(
-                    PyBytes_AS_STRING(slot->buffer),
-                    cqe->res
-                );
-                break;
-            case IORING_OP_SOCKET:
+        if (cqe->res < 0) {
+            exc = PyObject_CallFunction(PyExc_OSError, "i", -cqe->res);
+            if (exc) {
+                PyObject_CallMethod(slot->future, "set_exception", "O", exc);
+                Py_DECREF(exc);
+            } else {
+                PyErr_Print();
+            }
+        } else {
+            if (slot->opcode == IORING_OP_READ && slot->buffer && PyBytes_Check(slot->buffer)) {
+                result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer), cqe->res);
+            } else if (slot->opcode == IORING_OP_SOCKET) {
                 result = init_socket(cqe->res, self->py_loop);
-                break;
-            default:
+            } else {
                 result = PyLong_FromLong(cqe->res);
             }
+
+            if (!result) {
+                PyErr_Print();
+                io_uring_cqe_seen(self->ring, cqe);
+                continue;
+            }
+
+            PyObject *call_res = PyObject_CallMethod(slot->future, "set_result", "O", result);
+            if (!call_res) PyErr_Print();
+            Py_XDECREF(call_res);
+            Py_XDECREF(result);
         }
 
-        PyObject_CallMethod(slot->future, "set_result", "O", result);
-
-        Py_XDECREF(result);
-        Py_XDECREF(exc);
-
         registry_remove(self->registry, index);
-        io_uring_cqe_seen(&self->ring, cqe);
-    }
+        io_uring_cqe_seen(self->ring, cqe);
+
+    } while (io_uring_peek_cqe(self->ring, &cqe) == 0);
 
     PyGILState_Release(gstate);
 }

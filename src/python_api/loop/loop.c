@@ -5,45 +5,47 @@ static PyObject*
 UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = {"registry_size", NULL};
-    int registry_size;
+    int registry_size = 0;
     // TODO add loop_tid;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &registry_size))
-        registry_size = 0;
-
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &registry_size))
+        return NULL;
 
     RequestRegistry* registry = registry_new(registry_size);
     if (!registry) {
         PyErr_NoMemory();
-        Py_RETURN_NONE;
+        return NULL;
     }
 
     UringLoop *self = (UringLoop *)type->tp_alloc(type, 0);
     if (!self) {
         PyErr_NoMemory();
         registry_destroy(registry);
-        Py_RETURN_NONE;
+        return NULL;
     }
 
-    struct io_uring *uring = malloc(sizeof(struct io_uring));
+    struct io_uring *uring = calloc(1, sizeof(struct io_uring));
     if (!uring){
         PyErr_SetString(PyExc_TypeError, "Error while creating loop");
         registry_destroy(registry);
         Py_TYPE(self)->tp_free((PyObject *)self);
-        Py_RETURN_NONE;
+        return NULL;
     }
 
     PyObject* python_loop = _get_loop();
     if (!python_loop) {
         PyErr_SetString(PyExc_TypeError, "Error while creating loop");
         registry_destroy(registry);
+        free(uring);
         Py_TYPE(self)->tp_free((PyObject *)self);
-        Py_RETURN_NONE;
+        return NULL;
     }
     Py_INCREF(python_loop);
 
     self->ring = uring;
     self->registry = registry;
     self->py_loop = python_loop;
+    PyObject *capsule = PyCapsule_New(self, "uring_loop", NULL);
+
     self->initialized = false;
     self->is_closing = false;
 
@@ -55,22 +57,22 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self);
 
-    PyObject *memory_params_obj = NULL;
-    PyObject *ring_init_params_obj = NULL;
+    // PyObject *memory_params_obj = NULL;
+    // PyObject *ring_init_params_obj = NULL;
 
-    static char *kwlist[] = {"memory_params", "ring_init_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OO", kwlist, &memory_params_obj, &ring_init_params_obj))
-        return -1;
+    memory_params memory_params = {0};
+    ring_init_params params = {0};
 
-    memory_params memory_params;
-    ring_init_params params;
+    // static char *kwlist[] = {"memory_params", "ring_init_params", NULL};
+    // if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO", kwlist, &memory_params_obj, &ring_init_params_obj))
+    //     return -1;
 
-    if (!_parse_memory_params(memory_params_obj, &memory_params))
-        return -1;
+    // if (!_parse_memory_params(memory_params_obj, &memory_params))
+    //     return -1;
 
-    if (!_parse_ring_init_params(ring_init_params_obj, &params))
-        return -1;
-   
+    // if (!_parse_ring_init_params(ring_init_params_obj, &params))
+    //     return -1;
+
     if (ring_init(&memory_params, &params, self->ring) < 0) {
         PyErr_SetFromErrno(PyExc_OSError);
         return -1;
@@ -105,27 +107,27 @@ UringLoop_close_loop(UringLoop *self, PyObject *args)
 {
     ASSERT_LOOP_THREAD(self);
 
-    if (self->is_closing) {
+    if (self->is_closing)
         Py_RETURN_NONE;
-    }
+
     self->is_closing = true;
 
-    // TEMP: Routing between fast/grace shutdown
-    fast_shutdown(self->ring, self->registry);  // TEMP: here ring should be addr? Now its object so need to debug
+    PyObject_CallMethod(self->py_loop, "remove_reader", "i", self->ring->ring_fd);
 
-    PyObject *stop_res = PyObject_CallMethod(self->py_loop, "stop", NULL);
-    if (stop_res == NULL) {
-        PyErr_SetString(PyExc_ChildProcessError, "Error while stopping loop");
-        return -1;
+    // TODO: Somehow to move to ring_destoy and registry_destroy
+    struct io_uring_cqe *cqe;
+    while (io_uring_peek_cqe(self->ring, &cqe) == 0) {
+        int index = (int)(uintptr_t)cqe->user_data;
+        registry_remove(self->registry, index);  // TODO: set future exception
+        io_uring_cqe_seen(self->ring, cqe);
     }
-    Py_DECREF(stop_res);
 
-    PyObject *close_res = PyObject_CallMethod(self->py_loop, "close", NULL);
-    if (close_res == NULL) {
-        PyErr_SetString(PyExc_ChildProcessError, "Error while closing loop");
-        return -1;
-    }
-    Py_DECREF(close_res);
+    ring_destroy(self->ring);
+    self->ring = NULL;
+
+    registry_destroy(self->registry);
+    self->registry = NULL;
+
     Py_RETURN_NONE;
 }
 
@@ -134,9 +136,9 @@ static PyObject *
 py_uring_loop_register_fd(PyObject *self, PyObject *args)
 {
     PyObject *py_loop;
-    int fd;
 
-    if (!PyArg_ParseTuple(args, "Oi", &py_loop, &fd)) {
+    if (!PyArg_ParseTuple(args, "O", &py_loop)) {
+        PyErr_SetString(PyExc_ValueError, "Invalid input arguments");
         return NULL;
     }
 
@@ -186,17 +188,18 @@ py_uring_loop_register_fd(PyObject *self, PyObject *args)
 // Method Table
 static PyMethodDef uring_loop_methods[] = {
     // LOOP
-    {"close_loop", (PyCFunction)UringLoop_close_loop, METH_NOARGS,  "Close loop"},
+    {"close_loop", (PyCFunction)UringLoop_close_loop, METH_VARARGS,  "Close loop"},
     // {"run",   (PyCFunction)UringLoop_run,   METH_NOARGS,  "Run loop"},
     // {"stop",  (PyCFunction)UringLoop_stop,  METH_NOARGS,  "Stop loop"},
 
     // OPS
     // Files
     {"open", (PyCFunction)UringLoop_open, METH_VARARGS | METH_KEYWORDS},
-    {"read", (PyCFunction)UringLoop_read, METH_NOARGS,  "Read file"},
-    {"close", (PyCFunction)UringLoop_close, METH_NOARGS,  "Close file"},
-    {"stat", (PyCFunction)UringLoop_stat, METH_NOARGS,  "File info"},
-    {"fsync", (PyCFunction)UringLoop_fsync, METH_NOARGS,  "Flush file buffer to file"},
+    {"read", (PyCFunction)UringLoop_read, METH_VARARGS | METH_KEYWORDS,  "Read file"},
+    {"write", (PyCFunction)UringLoop_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
+    {"close", (PyCFunction)UringLoop_close, METH_VARARGS | METH_KEYWORDS,  "Close file"},
+    {"stat", (PyCFunction)UringLoop_stat, METH_VARARGS | METH_KEYWORDS,  "File info"},
+    {"fsync", (PyCFunction)UringLoop_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
     // Sockets
     {"tcp_socket", (PyCFunction)UringLoop_tcp_socket, METH_VARARGS | METH_KEYWORDS,  "Opens tcp-socket"},
     {"udp_socket", (PyCFunction)UringLoop_udp_socket, METH_VARARGS | METH_KEYWORDS,  "Opens udp-socket"},

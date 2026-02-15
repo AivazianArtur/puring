@@ -1,17 +1,17 @@
 #include "loop.h"
 
+
 PyObject* 
 _get_loop(void)
 {
     PyObject *asyncio = PyImport_ImportModule("asyncio");
     if (!asyncio) return NULL;
 
-    PyObject *get_loop_fn = PyObject_GetAttrString(asyncio, "get_running_loop");
+    PyObject *get_loop_fn = PyObject_GetAttrString(asyncio, "get_event_loop");
     PyObject *loop = PyObject_CallNoArgs(get_loop_fn);
 
     Py_DECREF(get_loop_fn);
     Py_DECREF(asyncio);
-    if (!loop) return NULL;
     return loop;
 }
 

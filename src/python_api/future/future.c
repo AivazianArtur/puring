@@ -1,4 +1,5 @@
 #include "future.h"
+#include "python_api/loop/loop.h"
 
 // DRAFT
 PyObject* create_future(UringLoop *self) 

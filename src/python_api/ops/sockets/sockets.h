@@ -7,7 +7,9 @@
 #include <stdbool.h>
 
 
+#include "ops/sockets/sockets.h"
 #include "python_api/loop/loop.h"
+#include "python_api/future/future.h"
 
 
 typedef struct UringLoop UringLoop;

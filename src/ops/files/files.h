@@ -20,7 +20,9 @@ int open_file(
 int uring_read(
     struct io_uring *ring,
     int request_idx,
-    int fd
+    int fd,
+    char *buf,
+    Py_ssize_t size 
     // void *buf,
     // __u64 offset,  TODO
 );
@@ -28,7 +30,9 @@ int uring_read(
 int uring_write(
     struct io_uring *ring,
     int request_idx,
-    int fd
+    int fd,
+    char *buf,
+    Py_ssize_t size 
     // void *buf,
 );
 

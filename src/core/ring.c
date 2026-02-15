@@ -21,7 +21,7 @@ int ring_init(
 
     // Now only default initialization
     // TODO: Do full initialization
-    int result = io_uring_queue_init(0, ring, 0);
+    int result = io_uring_queue_init(256, ring, 0);
     if (result < 0) {
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return -1;
@@ -29,9 +29,9 @@ int ring_init(
     return 0;
 }
 
+
 void ring_destroy(struct io_uring* ring) 
 {
-
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     // TODO: Create Retry setable loop, including accepting flags etc
     if (!sqe) {
@@ -45,7 +45,5 @@ void ring_destroy(struct io_uring* ring)
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return;
     }
-    // TEMP: MAybe we'll need to catch every cqe but my thought to ignore is this:
-    // kernel already cancelled everything, queue_exit will destroy ring. seems fine for now
     io_uring_queue_exit(ring);
 }

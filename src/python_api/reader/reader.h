@@ -1,8 +1,14 @@
+#pragma once
+
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include "python_api/loop/loop.h"
-#include "sockets/sockets.h"
+
+#include <stdio.h>
+
 #include "core.h"
-#include "signals/signals.h"
+#include "python_api/ops/sockets/sockets.h"
+#include "python_api/loop/loop.h"
+#include "python_api/signals/signals.h"
 
 void on_uring_ready(UringLoop *self);
 
