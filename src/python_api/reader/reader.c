@@ -1,5 +1,6 @@
 #include "reader.h"
 
+
 void on_uring_ready(UringLoop *self)
 {
     struct io_uring_cqe *cqe;
@@ -33,8 +34,12 @@ void on_uring_ready(UringLoop *self)
         } else {
             if (slot->opcode == IORING_OP_READ && slot->buffer && PyBytes_Check(slot->buffer)) {
                 result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer), cqe->res);
-            } else if (slot->opcode == IORING_OP_SOCKET) {
-                result = init_socket(cqe->res, self->py_loop);
+            } else if (slot->socket) {
+                // TEMP Checking for socket, TODO proper opcode routing
+                UringSocket *sock = (UringSocket *)slot->socket;
+                sock->sock_fd = cqe->res;
+                sock->closed = false;
+                result = (PyObject*)slot->socket;
             } else {
                 result = PyLong_FromLong(cqe->res);
             }
@@ -60,23 +65,6 @@ void on_uring_ready(UringLoop *self)
 }
 
 
-PyObject *
-init_socket(int fd, PyObject *py_loop)
-{
-    UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
-    if (!sock) {
-        return PyErr_NoMemory();
-    }
-
-    sock->sock_fd = fd;
-    sock->loop = py_loop;
-    sock->closed = false;
-    Py_INCREF(py_loop);
-
-    return (PyObject *)sock;
-}
-
-// Register reader
 PyObject *py_on_uring_ready(PyObject *self, PyObject *args)
 {
     PyObject *capsule;
@@ -92,6 +80,7 @@ PyObject *py_on_uring_ready(PyObject *self, PyObject *args)
 static PyMethodDef py_uring_reader_cb_def = {
     "on_uring_ready", (PyCFunction)py_on_uring_ready, METH_VARARGS, "Called by asyncio when io_uring FD is ready"
 };
+
 
 // Simple version
 void uring_loop_register_fd(UringLoop *loop)

@@ -23,7 +23,6 @@ int uring_read(
     int fd,
     char *buf,
     Py_ssize_t size 
-    // void *buf,
     // __u64 offset,  TODO
 );
 
@@ -33,21 +32,21 @@ int uring_write(
     int fd,
     char *buf,
     Py_ssize_t size 
-    // void *buf,
 );
 
 int uring_close_file(
     struct io_uring *ring,
     int request_idx,
-    int fd
-    // void *buf,
+    int fd,
+    char *buf
 );
 
 int uring_stat(
     struct io_uring *ring,
     int request_idx,
     int dfd,
-    const char *path
+    const char *path,
+    char *buf
     // int flags,  TODO
 	// mode_t mode
 );

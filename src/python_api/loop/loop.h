@@ -28,8 +28,8 @@ typedef struct UringLoop {
     bool is_closing;
 } UringLoop;
 
-static PyTypeObject UringLoopType;
-static PyTypeObject UringSocketType;
+extern PyTypeObject UringLoopType;
+extern PyTypeObject UringSocketType;
 
 /* Functions */
 static PyObject*

@@ -90,8 +90,8 @@ int uring_write(
 int uring_close_file(
     struct io_uring *ring,
     int request_idx,
-    int fd
-    // void *buf,
+    int fd,
+    char *buf
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -101,9 +101,6 @@ int uring_close_file(
     }
 
     __u64 offset = 0;
-
-    int size = 1024;
-    char *buf = malloc(size);
 
     io_uring_prep_close(sqe, fd);
 
@@ -123,7 +120,8 @@ int uring_stat(
     struct io_uring *ring,
     int request_idx,
     int dfd,
-    const char *path
+    const char *path,
+    char *buf
     // int flags,  TODO
 )
 {
@@ -134,10 +132,9 @@ int uring_stat(
     }
 
     int flags = 0;
-    struct statx *statbuf = malloc(sizeof(struct statx));
     unsigned mask = STATX_ALL;
 
-    io_uring_prep_statx(sqe, dfd, path, flags, mask, statbuf);
+    io_uring_prep_statx(sqe, dfd, path, flags, mask, buf);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);

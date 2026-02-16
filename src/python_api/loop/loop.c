@@ -210,18 +210,19 @@ static PyMethodDef uring_loop_methods[] = {
 
 
 static PyMethodDef uring_socket_methods[] = {
-    {"bind", (PyCFunction)UringSocket_bind, METH_NOARGS,  "Bind socket"},
-    {"listen", (PyCFunction)UringSocket_listen, METH_NOARGS,  "Listen socket"},
-    {"connect", (PyCFunction)UringSocket_connect, METH_NOARGS,  "Connect"},
-    {"send", (PyCFunction)UringSocket_send, METH_NOARGS,  "Send"},
-    {"recv", (PyCFunction)UringSocket_recv, METH_NOARGS,  "Recv"},
-    {"accept", (PyCFunction)UringSocket_accept, METH_NOARGS,  "Accept"},
-    {"close", (PyCFunction)UringSocket_close, METH_NOARGS,  "Close"},
+    // TEMP: IN bind Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug. 
+    {"bind", (PyCFunction)UringSocket_bind, METH_VARARGS | METH_KEYWORDS,  "Bind socket"},
+    {"listen", (PyCFunction)UringSocket_listen, METH_VARARGS | METH_KEYWORDS,  "Listen socket"},
+    {"connect", (PyCFunction)UringSocket_connect, METH_VARARGS | METH_KEYWORDS,  "Connect"},
+    {"send", (PyCFunction)UringSocket_send, METH_VARARGS | METH_KEYWORDS,  "Send"},
+    {"recv", (PyCFunction)UringSocket_recv, METH_VARARGS | METH_KEYWORDS,  "Recv"},
+    {"accept", (PyCFunction)UringSocket_accept, METH_VARARGS | METH_KEYWORDS,  "Accept"},
+    {"close", (PyCFunction)UringSocket_close, METH_VARARGS | METH_KEYWORDS,  "Close"},
 
     {NULL, NULL, 0, NULL}
 };
 
-static PyTypeObject UringLoopType = {
+PyTypeObject UringLoopType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "puring.src.python_api.loop.UringLoop",
     .tp_doc = PyDoc_STR("Rings with python loop"),
@@ -235,7 +236,7 @@ static PyTypeObject UringLoopType = {
 };
 
 
-static PyTypeObject UringSocketType = {
+PyTypeObject UringSocketType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "puring.src.python_api.ops.sockets.UringSocket",
     .tp_doc = PyDoc_STR("Puring socket adapter"),
@@ -267,6 +268,7 @@ uring_loop_module_exec(PyObject *m)
     }
     return 0;
 }
+
 
 static PyModuleDef_Slot uring_loop_module_slots[] = {
     {Py_mod_exec, uring_loop_module_exec},

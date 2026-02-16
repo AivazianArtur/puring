@@ -60,7 +60,13 @@ void registry_destroy(RequestRegistry *reg)
     reg->top = -1;
 }
 
-int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int opcode) 
+int registry_add(
+    RequestRegistry *reg,
+    PyObject *future,
+    PyObject *buffer,
+    int opcode,
+    PyObject *socket
+) 
 {
     if (reg->top < 0) {
         return -1;
@@ -79,6 +85,9 @@ int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int o
 
     slot->buffer = buffer;
     if (buffer != NULL) Py_INCREF(buffer);
+
+    slot->socket = socket;
+    if (socket != NULL) Py_INCREF(socket);
 
     return index;
 }

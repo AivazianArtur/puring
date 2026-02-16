@@ -44,7 +44,7 @@ UringLoop_open(
     int opcode = IORING_OP_OPENAT2;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx = registry_add(self->registry, future, buffer, opcode);
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -89,7 +89,7 @@ UringLoop_read(
     }
 
     int opcode = IORING_OP_READ;
-    // For now whoile puring without buffer, we'll do it in next v.
+
     Py_ssize_t size = 1024;
 
     PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
@@ -98,7 +98,7 @@ UringLoop_read(
         return PyErr_NoMemory();
     }
 
-    int request_idx = registry_add(self->registry, future, buffer, opcode);
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -147,7 +147,7 @@ UringLoop_write(
     int opcode = IORING_OP_WRITE;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx = registry_add(self->registry, future, data, opcode);
+    int request_idx = registry_add(self->registry, future, data, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -194,16 +194,24 @@ UringLoop_close(
     }
 
     int opcode = IORING_OP_CLOSE;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-    int request_idx = registry_add(self->registry, future, buffer, opcode);
+    
+    Py_ssize_t size = 1024;
+
+    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
+    if (!buffer) {
+        Py_DECREF(future);
+        return PyErr_NoMemory();
+    }
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_close_file(self->ring, request_idx, fd) < 0) {
+    char *buf = PyBytes_AS_STRING(buffer);
+
+    if (uring_close_file(self->ring, request_idx, fd, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -240,17 +248,25 @@ UringLoop_stat(
         return NULL;
     }
 
+    Py_ssize_t size = 1024;
+
+    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
+    if (!buffer) {
+        Py_DECREF(future);
+        return PyErr_NoMemory();
+    }
+
     int opcode = IORING_OP_STATX;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-    int request_idx = registry_add(self->registry, future, buffer, opcode);
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_stat(self->ring, request_idx, dfd, path) < 0) {
+    char *buf = PyBytes_AS_STRING(buffer);
+
+    if (uring_stat(self->ring, request_idx, dfd, path, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -289,7 +305,7 @@ UringLoop_fsync(
     int opcode = IORING_OP_FSYNC;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx = registry_add(self->registry, future, buffer, opcode);
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");

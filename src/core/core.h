@@ -48,6 +48,7 @@ typedef struct {
     PyObject *future;       // The asyncio Future object
     PyObject *buffer;       // The Python Buffer (bytes/bytearray/memoryview)
     int opcode;             // Opcode for debugging (IORING_OP_READ, etc.)
+    PyObject *socket;
 } RequestSlot;
 
 
@@ -75,7 +76,13 @@ void ring_destroy(struct io_uring* ring);
 RequestRegistry* registry_new(unsigned int size);
 void registry_destroy(RequestRegistry *reg);
 
-int registry_add(RequestRegistry *reg, PyObject *future, PyObject *buffer, int opcode);
+int registry_add(
+    RequestRegistry *reg,
+    PyObject *future,
+    PyObject *buffer,
+    int opcode,
+    PyObject *socket
+);
 
 RequestSlot* registry_get(RequestRegistry *reg, int index);
 

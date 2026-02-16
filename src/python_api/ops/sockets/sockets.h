@@ -52,7 +52,7 @@ UringLoop_unix_dgram(
 );
 
 
-PyObject*
+void
 UringSocket_dealloc(UringSocket *self);
 
 
