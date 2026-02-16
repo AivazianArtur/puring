@@ -2,7 +2,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "loop.h"
 
+typedef struct UringLoop UringLoop;
 
-static PyObject* create_future(UringLoop *self);
+PyObject* create_future(UringLoop *self);

@@ -7,8 +7,12 @@
 #include <stdbool.h>
 
 
-#include "loop.h"
+#include "ops/sockets/sockets.h"
+#include "python_api/loop/loop.h"
+#include "python_api/future/future.h"
 
+
+typedef struct UringLoop UringLoop;
 
 typedef struct {
     PyObject_HEAD
@@ -19,84 +23,84 @@ typedef struct {
 } UringSocket;
 
 
-static PyObject* 
+PyObject* 
 UringLoop_tcp_socket(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringLoop_udp_socket(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringLoop_unix_stream(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringLoop_unix_dgram(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
 
-static PyObject*
+void
 UringSocket_dealloc(UringSocket *self);
 
 
-static PyObject* 
+PyObject* 
 UringSocket_bind(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringSocket_listen(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringSocket_connect(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringSocket_send(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringSocket_recv(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringSocket_accept(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject* 
+PyObject* 
 UringSocket_close(
-    PyObject *self,
+    UringSocket *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );

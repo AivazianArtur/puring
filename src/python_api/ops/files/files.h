@@ -2,51 +2,60 @@
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
-#include <liburing.h>
-#include <sys/types.h>
+
+#include <stdio.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
-#include "loop.h"
+#include <liburing.h>
+
+#include "python_api/future/future.h"
+#include "python_api/loop/loop.h"
+#include "ops/files/files.h"
 
 
-static PyObject* 
+typedef struct UringLoop UringLoop;
+
+
+PyObject* 
 UringLoop_open(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_read(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_write(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_close(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_stat(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );
 
-static PyObject*
+PyObject*
 UringLoop_fsync(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 );

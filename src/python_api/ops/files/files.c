@@ -1,11 +1,11 @@
 #include "files.h"
 
 
-static PyObject*
+PyObject*
 UringLoop_open(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -14,16 +14,28 @@ UringLoop_open(
         return NULL;
     }
 
-    int dfd = NULL;
-    static char path = NULL;
+    int dfd = AT_FDCWD;
+    PyObject *py_path_obj = NULL;
+    const char *path = NULL;
 
     static char *kwlist[] = {"dfd", "path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, dfd, path))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", kwlist, &dfd, &py_path_obj)) {
+        PyErr_SetString(PyExc_RuntimeError, "Invalid arguments");
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    if (!py_path_obj || !PyUnicode_Check(py_path_obj)) {
+        PyErr_SetString(PyExc_TypeError, "Path must be a str");
+        return NULL;
+    }
+
+    path = PyUnicode_AsUTF8(py_path_obj);
+    if (!path) {
+        PyErr_SetString(PyExc_TypeError, "Failed to convert path to UTF-8");
+        return NULL;
+    }
+
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -31,28 +43,29 @@ UringLoop_open(
 
     int opcode = IORING_OP_OPENAT2;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
     if (open_file(self->ring, request_idx, dfd, path) < 0) {
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }
+
     return future;
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_read(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -61,31 +74,40 @@ UringLoop_read(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &fd))) {
+        PyErr_SetString(PyExc_RuntimeError, "Wrong input params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
-        return NULL;
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
+        return NULL;
     }
 
     int opcode = IORING_OP_READ;
-    // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+
+    Py_ssize_t size = 1024;
+
+    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
+    if (!buffer) {
+        Py_DECREF(future);
+        return PyErr_NoMemory();
+    }
+
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (read(self->ring, request_idx, fd, buffer) < 0) {
+    char *buf = PyBytes_AS_STRING(buffer);
+
+    if (uring_read(self->ring, request_idx, fd, buf, size) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -94,11 +116,11 @@ UringLoop_read(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_write(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -107,15 +129,16 @@ UringLoop_write(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
+    PyObject *data = NULL;
 
-    static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
+    static char *kwlist[] = {"fd", "data", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &fd, &data))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -123,15 +146,18 @@ UringLoop_write(
 
     int opcode = IORING_OP_WRITE;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, data, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
+    
+    char *buf = PyBytes_AS_STRING(data);
+    Py_ssize_t size = PyBytes_GET_SIZE(data);
 
-    if (write(self->ring, request_idx, fd, buffer) < 0) {
+    if (uring_write(self->ring, request_idx, fd, buf, size) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -140,11 +166,11 @@ UringLoop_write(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_close(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -153,31 +179,39 @@ UringLoop_close(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
     }
 
     int opcode = IORING_OP_CLOSE;
-    // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    
+    Py_ssize_t size = 1024;
+
+    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
+    if (!buffer) {
+        Py_DECREF(future);
+        return PyErr_NoMemory();
+    }
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (close(self->ring, request_idx, fd) < 0) {
+    char *buf = PyBytes_AS_STRING(buffer);
+
+    if (uring_close_file(self->ring, request_idx, fd, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -186,11 +220,11 @@ UringLoop_close(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_stat(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -203,28 +237,36 @@ UringLoop_stat(
     static char path = NULL;
 
     static char *kwlist[] = {"dfd", "path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, dfd, path))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &dfd, &path))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
     }
 
+    Py_ssize_t size = 1024;
+
+    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
+    if (!buffer) {
+        Py_DECREF(future);
+        return PyErr_NoMemory();
+    }
+
     int opcode = IORING_OP_STATX;
-    // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (stat(self->ring, request_idx, dfd, path) < 0) {
+    char *buf = PyBytes_AS_STRING(buffer);
+
+    if (uring_stat(self->ring, request_idx, dfd, path, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -233,11 +275,11 @@ UringLoop_stat(
 }
 
 
-static PyObject*
+PyObject*
 UringLoop_fsync(
-    PyObject *self,
+    UringLoop *self,
     PyObject *args,
-    PyObject *kwargs,
+    PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self);
@@ -246,15 +288,15 @@ UringLoop_fsync(
         return NULL;
     }
 
-    int fd = NULL;
+    int fd = 0;
 
     static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, fd))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(loop);
+    PyObject *future = create_future(self);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -262,15 +304,15 @@ UringLoop_fsync(
 
     int opcode = IORING_OP_FSYNC;
     // For now whoile puring without buffer, we'll do it in next v.
-    int buffer = 0;
-    int request_idx = registry_add(loop->registry, future, buffer, opcode);
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (fsync(self->ring, request_idx, fd) < 0) {
+    if (uring_fsync(self->ring, request_idx, fd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
