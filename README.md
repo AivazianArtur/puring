@@ -1,9 +1,12 @@
 # Puring: High-Performance io_uring wrapper for Python
 
 ## Why Puring?
-* **True Async File I/O:** Unlike epoll-based loops, Puring uses native Linux `io_uring` for non-blocking file operations without thread pools.
-* **Low Overhead:** C-implemented request registry with $O(1)$ lookup.
+* **True Async File I/O:** Unlike epoll-based `asyncio` and `uvloop`, `puring` is based on io_uring, which provides real async I/O without thread pools for files \
+<small> For full explanation, go [here](docs/EPOLL_VS_URING.md) </small>
+* **Simple Architecture:** Layered architecture with.
 * **Seamless Integration:** Designed to work as a plug-in for the standard `asyncio` event loop.
+* **Low Overhead:** C-implemented request registry with $O(1)$ lookup.
+* **Full io_uring support** In future
 
 ## Architecture
 ### Why C-Python API
@@ -20,8 +23,7 @@ CFFI is not an option because based on this we can`t get usable API.
 * Basic file usage. It is really async file write in Python.
 * Basic socket usage 
 
-### Roadmap
-* [ ] Support
+
 
 ## Benchmarks
 Now we have just simple benchmarks, showing us that even in pre-alpha mode and with many features to come, it is already faster while working with files.
@@ -42,3 +44,6 @@ To install, go here - [Installation](docs/guidelines/INSTALLATION.md) \
 To start contribute, go to [developer guideline](docs/guidelines/DEVELOPING.md) and [contribution guideline](docs/guidelines/CONTRIBUTING.md)
 ### User
 See how to use here - [Usage](docs/USAGE.md)
+
+### Roadmap
+See [here](docs/ROADMAP.md)

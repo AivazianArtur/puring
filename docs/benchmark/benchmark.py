@@ -9,7 +9,8 @@ sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
 import puring
 import uvloop
 
-CHUNK_SIZE = 1024 * 1024
+
+CHUNK_SIZE = 2048 * 1024
 ITERATIONS = 2000
 DATA = b'x' * CHUNK_SIZE
 
