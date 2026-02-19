@@ -10,15 +10,17 @@ import puring
 import uvloop
 
 
-CHUNK_SIZE = 2048 * 1024
+CHUNK_SIZE = 8 * 1024
 ITERATIONS = 2000
 DATA = b'x' * CHUNK_SIZE
 
-FILE_STD = 'std_test.bin'
-FILE_ASYNC = 'async_test.bin'
-FILE_UV = 'uv_test.bin'
-FILE_URING_SEQ = 'uring_seq.bin'
-FILE_URING_SEQ__INIT = 'uring_seq__init.bin'
+FILES_FOLDER = 'docs/benchmark/results/'
+
+FILE_ASYNC = FILES_FOLDER + 'async_test.bin'
+FILE_STD = FILES_FOLDER + 'std_test.bin'
+FILE_URING_SEQ = FILES_FOLDER + 'uring_seq.bin'
+FILE_URING_SEQ__INIT = FILES_FOLDER + 'uring_seq__init.bin'
+FILE_UV = FILES_FOLDER + 'uv_test.bin'
 
 
 def mbps(seconds: float):

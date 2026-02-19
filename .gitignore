@@ -1,1 +1,6 @@
-playground/
+__pycache__/
+.vscode/
+.idea/
+
+# Ignore benchmark temp files
+docs/benchmark/results/
