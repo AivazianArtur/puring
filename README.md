@@ -2,7 +2,7 @@
 
 ## Why Puring?
 * **True Async File I/O:** Unlike epoll-based `asyncio` and `uvloop`, `puring` is based on io_uring, which provides real async I/O without thread pools for files \
-<small> For full explanation, go [here](docs/EPOLL_VS_URING.md) </small>
+<small> For full explanation, go [here](docs/uring/EPOLL_VS_URING.md) </small>
 * **Seamless Integration:** Designed to work as a plug-in for the standard `asyncio` event loop.
 * **Low Overhead:** C-implemented request registry with $O(1)$ lookup.
 * **Simple Architecture:** Simple layered architecture that allows to easy understanding of what`s going on
