@@ -9,6 +9,7 @@
     * [ ] For fixing file api and shadow fd usage, implement UringFile, like UringSocket.
     * [ ] Write Makefile to import liburing and install deps.
     * [ ] Better separation of C and Python layers
+    * [ ] All imports from Python move outside funcs and keep globally
 * [ ] Fix files API - implement UringFile, like UringSocket.
 * [ ]  Write tests.
 * [ ] Add CI pipeline.
