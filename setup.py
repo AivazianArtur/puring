@@ -21,14 +21,18 @@ ext = Extension(
         'requirements/liburing',
         'requirements/liburing/src',
         'requirements/liburing/include',
+        liburing_include,
+    ],
+    extra_objects=[
+        'requirements/liburing/src/liburing.a',
     ],
     library_dirs=[
         'requirements/liburing/src',
     ],
-    libraries=['uring'],
-    extra_link_args=[
-        '-Wl,-rpath,$ORIGIN/../requirements/liburing/src'
-    ],
+    # libraries=['uring'],
+    # extra_link_args=[
+    #     '-Wl,-rpath,$ORIGIN/../requirements/liburing/src'
+    # ],
 )
 
 setup(
