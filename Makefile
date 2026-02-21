@@ -1,34 +1,84 @@
-# First, need to init submodule
-LIBURING_DIR = requirements/liburing
-LIBURING_INCLUDE = $(LIBURING_DIR)/src/include
-LIBURING_LIB = $(LIBURING_DIR)/src/liburing.a
+# ========================
+# Paths
+# ========================
 
-PURNG_SRC = src/puring.c
-PURNG_HDR = include/puring.h
-PURNG_OBJ = puring.o
-PURNG_LIB = libpuring.so
+LIBURING_DIR := requirements/liburing
+LIBURING_LIB := $(LIBURING_DIR)/src/liburing.a
 
-CC = gcc
-CFLAGS = -fPIC -Iinclude -I$(LIBURING_INCLUDE)
-LDFLAGS = -shared
+PYTHON := python3
+VENV := .venv
+PIP := $(VENV)/bin/pip
+PY := $(VENV)/bin/python
 
-all: $(PURNG_LIB)
+# ========================
+# Default
+# ========================
 
-# Step 1: Build liburing.a if it doesn't exist
-$(LIBURING_LIB):
+all: build
+
+# ========================
+# Submodule check
+# ========================
+
+check-submodule:
+	@if [ ! -f "$(LIBURING_DIR)/Makefile" ]; then \
+		echo "Missing liburing submodule."; \
+		echo "Run: git submodule update --init --recursive"; \
+		exit 1; \
+	fi
+
+# ========================
+# Virtual environment
+# ========================
+
+$(VENV)/bin/activate:
+	@echo "Checking for python3-venv..."
+	@dpkg -s python3-venv >/dev/null 2>&1 || { \
+		echo "python3-venv not found. Installing..."; \
+		sudo apt update && sudo apt install -y python3-venv; \
+	}
+	@echo "Creating virtualenv..."
+	$(PYTHON) -m venv $(VENV)
+	$(PIP) install --upgrade pip setuptools wheel
+
+venv: $(VENV)/bin/activate
+
+
+# ========================
+# Build liburing
+# ========================
+
+$(LIBURING_LIB): check-submodule
 	@echo "Building liburing..."
 	$(MAKE) -C $(LIBURING_DIR)
 
-# Step 2: Compile puring.o
-$(PURNG_OBJ): $(PURNG_SRC) $(PURNG_HDR) $(LIBURING_LIB)
-	$(CC) $(CFLAGS) -c $(PURNG_SRC) -o $(PURNG_OBJ)
+deps: venv $(LIBURING_LIB)
 
-# Step 3: Build libpuring.so
-$(PURNG_LIB): $(PURNG_OBJ)
-	$(CC) $(LDFLAGS) -o $(PURNG_LIB) $(PURNG_OBJ) $(LIBURING_LIB)
+# ========================
+# Python build
+# ========================
+
+build: deps
+	$(PY) -m build --wheel
+
+install: deps
+	$(PIP) install -e .
+
+# ========================
+# Clean
+# ========================
 
 clean:
-	rm -f $(PURNG_OBJ) $(PURNG_LIB)
-	$(MAKE) -C $(LIBURING_DIR) clean
+	rm -rf build dist *.egg-info $(VENV)
+	-$(MAKE) -C $(LIBURING_DIR) clean
 
-.PHONY: all clean
+# ========================
+# Help
+# ========================
+
+help:
+	@echo "make install  - build and install puring (venv)"
+	@echo "make build    - build wheel"
+	@echo "make clean    - clean everything"
+
+.PHONY: all deps build install clean help check-submodule venv

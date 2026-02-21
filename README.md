@@ -38,9 +38,9 @@ asyncio.run(main())
 
 
 ## Quick Install
-> git submodule init --update --recursive \
-> make \
-> python3 setup.py build
+> git clone git@github.com:AivazianArtur/puring.git \
+> cd puring \
+> make install
 
 ## Architecture
 ### Why Python needs it
