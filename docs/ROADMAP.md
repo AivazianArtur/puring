@@ -1,43 +1,56 @@
 # Roadmap
-* [ ]
-* [ ] Support
-* [ ]  Polish current implementation:
-    * [ ] Move initialization of Python objects to separate module.
-    * [ ] Debug, add simple benchmark and write examples for socket api.
-    * [ ] Write ASSERT_LOOP_THREAD macros.
-    * [ ] `peek_cqe` -> `wait_cqe_timeout`.
-    * [ ] For fixing file api and shadow fd usage, implement UringFile, like UringSocket.
-    * [ ] Write Makefile to import liburing and install deps.
-    * [ ] Better separation of C and Python layers
-    * [ ] All imports from Python move outside funcs and keep globally
-* [ ] Fix files API - implement UringFile, like UringSocket.
-* [ ]  Write tests.
-* [ ] Add CI pipeline.
-* [ ] Make library available through pip.
-* [ ] Grace shutdown.
-* [ ] Implement uring fixed buffers(`io_uring_register_buffers`).
-* [ ] Implement uring zero-copy usage(`send_zc`). 
-* [ ] Usage of python app buffer as UringLoop buffer.
-* [ ] Puring based memory pool for buffers.
-* [ ] Implement provided buffer ring aka `Multishot` (`register_pbuf_ring`).
-* [ ] Translating errors to native Python errors.
-* [ ] Catching signals, like `SIGINT` or `SIGTERM` (`IORING_OP_POLL_ADD `).
-* [ ] Timer support (`IORING_OP_TIMEOUT`).
-* [ ] Proper work with GIL.
-* [ ] Multiring support.
-* [ ] Support every awaitable operation.
-* [ ] Support modern python async interface - `Runners`.
-* [ ] Contribution support:kj
-    * [ ] Write contribution guideline.
-    * [ ] Add badges.
-    * [ ] Add issue-system in github.
-* [ ] Parameters to configure rings.
-* [ ] Replace loop (maybe no need for this, but from this point looks like we need it).
-* [ ] CQE batching.
-* [ ] Offload SQE submission to a kernel thread(`IORING_SETUP_SQPOLL`).
-* [ ] Link QE`s to chain operations.
-* [ ] Keep file descriptors open - `io_uring_register_files`.
-* [ ] Better future creation - FutureFactory and future pool
-* [ ] Document everything
 
-### Time is going, our understanding will change  with it, and this list will have updates.
+## Phase 1 — Stabilize Current Implementation
+- [ ] Polish current implementation:
+    - [ ] Move initialization of Python objects into a separate module.
+    - [ ] Debug, add a simple benchmark, and provide examples for the socket API.
+    - [ ] Implement `ASSERT_LOOP_THREAD` macros.
+    - [ ] Replace `peek_cqe` with `wait_cqe_timeout`.
+    - [ ] Implement `UringFile` (similar to `UringSocket`) to fix file API and shadow FD usage.
+    - [ ] Write a Makefile to import `liburing` and install dependencies.
+    - [ ] Improve separation between C and Python layers.
+    - [ ] Move all Python imports to module scope (avoid imports inside functions).
+
+## Phase 2 — Core Features
+- [ ] Fix Files API by implementing `UringFile` (analogous to `UringSocket`).
+- [ ] Implement graceful shutdown.
+- [ ] Translate internal errors into native Python exceptions.
+- [ ] Proper GIL handling.
+- [ ] Add timer support (`IORING_OP_TIMEOUT`).
+- [ ] Add signal handling (`SIGINT`, `SIGTERM`) via `IORING_OP_POLL_ADD`.
+
+## Phase 3 — Performance & io_uring Features
+- [ ] Implement fixed buffers (`io_uring_register_buffers`).
+- [ ] Implement zero-copy send (`send_zc`).
+- [ ] Use Python application buffers as `UringLoop` buffers.
+- [ ] Implement a puring-based memory pool for buffers.
+- [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
+- [ ] CQE batching.
+- [ ] Offload SQE submission to a kernel thread (`IORING_SETUP_SQPOLL`).
+- [ ] Support linked SQEs for chained operations.
+- [ ] Keep file descriptors registered (`io_uring_register_files`).
+
+## Phase 4 — Async Runtime & Architecture
+- [ ] Multiring support.
+- [ ] Support all awaitable operations.
+- [ ] Support modern Python async interfaces (`Runners`).
+- [ ] Configurable ring parameters.
+- [ ] Revisit loop replacement (currently uncertain but likely needed).
+- [ ] Improve future creation (FutureFactory + future pool).
+
+## Phase 5 — Quality & Distribution
+- [ ] Write tests.
+- [ ] Add CI pipeline.
+- [ ] Publish library on PyPI (`pip` installable).
+- [ ] Document everything.
+
+## Phase 6 — Community & Contribution
+- [ ] Add contribution support:
+    - [ ] Write contribution guidelines.
+    - [ ] Add repository badges.
+    - [ ] Enable GitHub issue tracking.
+
+---
+
+### Note
+This roadmap is expected to evolve as our understanding deepens and the project matures.

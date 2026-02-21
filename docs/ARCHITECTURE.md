@@ -14,6 +14,9 @@
 * Signals
 * Future
 * Reader
+* Macroses
+  * GIL Releaser
+  * Loop Thread Sentinel
 ### C-layer only domains
 * Rings (now ring only)
 * Buffers (now only implicit toy buffers)
@@ -22,5 +25,8 @@
 * Ops
   * Files
   * Sockets
-* Macroses
-* 
+
+## Fluidity design remark:
+DDD means iterative architecture designing: while you are building system, you are learning more about it. So for this moment in code some domains are not as explicit as they could be.
+
+#TODO: Describe Domains
