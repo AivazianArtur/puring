@@ -38,6 +38,7 @@ asyncio.run(main())
 
 
 ## Quick Install
+#### Warning! Linux only
 > git clone git@github.com:AivazianArtur/puring.git \
 > cd puring \
 > make install
