@@ -38,5 +38,6 @@
 * [ ] Link QE`s to chain operations.
 * [ ] Keep file descriptors open - `io_uring_register_files`.
 * [ ] Better future creation - FutureFactory and future pool
+* [ ] Document everything
 
 ### Time is going, our understanding will change  with it, and this list will have updates.
