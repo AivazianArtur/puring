@@ -7,8 +7,12 @@ sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
 
 # WARNING: Both linux only
 import puring
-import uvloop
-
+is_uvloop_installed = False
+try:
+    import uvloop
+    is_uvloop_installed = True
+except ImportError:
+    pass
 
 CHUNK_SIZE = 8 * 1024
 ITERATIONS = 2000
@@ -121,7 +125,7 @@ async def run():
     t = await asyncio_thread_write()
     results.append(('asyncio_thread', t))
 
-    if uvloop:
+    if is_uvloop_installed:
         uvloop.install()
         t = await uvloop_write()
         results.append(('uvloop_thread', t))

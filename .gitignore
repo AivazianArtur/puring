@@ -7,6 +7,3 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Ignore benchmark temp files
-docs/benchmark/results/

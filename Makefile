@@ -82,3 +82,13 @@ help:
 	@echo "make clean    - clean everything"
 
 .PHONY: all deps build install clean help check-submodule venv
+
+# ========================
+# Benchmark
+# ========================
+
+BENCHMARK_SCRIPT := docs/benchmark/benchmark.py
+
+run-benchmark: install
+	@echo "Running benchmark inside virtualenv..."
+	$(PY) $(BENCHMARK_SCRIPT)
