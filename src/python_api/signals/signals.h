@@ -13,5 +13,5 @@ bool is_future_canceled(
     RequestRegistry *registry,
     struct io_uring ring,
     struct io_uring_cqe *cqe,
-    int index,
+    int index
 );

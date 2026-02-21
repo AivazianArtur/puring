@@ -1,7 +1,11 @@
 #include "core.h"
 
 
-int ring_init(memory_params *memory_params, ring_init_params *params)
+int ring_init(
+    memory_params *memory_params,
+    ring_init_params *params,
+    struct io_uring *ring
+)
 {
     // if (memory_params) {
     //     if (!params) {
@@ -17,13 +21,17 @@ int ring_init(memory_params *memory_params, ring_init_params *params)
 
     // Now only default initialization
     // TODO: Do full initialization
-    result = io_uring_queue_init(0, ring, 0);
+    int result = io_uring_queue_init(256, ring, 0);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        return -1;
+    }
     return 0;
 }
 
-void ring_destroy(io_uring* ring) 
-{
 
+void ring_destroy(struct io_uring* ring) 
+{
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     // TODO: Create Retry setable loop, including accepting flags etc
     if (!sqe) {
@@ -31,12 +39,11 @@ void ring_destroy(io_uring* ring)
         return -1;
     }
     io_uring_prep_cancel(sqe, NULL, IORING_ASYNC_CANCEL_ANY);
-    ret = io_uring_submit(ring);
-    if (ret < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-ret));
+    int result  = io_uring_submit(ring);
+
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return;
     }
-    // TEMP: MAybe we'll need to catch every cqe but my thought to ignore is this:
-    // kernel already cancelled everything, queue_exit will destroy ring. seems fine for now
     io_uring_queue_exit(ring);
 }

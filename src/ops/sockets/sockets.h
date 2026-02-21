@@ -3,9 +3,10 @@
 
 #include <Python.h>
 #include <linux/openat2.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #include "liburing.h"
-#include "loop.h"
 
 
 /* Functions */
@@ -16,59 +17,59 @@ int unix_stream(struct io_uring *ring, int request_idx);
 int unix_dgram(struct io_uring *ring, int request_idx);
 
 
-int bind(
+int uring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen, 
-    const void *buf,
+    const void *buf
 );
 
-int listen(
+int uring_listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    int backlog,
+    int backlog
 );
 
-int connect(
+int uring_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
     const struct sockaddr *addr, 
-    socklen_t addrlen,
+    socklen_t addrlen
 );
 
-int send(
+int uring_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
     const void *buf,
     size_t len,
-    int flags,
+    int flags
 );
 
-int recv(
+int uring_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
 	void *buf,
     size_t len,
-    int flags,
+    int flags
 );
 
-int accept(
+int uring_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
 	void *buf,
     size_t len,
-    int flags,
+    int flags
 );
 
-int close(
+int uring_close_socket(
     struct io_uring *ring,
     int request_idx,
-    int sockfd,
+    int sockfd
 );

@@ -1,6 +1,12 @@
-__pycache__/
+build/
+dist/
+
 .vscode/
 .idea/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 # Ignore benchmark temp files
 docs/benchmark/results/

@@ -12,44 +12,48 @@ int open_file(
     struct io_uring *ring,
     int request_idx,
     int dfd,
-    const char *path,
+    const char *path
     // int flags,  TODO
 	// mode_t mode
 );
 
-int read(
+int uring_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    // void *buf,
+    char *buf,
+    Py_ssize_t size 
     // __u64 offset,  TODO
 );
 
-int write(
+int uring_write(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    // void *buf,
-);
-int close(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    // void *buf,
+    char *buf,
+    Py_ssize_t size 
 );
 
-int stat(
+int uring_close_file(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    char *buf
+);
+
+int uring_stat(
     struct io_uring *ring,
     int request_idx,
     int dfd,
     const char *path,
+    char *buf
     // int flags,  TODO
 	// mode_t mode
 );
 
-int fsync(
+int uring_fsync(
     struct io_uring *ring,
     int request_idx,
-    int fd, 
+    int fd
     // unsigned fsync_flags,  TODO
 );
