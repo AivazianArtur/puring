@@ -15,8 +15,8 @@ Puring is currently in Pre-Alpha. These benchmarks represent the 'floor' of its 
 System it was run on:
 * CPU: Intel Core i7 i7-6700HQ | 2.6 Hz
 * RAM: 32Gb
-* OS: WSL2 on Windows10
-
+* OS: WSL2 on Windows10 \
+Native Linux benchmarks are planned!
 
 ## Performance Analysis
 

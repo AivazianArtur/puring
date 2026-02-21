@@ -5,20 +5,48 @@
 <small> For full explanation, go [here](docs/uring/URING.md) </small>
 * **Seamless Integration:** Designed to work as a plug-in for the standard `asyncio` event loop.
 * **Low Overhead:** C-implemented request registry with $O(1)$ lookup.
-* **Simple Architecture:** Simple layered architecture that allows to easy understanding of what`s going on
-* **Full io_uring support** In future we'll implement all io_uring features
+* **Simple Architecture:** Simple layered architecture that makes it easy to understand of what's going on.
+* **Full io_uring support** In future we'll implement all io_uring features.
+* **C-Python API** Implemented using CPython C-API for minimal overhead and full control over memory and GIL behavior.
+
+## Quick Example:
+``` 
+async def main():
+    loop = puring.uring(registry_size=8)
+
+    puring.add_uring_reader(loop)
+    fd = await loop.open(path='testfile.txt')
+
+    data = b'Hello, puring!\n'
+    await loop.write(fd, data=data)
+    await loop.read(fd=fd)
+
+    await  loop.close(fd=fd)
+
+    loop.close_loop()
+
+asyncio.run(main())
+```
+
+## Comparison
+| Feature             | asyncio      | uvloop       | puring   |
+| ------------------- | ------------ | ------------ | -------- |
+| Async files         | ❌ threadpool | ❌ threadpool | ✅ native |
+| Syscalls            | many         | many         | minimal  |
+| Kernel batching     | ❌            | ❌            | ✅        |
+| Zero-copy potential | ❌            | ❌            | ✅        |
+
+
+## Quick Install
+> git submodule init --update --recursive \
+> make \
+> python3 setup.py build
 
 ## Architecture
-### Why C-Python API
-The question comes down to choosing between this and Cython.
-Main reason to use C-Python API - it has maximum potential regarding speed. \
-Learning curve to understand C code for Python programmer is tougher than CPython, but it pays a lot with understanding Python, memory management and where is the line between C and Python actually lays. \
-CFFI is not an option because based on this we can`t get usable API.
-
 ### Why Python needs it
 It brings proactor pattern to Python in Linux, that:
-* Allows implementation of async fie I/O operations. 
-* Supports modern Python way of getting rid of GIL.
+* Allows implementation of async file I/O operations. 
+* Enables designs compatible with upcoming no-GIL Python efforts.
 
 ### Current State
 * Core C-engine for Ring management.
@@ -27,6 +55,8 @@ It brings proactor pattern to Python in Linux, that:
 * Basic file usage. Brings true Async I/O.
 * Basic socket usage.
 
+### Goal
+* Progressive coverage of io_uring features.
 ### How it works
 To read about implementation details, go to [architecture page](docs/ARCHITECTURE.md)
 

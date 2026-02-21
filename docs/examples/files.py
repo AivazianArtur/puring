@@ -10,22 +10,17 @@ async def main():
 
     puring.add_uring_reader(loop)
     print('Reader added')
-    future_open = loop.open(path='testfile.txt')
-    print('File opened')
-    fd = await future_open
-    print('File opened awaited, fd:', fd)
+    fd = await loop.open(path='testfile.txt')
+    print('File opened, fd:', fd)
 
-    data = b'Hello io_uring!\n'
-    future_write = loop.write(fd, data=data)
-    bytes_written = await future_write
+    data = b'Hello, puring!\n'
+    bytes_written = await loop.write(fd, data=data)
     print('Bytes written:', bytes_written)
 
-    future_read = loop.read(fd=fd)
-    read_data = await future_read
+    read_data = await loop.read(fd=fd)
     print('Read data:', read_data.decode())
 
-    future_close = loop.close(fd=fd)
-    await future_close
+    await loop.close(fd=fd)
     print('File closed')
 
     loop.close_loop()

@@ -1,3 +1,4 @@
+# First, need to init submodule
 LIBURING_DIR = requirements/liburing
 LIBURING_INCLUDE = $(LIBURING_DIR)/src/include
 LIBURING_LIB = $(LIBURING_DIR)/src/liburing.a

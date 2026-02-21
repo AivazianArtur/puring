@@ -1,5 +1,7 @@
 # io_uring
 
+### If you already know io_uring, skip to: ARCHITECTURE.md
+
 ## io_uring is an efficient Linux implementation of the Proactor I/O model.
 ### It provides two shared buffers:
 * Submission Queue - Where apps pushes I/O requests.
@@ -7,7 +9,7 @@
 
 ### The core difference between this and standard reactor model using epoll is that proactor models provides solutions to reduce system calls for getting result.
 ### Also, rings are placed inside shared memory, while epoll is inside kernel memory.
-Let`s look at this difference by looking at diagrams of two phases:
+Let's look at this difference by looking at diagrams of two phases:
 1. Sending to kernel
 2. Getting result
 
