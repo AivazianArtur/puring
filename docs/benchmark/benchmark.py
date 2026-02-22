@@ -18,7 +18,7 @@ CHUNK_SIZE = 8 * 1024
 ITERATIONS = 2000
 DATA = b'x' * CHUNK_SIZE
 
-FILES_FOLDER = 'docs/benchmark/results/'
+FILES_FOLDER = 'docs/assets/benchmark_temp/'
 
 FILE_ASYNC = FILES_FOLDER + 'async_test.bin'
 FILE_STD = FILES_FOLDER + 'std_test.bin'
