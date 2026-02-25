@@ -125,6 +125,7 @@ int uring_stat(
     // int flags,  TODO
 )
 {
+    // TEMP: Not stable
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     if (!sqe) {
         fprintf(stderr, "SQE is not available\n");
@@ -134,7 +135,8 @@ int uring_stat(
     int flags = 0;
     unsigned mask = STATX_ALL;
 
-    io_uring_prep_statx(sqe, dfd, path, flags, mask, buf);
+    // io_uring_prep_statx(sqe, dfd, path, flags, mask, buf);
+    io_uring_prep_statx(sqe, dfd, path, flags, mask, NULL);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);

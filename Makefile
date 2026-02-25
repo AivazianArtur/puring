@@ -63,7 +63,7 @@ install-python-dev:
 		if command -v apt > /dev/null; then \
 			sudo apt update && sudo apt install -y python3-dev; \
 		elif command -v dnf > /dev/null; then \
-			sudo dnf install -y python3-devel --setopt=minrate=0 --setopt=timeout=300 || { echo "DNF failed, check your connection"; exit 1; }; \
+			sudo dnf install -y python3-devel --refresh --setopt=minrate=0 --setopt=timeout=300 || { echo "DNF failed, check your connection"; exit 1; }; \
 		else \
 			echo "Manual install of python3-dev/devel required."; exit 1; \
 		fi; \

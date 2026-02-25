@@ -36,7 +36,7 @@ void ring_destroy(struct io_uring* ring)
     // TODO: Create Retry setable loop, including accepting flags etc
     if (!sqe) {
         fprintf(stderr, "SQE is not available\n");
-        return -1;
+        return;
     }
     io_uring_prep_cancel(sqe, NULL, IORING_ASYNC_CANCEL_ANY);
     int result  = io_uring_submit(ring);
