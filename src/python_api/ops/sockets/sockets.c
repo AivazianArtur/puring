@@ -347,11 +347,10 @@ UringSocket_listen(
         return NULL;
     }
 
-    int fd = 0;
     int backlog = 0;
 
-    static char *kwlist[] = {"fd", "backlog", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &fd, &backlog))) {
+    static char *kwlist[] = {"backlog", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &backlog))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -379,7 +378,7 @@ UringSocket_listen(
         return NULL;
     }
 
-    if (uring_listen(self->loop->ring, request_idx, fd, backlog) < 0) {
+    if (uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -402,12 +401,11 @@ UringSocket_connect(
         return NULL;
     }
 
-    int fd = 0;
     PyObject *addr_obj;
     int addrlen = 0;
 
-    static char *kwlist[] = {"fd", "addr", "addrlen", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &fd, &addr_obj, &addrlen))) {
+    static char *kwlist[] = {"addr", "addrlen", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &addr_obj, &addrlen))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -434,7 +432,7 @@ UringSocket_connect(
         return NULL;
     }
 
-    if (uring_connect(self->loop->ring, request_idx, fd, (struct sockaddr *)addr_obj, addrlen) < 0) {
+    if (uring_connect(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr_obj, addrlen) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -457,12 +455,11 @@ UringSocket_send(
         return NULL;
     }
 
-    int sockfd = 0;
     int len = 0;
     int flags = 0;
 
-    static char *kwlist[] = {"sockfd", "len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &sockfd, &len, &flags))) {
+    static char *kwlist[] = {"len", "flags", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -489,7 +486,7 @@ UringSocket_send(
         return NULL;
     }
 
-    if (uring_send(self->loop->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
+    if (uring_send(self->loop->ring, request_idx, self->sock_fd, buffer, (size_t)len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -511,12 +508,11 @@ UringSocket_recv(
         return NULL;
     }
 
-    int sockfd = 0;
     int len = 0;
     int flags = 0;
 
-    static char *kwlist[] = {"sockfd", "len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &sockfd, &len, &flags))) {
+    static char *kwlist[] = {"len", "flags", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -543,7 +539,7 @@ UringSocket_recv(
         return NULL;
     }
 
-    if (uring_recv(self->loop->ring, request_idx, sockfd, buffer, (size_t)len, flags) < 0) {
+    if (uring_recv(self->loop->ring, request_idx, self->sock_fd, buffer, (size_t)len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -565,12 +561,11 @@ UringSocket_accept(
         return NULL;
     }
 
-    int sockfd = 0;
     unsigned int len = 0;
     int flags = 0;
 
-    static char *kwlist[] = {"sockfd", "len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &sockfd, &len, &flags))) {
+    static char *kwlist[] = {"len", "flags", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -597,7 +592,7 @@ UringSocket_accept(
         return NULL;
     }
 
-    if (uring_accept(self->loop->ring, request_idx, sockfd, buffer, &len, flags) < 0) {
+    if (uring_accept(self->loop->ring, request_idx, self->sock_fd, buffer, &len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -620,10 +615,8 @@ UringSocket_close(
         return NULL;
     }
 
-    int sockfd = 0;
-
-    static char *kwlist[] = {"sockfd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &sockfd))) {
+    static char *kwlist[] = {NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "", kwlist))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -650,7 +643,7 @@ UringSocket_close(
         return NULL;
     }
 
-    if (uring_close_socket(self->loop->ring, request_idx, sockfd) < 0) {
+    if (uring_close_socket(self->loop->ring, request_idx, self->sock_fd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;

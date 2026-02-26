@@ -3,7 +3,8 @@ import os
 import time
 import sys
 
-sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
+# sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
+sys.path.insert(0, '')
 
 # WARNING: Both linux only
 import puring
@@ -14,7 +15,7 @@ try:
 except ImportError:
     pass
 
-CHUNK_SIZE = 8 * 1024
+CHUNK_SIZE = 4096 * 1024
 ITERATIONS = 2000
 DATA = b'x' * CHUNK_SIZE
 

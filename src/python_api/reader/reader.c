@@ -37,7 +37,7 @@ void on_uring_ready(UringLoop *self)
             } else if (slot->socket) {
                 // TEMP Checking for socket, TODO proper opcode routing
                 UringSocket *sock = (UringSocket *)slot->socket;
-                sock->sock_fd = cqe->res;
+                // sock->sock_fd = cqe->res;
                 sock->closed = false;
                 result = (PyObject*)slot->socket;
             } else {

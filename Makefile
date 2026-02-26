@@ -86,6 +86,6 @@ help:
 
 BENCHMARK_SCRIPT := docs/benchmark/benchmark.py
 
-run-benchmark: install
+benchmark: install
 	@echo "Running benchmark inside virtualenv..."
 	$(PY) $(BENCHMARK_SCRIPT)

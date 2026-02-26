@@ -1,5 +1,8 @@
 import sys
-sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
+
+# sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
+sys.path.insert(0, '')
+
 import asyncio
 import puring
 
@@ -10,7 +13,7 @@ async def main():
 
     puring.add_uring_reader(loop)
     print('Reader added')
-    fd = await loop.open(path='testfile.txt')
+    fd = await loop.open(path='docs/assets/testfile.txt')
     print('File opened, fd:', fd)
 
     data = b'Hello, puring!\n'
