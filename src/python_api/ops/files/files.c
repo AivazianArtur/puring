@@ -233,8 +233,8 @@ UringLoop_stat(
         return NULL;
     }
 
-    int dfd = NULL;
-    static char path = NULL;
+    int dfd;
+    static char path;
 
     static char *kwlist[] = {"dfd", "path", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &dfd, &path))) {
@@ -266,7 +266,7 @@ UringLoop_stat(
 
     char *buf = PyBytes_AS_STRING(buffer);
 
-    if (uring_stat(self->ring, request_idx, dfd, path, buf) < 0) {
+    if (uring_stat(self->ring, request_idx, dfd, &path, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;

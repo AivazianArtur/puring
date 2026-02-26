@@ -1,7 +1,3 @@
-# ========================
-# Paths
-# ========================
-
 LIBURING_DIR := requirements/liburing
 LIBURING_LIB := $(LIBURING_DIR)/src/liburing.a
 
@@ -10,15 +6,8 @@ VENV := .venv
 PIP := $(VENV)/bin/pip
 PY := $(VENV)/bin/python
 
-# ========================
-# Default
-# ========================
-
 all: build
 
-# ========================
-# Submodule check
-# ========================
 
 check-submodule:
 	@if [ ! -f "$(LIBURING_DIR)/Makefile" ]; then \
@@ -30,9 +19,6 @@ check-submodule:
 		exit 1; \
 	fi
 
-# ========================
-# Virtual environment
-# ========================
 
 $(VENV)/bin/activate:
 	@echo "Checking for python3-venv..."
@@ -70,9 +56,6 @@ install-python-dev:
 	}
 
 
-# ========================
-# Build liburing
-# ========================
 
 $(LIBURING_LIB): check-submodule
 	@echo "Building liburing..."
@@ -80,9 +63,6 @@ $(LIBURING_LIB): check-submodule
 
 deps: install-python-dev venv $(LIBURING_LIB)
 
-# ========================
-# Python build
-# ========================
 
 build: deps
 	$(PY) -m build --wheel
@@ -90,17 +70,11 @@ build: deps
 install: deps
 	$(PIP) install -e .
 
-# ========================
-# Clean
-# ========================
 
 clean:
 	rm -rf build dist *.egg-info $(VENV)
 	-$(MAKE) -C $(LIBURING_DIR) clean
 
-# ========================
-# Help
-# ========================
 
 help:
 	@echo "make install  - build and install puring (venv)"
@@ -109,9 +83,6 @@ help:
 
 .PHONY: all deps build install clean help check-submodule venv
 
-# ========================
-# Benchmark
-# ========================
 
 BENCHMARK_SCRIPT := docs/benchmark/benchmark.py
 

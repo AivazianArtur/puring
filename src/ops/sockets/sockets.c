@@ -171,7 +171,7 @@ int uring_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    const struct sockaddr *addr, 
+    struct sockaddr *addr, 
     socklen_t addrlen
 )
 {
@@ -254,7 +254,7 @@ int uring_accept(
     int request_idx,
     int sockfd,
 	void *buf,
-    size_t len,
+    unsigned int *len,
     int flags
 )
 {

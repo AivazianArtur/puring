@@ -65,7 +65,7 @@ int registry_add(
     PyObject *future,
     PyObject *buffer,
     int opcode,
-    PyObject *socket
+    UringSocket *socket
 ) 
 {
     if (reg->top < 0) {
