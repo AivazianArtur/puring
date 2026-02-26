@@ -434,7 +434,7 @@ UringSocket_connect(
         return NULL;
     }
 
-    if (uring_connect(self->loop->ring, request_idx, fd, addr_obj, addrlen) < 0) {
+    if (uring_connect(self->loop->ring, request_idx, fd, (struct sockaddr *)addr_obj, addrlen) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
