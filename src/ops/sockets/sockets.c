@@ -254,7 +254,7 @@ int uring_accept(
     int request_idx,
     int sockfd,
 	void *buf,
-    unsigned int *len,
+    socklen_t *len,
     int flags
 )
 {

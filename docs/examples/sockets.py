@@ -22,21 +22,19 @@ async def main():
     await server_sock.listen(1)
     print(f'Server listening on {HOST}:{PORT}')
 
-    accept_future = server_sock.accept()
+    accept_future = server_sock.accept(1024, 0)
 
     client_loop = puring.uring(registry_size=8)
     puring.add_uring_reader(client_loop)
-    client_sock_future = client_loop.tcp_socket()
-    client_sock = await client_sock_future
+    client_sock = await client_loop.tcp_socket()
     await client_sock.connect(HOST, PORT)
     print('Client connected')
 
-    server_conn, addr = await accept_future
-    print(f'Server accepted connection from {addr}')
-
+    server_conn = await accept_future
+    print(f'{server_conn = }')
     message = b'Hello from client!'
-    bytes_sent = await client_sock.send(message)
-    print(f'Client sent {bytes_sent} bytes')
+    await client_sock.send(message)
+    print(f'Client sent message')
 
     received_data = await server_conn.recv()
     print(f'Server received: {received_data.decode()}')

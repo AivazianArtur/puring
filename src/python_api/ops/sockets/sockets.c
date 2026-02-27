@@ -320,7 +320,6 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    // TEMP: Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug 
     if (uring_bind(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, sizeof(*addr), buffer) < 0) {
         Py_DECREF(future);
         free(addr);
@@ -340,7 +339,6 @@ UringSocket_listen(
     PyObject *kwargs
 )
 {
-    // TEMP: IN bind Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug 
     ASSERT_LOOP_THREAD(self);
     if (self->closed) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
@@ -394,19 +392,30 @@ UringSocket_connect(
     PyObject *kwargs
 )
 {
-    // TEMP: IN bind Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug 
     ASSERT_LOOP_THREAD(self);
     if (self->closed) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
 
-    PyObject *addr_obj;
-    int addrlen = 0;
+    const char *host;
+    int port;
 
-    static char *kwlist[] = {"addr", "addrlen", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &addr_obj, &addrlen))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+    static char *kwlist[] = {"host", "port", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si", kwlist, &host, &port)) {
+        PyErr_SetString(PyExc_RuntimeError, "Expected host:str and port:int");
+        return NULL;
+    }
+
+    struct sockaddr_in *addr = malloc(sizeof(*addr));
+    if (!addr) { PyErr_NoMemory(); return NULL; }
+    memset(addr, 0, sizeof(*addr));
+
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(port);
+    if (inet_pton(AF_INET, host, &addr->sin_addr) != 1) {
+        free(addr);
+        PyErr_SetString(PyExc_ValueError, "Invalid IP address");
         return NULL;
     }
 
@@ -432,7 +441,7 @@ UringSocket_connect(
         return NULL;
     }
 
-    if (uring_connect(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr_obj, addrlen) < 0) {
+    if (uring_connect(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, sizeof(*addr)) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -448,18 +457,18 @@ UringSocket_send(
     PyObject *kwargs
 )
 {
-    // TEMP: IN bind Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug 
     ASSERT_LOOP_THREAD(self);
     if (self->closed) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
 
-    int len = 0;
+    const char* bytes_buf;
+    Py_ssize_t bytes_len;
     int flags = 0;
 
-    static char *kwlist[] = {"len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &len, &flags))) {
+    static char *kwlist[] = {"bytes_buf", "bytes_len", "flags", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "y#|i", kwlist, &bytes_buf, &bytes_len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -486,7 +495,7 @@ UringSocket_send(
         return NULL;
     }
 
-    if (uring_send(self->loop->ring, request_idx, self->sock_fd, buffer, (size_t)len, flags) < 0) {
+    if (uring_send(self->loop->ring, request_idx, self->sock_fd, bytes_buf, (socklen_t)bytes_len, flags) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -501,7 +510,6 @@ UringSocket_recv(
     PyObject *kwargs
 )
 {
-    // TEMP: IN bind Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug 
     ASSERT_LOOP_THREAD(self);
     if (self->closed) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
@@ -554,18 +562,17 @@ UringSocket_accept(
     PyObject *kwargs
 )
 {
-    // TEMP: IN bind Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug 
     ASSERT_LOOP_THREAD(self);
     if (self->closed) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
 
-    unsigned int len = 0;
+    unsigned int len = 1024;
     int flags = 0;
 
     static char *kwlist[] = {"len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &len, &flags))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", kwlist, &len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -608,7 +615,6 @@ UringSocket_close(
     PyObject *kwargs
 )
 {
-    // TEMP: IN bind Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug 
     ASSERT_LOOP_THREAD(self);
     if (self->closed) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
