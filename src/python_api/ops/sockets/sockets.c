@@ -20,14 +20,6 @@ UringLoop_tcp_socket(
         return NULL;
     }
 
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0) {
-        PyErr_SetFromErrno(PyExc_OSError);
-        Py_DECREF(sock);
-        return NULL;
-    }
-
-    sock->sock_fd = fd;
     sock->closed = false;
     sock->loop = self;
     Py_INCREF(self);
@@ -83,16 +75,11 @@ UringLoop_udp_socket(
     }
 
     UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
-    if (!sock) return NULL;
-
-    int fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (fd < 0) {
-        PyErr_SetFromErrno(PyExc_OSError);
-        Py_DECREF(sock);
+    if (!sock) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
         return NULL;
     }
 
-    sock->sock_fd = fd;
     sock->closed = false;
     sock->loop = self;
     Py_INCREF(self);
@@ -147,16 +134,11 @@ UringLoop_unix_stream(
     }
 
     UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
-    if (!sock) return NULL;
-
-    int fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (fd < 0) {
-        PyErr_SetFromErrno(PyExc_OSError);
-        Py_DECREF(sock);
+    if (!sock) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
         return NULL;
     }
 
-    sock->sock_fd = fd;
     sock->closed = false;
     sock->loop = self;
     Py_INCREF(self);
@@ -211,16 +193,11 @@ UringLoop_unix_dgram(
     }
 
     UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
-    if (!sock) return NULL;
-
-    int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
-    if (fd < 0) {
-        PyErr_SetFromErrno(PyExc_OSError);
-        Py_DECREF(sock);
+    if (!sock) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
         return NULL;
     }
 
-    sock->sock_fd = fd;
     sock->closed = false;
     sock->loop = self;
     Py_INCREF(self);
@@ -516,11 +493,11 @@ UringSocket_recv(
         return NULL;
     }
 
-    int len = 0;
+    unsigned int len = 1024;
     int flags = 0;
 
     static char *kwlist[] = {"len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &len, &flags))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", kwlist, &len, &flags))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -532,12 +509,18 @@ UringSocket_recv(
     }
 
     int opcode = IORING_OP_RECV;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
+    // For now whoile puring without real buffer, we'll do it in next v.
+    char *buffer = PyMem_Malloc(len);
+    if (!buffer) {
+        Py_DECREF(future);
+        PyErr_NoMemory();
+        return NULL;
+    }
+
     int request_idx = registry_add(
         self->loop->registry,
         future,
-        buffer,
+        (PyObject*)buffer,
         opcode,
         self
     );

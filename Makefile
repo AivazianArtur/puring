@@ -1,3 +1,5 @@
+# Tested on Fedora 43 and WSL2 for WIndows10
+
 LIBURING_DIR := requirements/liburing
 LIBURING_LIB := $(LIBURING_DIR)/src/liburing.a
 

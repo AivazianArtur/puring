@@ -34,10 +34,36 @@ void on_uring_ready(UringLoop *self)
         } else {
             if (slot->opcode == IORING_OP_READ && slot->buffer && PyBytes_Check(slot->buffer)) {
                 result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer), cqe->res);
-            } else if (slot->socket) {
-                // TEMP Checking for socket, TODO proper opcode routing
+            } else if (slot->opcode == IORING_OP_SOCKET && slot ->socket) {
                 UringSocket *sock = (UringSocket *)slot->socket;
-                // sock->sock_fd = cqe->res;
+                sock->sock_fd = cqe->res;
+                result = (PyObject*)slot->socket;
+            } else if (slot->opcode == IORING_OP_ACCEPT && slot->socket) {
+                UringSocket *conn = PyObject_New(UringSocket, &UringSocketType);
+                if (!conn) {
+                    PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
+                    PyErr_Print();
+                    io_uring_cqe_seen(self->ring, cqe);
+                    continue;
+                }
+                int new_fd = cqe->res;
+                conn->sock_fd = new_fd;
+                conn->closed = false;
+                conn->loop = slot->socket->loop;
+                Py_INCREF(slot->socket->loop);
+                result = (PyObject*)conn;
+            } else if (slot->opcode == IORING_OP_RECV && slot->socket) {
+                if (cqe->res == 0) {
+                    // EOF
+                    result = PyBytes_FromStringAndSize(NULL, 0);
+                } else if (cqe->res > 0) {
+                    result = PyBytes_FromStringAndSize(
+                        (char *)slot->buffer,
+                        cqe->res
+                    );
+                } else result = NULL;
+            } else if (slot->socket) {
+                UringSocket *sock = (UringSocket *)slot->socket;
                 sock->closed = false;
                 result = (PyObject*)slot->socket;
             } else {

@@ -36,7 +36,8 @@ async def main():
     await client_sock.send(message)
     print(f'Client sent message')
 
-    received_data = await server_conn.recv()
+    received_data_r = server_conn.recv()
+    received_data = await received_data_r
     print(f'Server received: {received_data.decode()}')
 
     await client_sock.close()
