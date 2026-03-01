@@ -4,77 +4,57 @@
 static PyObject*
 UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
-    static char *kwlist[] = {"registry_size", NULL};
     int registry_size = 0;
-    // TODO add loop_tid;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &registry_size))
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char*[]){"registry_size", NULL}, &registry_size))
         return NULL;
 
     RequestRegistry* registry = registry_new(registry_size);
-    if (!registry) {
-        PyErr_NoMemory();
-        return NULL;
-    }
+    if (!registry) return PyErr_NoMemory();
 
     UringLoop *self = (UringLoop *)type->tp_alloc(type, 0);
     if (!self) {
-        PyErr_NoMemory();
         registry_destroy(registry);
-        return NULL;
+        return PyErr_NoMemory();
     }
 
-    struct io_uring *uring = calloc(1, sizeof(struct io_uring));
-    if (!uring){
-        PyErr_SetString(PyExc_TypeError, "Error while creating loop");
+    self->ring = calloc(1, sizeof(struct io_uring));
+    if (!self->ring) {
         registry_destroy(registry);
-        Py_TYPE(self)->tp_free((PyObject *)self);
-        return NULL;
+        Py_TYPE(self)->tp_free((PyObject*)self);
+        return PyErr_NoMemory();
     }
 
-    PyObject* python_loop = _get_loop();
-    if (!python_loop) {
-        PyErr_SetString(PyExc_TypeError, "Error while creating loop");
-        registry_destroy(registry);
-        free(uring);
-        Py_TYPE(self)->tp_free((PyObject *)self);
-        return NULL;
-    }
-    Py_INCREF(python_loop);
-
-    self->ring = uring;
     self->registry = registry;
-    self->py_loop = python_loop;
-    PyObject *capsule = PyCapsule_New(self, "uring_loop", NULL);
-
+    self->py_loop = NULL;
     self->initialized = false;
     self->is_closing = false;
+    self->is_reader_installed = false;
+    self->reader_callback = NULL;
+    self->reader_capsule = NULL;
 
-    return (PyObject *)self;
+    return (PyObject*)self;
 }
+
 
 static int
 UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self);
+    PyObject* python_loop = _get_loop();
+    if (!python_loop)
+        return -1;
 
-    // PyObject *memory_params_obj = NULL;
-    // PyObject *ring_init_params_obj = NULL;
+    Py_INCREF(python_loop);
+    self->py_loop = python_loop;
+
+    ASSERT_LOOP_THREAD(self);
 
     memory_params memory_params = {0};
     ring_init_params params = {0};
 
-    // static char *kwlist[] = {"memory_params", "ring_init_params", NULL};
-    // if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO", kwlist, &memory_params_obj, &ring_init_params_obj))
-    //     return -1;
-
-    // if (!_parse_memory_params(memory_params_obj, &memory_params))
-    //     return -1;
-
-    // if (!_parse_ring_init_params(ring_init_params_obj, &params))
-    //     return -1;
-
-    if (ring_init(&memory_params, &params, self->ring) < 0) {
-        PyErr_SetFromErrno(PyExc_OSError);
+    int ret = ring_init(&memory_params, &params, self->ring);
+    if (ret < 0) {
+        PyErr_SetString(PyExc_OSError, strerror(-ret));
         return -1;
     }
 
@@ -83,17 +63,22 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 }
 
 
-static void
-UringLoop_dealloc(UringLoop *self)
-{
+static void 
+UringLoop_dealloc(UringLoop *self) {
+    if (self->reader_callback) {
+        Py_DECREF(self->reader_callback);
+        self->reader_callback = NULL;
+    }
+
+    if (self->reader_capsule) {
+        Py_DECREF(self->reader_capsule);
+        self->reader_capsule = NULL;
+    }
+
     if (self->py_loop) {
         Py_XDECREF(self->py_loop);
     }
 
-    if (self->ring) {
-        ring_destroy(self->ring);
-        free(self->ring);
-    }
     if (self->registry) {
         registry_destroy(self->registry);
     }
@@ -132,23 +117,13 @@ UringLoop_close_loop(UringLoop *self, PyObject *args)
 }
 
 
-static PyObject *
-py_uring_loop_register_fd(PyObject *self, PyObject *args)
+PyObject*
+UringLoop_add_reader(UringLoop *self, PyObject *args)
 {
-    PyObject *py_loop;
-
-    if (!PyArg_ParseTuple(args, "O", &py_loop)) {
-        PyErr_SetString(PyExc_ValueError, "Invalid input arguments");
-        return NULL;
+    if (!self->is_reader_installed) {
+        uring_loop_register_fd(self);
+        self->is_reader_installed = true;
     }
-
-    UringLoop *loop = (UringLoop *)py_loop;
-    if (!loop) {
-        PyErr_SetString(PyExc_ValueError, "Invalid UringLoop object");
-        return NULL;
-    }
-
-    uring_loop_register_fd(loop);
     Py_RETURN_NONE;
 }
 
@@ -188,6 +163,7 @@ py_uring_loop_register_fd(PyObject *self, PyObject *args)
 // Method Table
 static PyMethodDef uring_loop_methods[] = {
     // LOOP
+    {"add_reader", (PyCFunction)UringLoop_add_reader, METH_NOARGS, "Register FD with UringLoop"},
     {"close_loop", (PyCFunction)UringLoop_close_loop, METH_VARARGS,  "Close loop"},
     // {"run",   (PyCFunction)UringLoop_run,   METH_NOARGS,  "Run loop"},
     // {"stop",  (PyCFunction)UringLoop_stop,  METH_NOARGS,  "Stop loop"},
@@ -276,10 +252,10 @@ static PyModuleDef_Slot uring_loop_module_slots[] = {
     {0, NULL}
 };
 
-static PyMethodDef uring_methods[] = {
-    {"add_uring_reader", py_uring_loop_register_fd, METH_VARARGS, "Register FD with UringLoop"},
-    {NULL, NULL, 0, NULL}
-};
+// static PyMethodDef uring_methods[] = {
+//     {"add_uring_reader", py_uring_loop_register_fd, METH_NOARGS, "Register FD with UringLoop"},
+//     {NULL, NULL, 0, NULL}
+// };
 
 
 static PyModuleDef uring_loop_module = {
@@ -288,7 +264,7 @@ static PyModuleDef uring_loop_module = {
     .m_doc = "Module contains loop with uring",
     .m_size = 0,
     .m_slots = uring_loop_module_slots,
-    .m_methods = uring_methods,
+    // .m_methods = uring_methods,
 };
 
 PyMODINIT_FUNC

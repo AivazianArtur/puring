@@ -3,13 +3,13 @@
 ## Phase 1 — Stabilize Current Implementation
 - [ ] Polish current implementation:
     - [ ] Move initialization of Python objects into a separate module.
-    - [ ] Debug, add a simple benchmark, and provide examples for the socket API.
+    - [ ] Debug and add a simple benchmark for the socket API.
     - [ ] Implement `ASSERT_LOOP_THREAD` macros.
     - [ ] Replace `peek_cqe` with `wait_cqe_timeout`.
     - [ ] Implement `UringFile` (similar to `UringSocket`) to fix file API and shadow FD usage.
     - [ ] Write a Makefile to import `liburing` and install dependencies.
     - [ ] Improve separation between C and Python layers.
-    - [ ] Move all Python imports to module scope (avoid imports inside functions).
+    - [ ] Move all Python imports to module scope
 
 ## Phase 2 — Core Features
 - [ ] Fix Files API by implementing `UringFile` (analogous to `UringSocket`).

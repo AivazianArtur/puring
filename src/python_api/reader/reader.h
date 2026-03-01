@@ -12,6 +12,6 @@
 
 void on_uring_ready(UringLoop *self);
 
-PyObject *py_on_uring_ready(PyObject *self, PyObject *args);
+static PyObject *py_on_uring_ready(PyObject *capsule);
 
 void uring_loop_register_fd(UringLoop *self);

@@ -13,7 +13,7 @@ async def main():
     loop = puring.uring(registry_size=8)
     print('UringLoop created:', loop)
 
-    puring.add_uring_reader(loop)
+    loop.add_reader()
     print('Reader added')
 
     server_sock = await loop.tcp_socket()
@@ -25,7 +25,7 @@ async def main():
     accept_future = server_sock.accept(1024, 0)
 
     client_loop = puring.uring(registry_size=8)
-    puring.add_uring_reader(client_loop)
+    client_loop.add_reader()
     client_sock = await client_loop.tcp_socket()
     await client_sock.connect(HOST, PORT)
     print('Client connected')

@@ -24,6 +24,11 @@ typedef struct UringLoop {
     pid_t loop_tid;
     RequestRegistry *registry;
     unsigned int entries;
+
+    PyObject *reader_capsule;
+    PyObject *reader_callback;
+    bool is_reader_installed;
+
     bool initialized;
     bool is_closing;
 } UringLoop;
