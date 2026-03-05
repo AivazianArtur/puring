@@ -66,7 +66,7 @@ To read about implementation details, go to [architecture page](docs/ARCHITECTUR
 Now we have just simple benchmarks, showing that even in pre-alpha mode and with many features to come, it is already faster while working with files.
 This is result:
 
-![benchmark result](docs/assets/benchmark_result/uring_benchmark.png)
+![benchmark result](docs/assets/benchmark_results/files_benchmark.png)
 
 To learn more, go to [benchmarks documentation](docs/BENCHMARK.md)
 

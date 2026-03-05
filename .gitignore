@@ -8,4 +8,7 @@ __pycache__/
 *.pyo
 *.pyd
 
+puring.egg-info/
+*.so
+
 docs/assets/testfiles.txt

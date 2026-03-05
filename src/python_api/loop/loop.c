@@ -1,7 +1,7 @@
 #include "loop.h"
 
 
-static PyObject*
+PyObject*
 UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     int registry_size = 0;
@@ -37,7 +37,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 }
 
 
-static int
+int
 UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 {
     PyObject* python_loop = _get_loop();
@@ -63,7 +63,7 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 }
 
 
-static void 
+void 
 UringLoop_dealloc(UringLoop *self) {
     if (self->reader_callback) {
         Py_DECREF(self->reader_callback);

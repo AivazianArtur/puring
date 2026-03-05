@@ -37,20 +37,20 @@ extern PyTypeObject UringLoopType;
 extern PyTypeObject UringSocketType;
 
 /* Functions */
-static PyObject*
+PyObject*
 UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
-static int
+int
 UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs);
 
-static void 
+void 
 UringLoop_dealloc(UringLoop *self);
 
-static PyObject*
+PyObject*
 UringLoop_close_loop(UringLoop *self, PyObject *args);
 
 PyObject*
-UringLoop_add_reader(UringLoop *self, PyObject *args)
+UringLoop_add_reader(UringLoop *self, PyObject *args);
 
 // TODO in next versions
 // static PyObject*

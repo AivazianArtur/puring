@@ -83,12 +83,3 @@ At 8 KiB, synchronous writes actually outperform `io_uring`.
     - low-throughput workloads
 
 - `asyncio` threadpools are not a disk I/O optimization — they mainly help concurrency, not raw throughput.
-
-### Rule of Thumb
-
-| Chunk Size | Best Strategy |
-|------------|--------------|
-| ≥128 KiB | io_uring |
-| 32–64 KiB | depends on workload |
-| ≤16 KiB | synchronous I/O |
-
