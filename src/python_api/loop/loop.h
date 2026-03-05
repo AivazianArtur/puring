@@ -49,8 +49,8 @@ UringLoop_dealloc(UringLoop *self);
 static PyObject*
 UringLoop_close_loop(UringLoop *self, PyObject *args);
 
-static PyObject *
-py_uring_loop_register_fd(PyObject *self, PyObject *args);
+PyObject*
+UringLoop_add_reader(UringLoop *self, PyObject *args)
 
 // TODO in next versions
 // static PyObject*
