@@ -2,6 +2,8 @@ import subprocess, sys
 
 from config import CONNECTIONS, MESSAGES, MSG_SIZE
 
+# WARNING: Run server_asyncio.py first
+
 folder = 'docs/benchmark/sockets/'
 tests = [
     folder+'client_asyncio.py',

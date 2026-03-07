@@ -9,7 +9,7 @@
 * **Full io_uring support** In future we'll implement all io_uring features.
 * **C-Python API** Implemented using CPython C-API for minimal overhead and full control over memory and GIL behavior.
 
-## Quick Example:
+## Quick Examples:
 ### Files:
 ```python
 async def main():
