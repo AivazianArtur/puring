@@ -1,7 +1,6 @@
 import os
 import sys
 
-# sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
 sys.path.insert(0, '')
 
 import asyncio

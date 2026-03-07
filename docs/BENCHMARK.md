@@ -62,19 +62,19 @@ Each client sends a message and waits for the response before sending the next o
 
 ## Throughput (Ops/sec)
 
-![Throughput](assets/benchmark_results/sockets/benchmark_ops_sec.png)
+![Throughput](assets/benchmark_results/sockets/ops_sec.png)
 
 ------------------------------------------------------------------------
 
 ## Average Latency
 
-![Average Latency](assets/benchmark_results/sockets/benchmark_avg_latency.png)
+![Average Latency](assets/benchmark_results/sockets/avg_latency.png)
 
 ------------------------------------------------------------------------
 
 ## P99 Tail Latency
 
-![P99 Latency](assets/benchmark_results/sockets/benchmark_p99_latency.png)
+![P99 Latency](assets/benchmark_results/sockets/p99_latency.png)
 
 ------------------------------------------------------------------------
 

@@ -4,7 +4,6 @@ import shutil
 import time
 import sys
 
-# sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
 sys.path.insert(0, '')
 
 # WARNING: Both linux only
