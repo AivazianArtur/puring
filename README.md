@@ -93,7 +93,7 @@ For ping-pong benchmark of sockets, puring now shows results close or event bett
 
 ### Sockets Results:
 
-![socket benchmark result](docs/assets/benchmark_results/sockets/benchmark_avg_latency.png)
+![socket benchmark result](docs/assets/benchmark_results/sockets/avg_latency.png)
 
 To learn more, go to [benchmarks documentation](docs/BENCHMARK.md)
 
