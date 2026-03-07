@@ -101,7 +101,12 @@ UringLoop_close_loop(UringLoop *self, PyObject *args)
 
     // TODO: Somehow to move to ring_destoy and registry_destroy
     struct io_uring_cqe *cqe;
-    while (io_uring_peek_cqe(self->ring, &cqe) == 0) {
+    struct __kernel_timespec ts;
+    ts.tv_nsec = 0;
+    ts.tv_sec = 3;
+
+    // while (io_uring_peek_cqe(self->ring, &cqe) == 0) {
+     while (io_uring_wait_cqe_timeout(self->ring, &cqe, &ts) == 0) {
         int index = (int)(uintptr_t)cqe->user_data;
         registry_remove(self->registry, index);  // TODO: set future exception
         io_uring_cqe_seen(self->ring, cqe);
