@@ -85,9 +85,3 @@ help:
 
 .PHONY: all deps build install clean help check-submodule venv
 
-
-BENCHMARK_SCRIPT := docs/benchmark/benchmark.py
-
-benchmark: install
-	@echo "Running benchmark inside virtualenv..."
-	$(PY) $(BENCHMARK_SCRIPT)

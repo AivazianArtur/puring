@@ -10,11 +10,12 @@
 * **C-Python API** Implemented using CPython C-API for minimal overhead and full control over memory and GIL behavior.
 
 ## Quick Example:
-``` 
+### Files:
+```python
 async def main():
     loop = puring.uring(registry_size=8)
 
-    puring.add_uring_reader(loop)
+    loop.add_reader()
     fd = await loop.open(path='testfile.txt')
 
     data = b'Hello, puring!\n'
@@ -23,6 +24,26 @@ async def main():
 
     await  loop.close(fd=fd)
 
+    loop.close_loop()
+
+asyncio.run(main())
+```
+
+### Sockets:
+```python
+HOST = "127.0.0.1"
+PORT = 9000
+PAYLOAD = b"hello"
+
+async def main():
+    loop = puring.uring()
+    sock = await loop.tcp_socket()
+
+    await sock.connect(HOST, PORT)
+    await sock.send(PAYLOAD)
+    data = await sock.recv()
+    print("received:", data)
+    await sock.close()
     loop.close_loop()
 
 asyncio.run(main())
@@ -63,10 +84,16 @@ To read about implementation details, go to [architecture page](docs/ARCHITECTUR
 
 
 ## Benchmarks
-Now we have just simple benchmarks, showing that even in pre-alpha mode and with many features to come, it is already faster while working with files.
-This is result:
+On simple file benchmarks, `Puring` is showing that even in pre-alpha mode and with many features to come, it is already provide truly async file ops 2x-faster than other Python solutions. \
+For ping-pong benchmark of sockets, puring now shows results close or event better than `uvloop`. It is proof of concept.
 
-![benchmark result](docs/assets/benchmark_results/files_benchmark.png)
+### File Results:
+
+![file benchmark result](docs/assets/benchmark_results/files_benchmark.png)
+
+### Sockets Results:
+
+![socket benchmark result](docs/assets/benchmark_results/sockets/benchmark_avg_latency.png)
 
 To learn more, go to [benchmarks documentation](docs/BENCHMARK.md)
 
