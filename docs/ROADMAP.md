@@ -1,13 +1,5 @@
 # Roadmap
 
-**These benchmarks do not yet include several important io_uring optimizations:**
-- sqpoll
-- registered buffers
-- zero-copy networking
-- batched submissions
-- multishot recv/send
-
-
 ## v0.2 Stabilize current implementation
 - [ ] Polish current implementation:
     - [X] Debug sockets and add simple benchmark.
