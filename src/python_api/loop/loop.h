@@ -24,6 +24,11 @@ typedef struct UringLoop {
     pid_t loop_tid;
     RequestRegistry *registry;
     unsigned int entries;
+
+    PyObject *reader_capsule;
+    PyObject *reader_callback;
+    bool is_reader_installed;
+
     bool initialized;
     bool is_closing;
 } UringLoop;
@@ -32,20 +37,20 @@ extern PyTypeObject UringLoopType;
 extern PyTypeObject UringSocketType;
 
 /* Functions */
-static PyObject*
+PyObject*
 UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
-static int
+int
 UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs);
 
-static void 
+void 
 UringLoop_dealloc(UringLoop *self);
 
-static PyObject*
+PyObject*
 UringLoop_close_loop(UringLoop *self, PyObject *args);
 
-static PyObject *
-py_uring_loop_register_fd(PyObject *self, PyObject *args);
+PyObject*
+UringLoop_add_reader(UringLoop *self, PyObject *args);
 
 // TODO in next versions
 // static PyObject*

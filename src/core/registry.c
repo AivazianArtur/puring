@@ -65,7 +65,7 @@ int registry_add(
     PyObject *future,
     PyObject *buffer,
     int opcode,
-    PyObject *socket
+    UringSocket *socket
 ) 
 {
     if (reg->top < 0) {
@@ -119,7 +119,7 @@ void registry_remove(RequestRegistry *reg, int index)
     }
 
     if (slot->opcode) {
-        slot->opcode = NULL;
+        slot->opcode = 0;
     }
     // 2. Push index back onto the Free List Stack
     // (We know top < size because we just freed one)

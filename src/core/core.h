@@ -12,6 +12,7 @@
 
 /* Forward declarations */
 typedef struct UringLoop UringLoop;
+typedef struct UringSocket UringSocket;
 void uring_loop_register_fd(UringLoop *loop);
 
 
@@ -48,7 +49,7 @@ typedef struct {
     PyObject *future;       // The asyncio Future object
     PyObject *buffer;       // The Python Buffer (bytes/bytearray/memoryview)
     int opcode;             // Opcode for debugging (IORING_OP_READ, etc.)
-    PyObject *socket;
+    UringSocket *socket;
 } RequestSlot;
 
 
@@ -81,7 +82,7 @@ int registry_add(
     PyObject *future,
     PyObject *buffer,
     int opcode,
-    PyObject *socket
+    UringSocket *socket
 );
 
 RequestSlot* registry_get(RequestRegistry *reg, int index);

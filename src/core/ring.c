@@ -30,19 +30,22 @@ int ring_init(
 }
 
 
-void ring_destroy(struct io_uring* ring) 
-{
+void ring_destroy(struct io_uring* ring) {
+    if (!ring) {
+        fprintf(stderr, "Error: io_uring is NULL\n");
+        return;
+    }
+
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    // TODO: Create Retry setable loop, including accepting flags etc
     if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
+        fprintf(stderr, "Error: SQE is not available\n");
+        return;
     }
     io_uring_prep_cancel(sqe, NULL, IORING_ASYNC_CANCEL_ANY);
-    int result  = io_uring_submit(ring);
+    int result = io_uring_submit(ring);
 
     if (result < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        fprintf(stderr, "Error: io_uring_submit failed: %s\n", strerror(-result));
         return;
     }
     io_uring_queue_exit(ring);

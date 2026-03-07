@@ -1,16 +1,22 @@
+import os
 import sys
-sys.path.insert(0, 'build/lib.linux-x86_64-cpython-312')
+
+sys.path.insert(0, '')
+
 import asyncio
 import puring
+
+
+TEMPFILE = 'docs/assets/tempfile.txt'
 
 
 async def main():
     loop = puring.uring(registry_size=8)
     print('UringLoop created:', loop)
 
-    puring.add_uring_reader(loop)
+    loop.add_reader()
     print('Reader added')
-    fd = await loop.open(path='testfile.txt')
+    fd = await loop.open(path=TEMPFILE)
     print('File opened, fd:', fd)
 
     data = b'Hello, puring!\n'
@@ -27,3 +33,4 @@ async def main():
     print('Uring loop closed')
 
 asyncio.run(main())
+os.remove(TEMPFILE)

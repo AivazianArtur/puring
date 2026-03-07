@@ -1,6 +1,4 @@
-# ========================
-# Paths
-# ========================
+# Tested on Fedora 43 and WSL2 for WIndows10
 
 LIBURING_DIR := requirements/liburing
 LIBURING_LIB := $(LIBURING_DIR)/src/liburing.a
@@ -10,33 +8,36 @@ VENV := .venv
 PIP := $(VENV)/bin/pip
 PY := $(VENV)/bin/python
 
-# ========================
-# Default
-# ========================
-
 all: build
 
-# ========================
-# Submodule check
-# ========================
 
 check-submodule:
 	@if [ ! -f "$(LIBURING_DIR)/Makefile" ]; then \
-		echo "Missing liburing submodule."; \
-		echo "Run: git submodule update --init --recursive"; \
+		echo "Liburing submodule not found. Initializing..."; \
+		git submodule update --init --recursive; \
+	fi
+	@if [ ! -f "$(LIBURING_DIR)/Makefile" ]; then \
+		echo "Error: Failed to initialize submodule."; \
 		exit 1; \
 	fi
 
-# ========================
-# Virtual environment
-# ========================
 
 $(VENV)/bin/activate:
 	@echo "Checking for python3-venv..."
-	@dpkg -s python3-venv >/dev/null 2>&1 || { \
-		echo "python3-venv not found. Installing..."; \
-		sudo apt update && sudo apt install -y python3-venv; \
-	}
+	@if command -v apt > /dev/null; then \
+		dpkg -s python3-venv >/dev/null 2>&1 || { \
+			echo "Debian-based system detected. Installing via apt..."; \
+			sudo apt update && sudo apt install -y python3-venv; \
+		}; \
+	elif command -v dnf > /dev/null; then \
+		dnf list installed python3 >/dev/null 2>&1 || { \
+			echo "RedHat-based system detected. Installing via dnf..."; \
+			sudo dnf install -y python3; \
+		}; \
+	else \
+		echo "Unknown package manager. Please install python3-venv manually."; \
+		exit 1; \
+	fi
 	@echo "Creating virtualenv..."
 	$(PYTHON) -m venv $(VENV)
 	$(PIP) install --upgrade pip setuptools wheel
@@ -44,19 +45,26 @@ $(VENV)/bin/activate:
 venv: $(VENV)/bin/activate
 
 
-# ========================
-# Build liburing
-# ========================
+install-python-dev:
+	@echo "Checking for Python development headers..."
+	@find /usr/include -name Python.h 2>/dev/null | grep -q . || { \
+		if command -v apt > /dev/null; then \
+			sudo apt update && sudo apt install -y python3-dev; \
+		elif command -v dnf > /dev/null; then \
+			sudo dnf install -y python3-devel --refresh --setopt=minrate=0 --setopt=timeout=300 || { echo "DNF failed, check your connection"; exit 1; }; \
+		else \
+			echo "Manual install of python3-dev/devel required."; exit 1; \
+		fi; \
+	}
+
+
 
 $(LIBURING_LIB): check-submodule
 	@echo "Building liburing..."
 	$(MAKE) -C $(LIBURING_DIR)
 
-deps: venv $(LIBURING_LIB)
+deps: install-python-dev venv $(LIBURING_LIB)
 
-# ========================
-# Python build
-# ========================
 
 build: deps
 	$(PY) -m build --wheel
@@ -64,17 +72,11 @@ build: deps
 install: deps
 	$(PIP) install -e .
 
-# ========================
-# Clean
-# ========================
 
 clean:
 	rm -rf build dist *.egg-info $(VENV)
 	-$(MAKE) -C $(LIBURING_DIR) clean
 
-# ========================
-# Help
-# ========================
 
 help:
 	@echo "make install  - build and install puring (venv)"
@@ -83,12 +85,3 @@ help:
 
 .PHONY: all deps build install clean help check-submodule venv
 
-# ========================
-# Benchmark
-# ========================
-
-BENCHMARK_SCRIPT := docs/benchmark/benchmark.py
-
-run-benchmark: install
-	@echo "Running benchmark inside virtualenv..."
-	$(PY) $(BENCHMARK_SCRIPT)

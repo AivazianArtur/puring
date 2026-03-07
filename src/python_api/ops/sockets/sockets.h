@@ -5,7 +5,9 @@
 #include <liburing.h>
 #include <sys/types.h>
 #include <stdbool.h>
-
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include "ops/sockets/sockets.h"
 #include "python_api/loop/loop.h"
@@ -14,7 +16,7 @@
 
 typedef struct UringLoop UringLoop;
 
-typedef struct {
+typedef struct UringSocket {
     PyObject_HEAD
 
     int sock_fd;
