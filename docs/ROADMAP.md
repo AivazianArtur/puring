@@ -1,47 +1,56 @@
 # Roadmap
 
-## Phase 1 — Stabilize Current Implementation
-- [ ] Polish current implementation:
-    - [ ] Implement `ASSERT_LOOP_THREAD` macros.
-    - [ ] Replace `peek_cqe` with `wait_cqe_timeout`.
-    - [ ] Implement `UringFile` (similar to `UringSocket`) to fix file API and shadow FD usage.
-    - [ ] Improve separation between C and Python layers.
-    - [ ] Move all Python imports to module scope
+**These benchmarks do not yet include several important io_uring optimizations:**
+- sqpoll
+- registered buffers
+- zero-copy networking
+- batched submissions
+- multishot recv/send
 
-## Phase 2 — Core Features
-- [ ] Fix Files API by implementing `UringFile` (analogous to `UringSocket`).
-- [ ] Implement graceful shutdown.
+
+## v0.2 Stabilize current implementation
+- [ ] Polish current implementation:
+    - [X] Debug sockets and add simple benchmark.
+    - [ ] Implement `ASSERT_LOOP_THREAD` macros.
+    - [X] Replace `peek_cqe` with `wait_cqe_timeout` on app shutdown and loop closing.
+    - [ ] Implement `UringFile` to fix file API and shadow FD usage.
+    - [X] Move initialization to separate module.
+    - [ ] Improve separation between C and Python layers.
+
+## v0.3 — Core features
 - [ ] Translate internal errors into native Python exceptions.
 - [ ] Proper GIL handling.
 - [ ] Add timer support (`IORING_OP_TIMEOUT`).
 - [ ] Add signal handling (`SIGINT`, `SIGTERM`) via `IORING_OP_POLL_ADD`.
+- [ ] Add not implemented `loop`, `file` and `socket` methods.
+- [ ] Add tests.
+- [ ] Implement GitHub CI.
 
-## Phase 3 — Performance & io_uring Features
+## v0.4 - Performance io_uring features
 - [ ] Implement fixed buffers (`io_uring_register_buffers`).
 - [ ] Implement zero-copy send (`send_zc`).
 - [ ] Use Python application buffers as `UringLoop` buffers.
 - [ ] Implement a puring-based memory pool for buffers.
 - [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
+
+## v0.6 CQE and SQE production features
 - [ ] CQE batching.
-- [ ] Offload SQE submission to a kernel thread (`IORING_SETUP_SQPOLL`).
+- [ ] SQPOLL.
+- [ ] FASTPOLL.
 - [ ] Support linked SQEs for chained operations.
 - [ ] Keep file descriptors registered (`io_uring_register_files`).
 
-## Phase 4 — Async Runtime & Architecture
+## v0.7 - Async Runtime & Architecture
 - [ ] Multiring support.
 - [ ] Support all awaitable operations.
 - [ ] Support modern Python async interfaces (`Runners`).
 - [ ] Configurable ring parameters.
 - [ ] Revisit loop replacement (currently uncertain but likely needed).
-- [ ] Improve future creation (FutureFactory + future pool).
+- [ ] Improve future creation: `FutureFactory` and `future pool`.
 
-## Phase 5 — Quality & Distribution
-- [ ] Write tests.
-- [ ] Add CI pipeline.
+## v0.8 Community & Contribution
 - [ ] Publish library on PyPI (`pip` installable).
 - [ ] Document everything.
-
-## Phase 6 — Community & Contribution
 - [ ] Add contribution support:
     - [ ] Write contribution guidelines.
     - [ ] Add repository badges.
