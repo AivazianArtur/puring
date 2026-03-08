@@ -12,6 +12,7 @@
 #include "ops/sockets/sockets.h"
 #include "python_api/loop/loop.h"
 #include "python_api/future/future.h"
+#include "registry/registry.h"
 
 
 typedef struct UringLoop UringLoop;

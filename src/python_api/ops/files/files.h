@@ -13,6 +13,7 @@
 #include "python_api/future/future.h"
 #include "python_api/loop/loop.h"
 #include "ops/files/files.h"
+#include "registry/registry.h"
 
 
 typedef struct UringLoop UringLoop;

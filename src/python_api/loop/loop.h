@@ -7,7 +7,8 @@
 #include <stdbool.h>
 #include "python_api/ops/files/files.h"
 #include "python_api/ops/sockets/sockets.h"
-#include "core/core.h"
+#include "ring/ring.h"
+#include "registry/registry.h"
 #include "reader/reader.h"
 #include "macroses/macroses.h"
 

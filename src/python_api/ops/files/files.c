@@ -107,7 +107,7 @@ UringLoop_read(
 
     char *buf = PyBytes_AS_STRING(buffer);
 
-    if (uring_read(self->ring, request_idx, fd, buf, size) < 0) {
+    if (uring_read(self->ring, request_idx, fd, buf, (unsigned) size) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -157,7 +157,7 @@ UringLoop_write(
     char *buf = PyBytes_AS_STRING(data);
     Py_ssize_t size = PyBytes_GET_SIZE(data);
 
-    if (uring_write(self->ring, request_idx, fd, buf, size) < 0) {
+    if (uring_write(self->ring, request_idx, fd, buf, (unsigned) size) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;

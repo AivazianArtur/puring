@@ -2,16 +2,10 @@
 
 #include <Python.h>
 #include <liburing.h>
-#include <sys/types.h>
-#include <stdbool.h>
+
 #include "python_api/loop/loop.h"
 #include "python_api/ops/files/files.h"
 #include "python_api/ops/sockets/sockets.h"
-#include "core/core.h"
-#include "ops/files/files.h"
-#include "ops/sockets/sockets.h"
-#include "reader/reader.h"
-#include "macroses/macroses.h"
 
 
 static PyMethodDef uring_loop_methods[] = {

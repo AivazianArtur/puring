@@ -1,4 +1,4 @@
-#include "core.h"
+#include "ring.h"
 
 
 int ring_init(

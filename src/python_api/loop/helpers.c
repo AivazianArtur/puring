@@ -197,7 +197,6 @@ void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg)
     ts.tv_nsec = 0;
     ts.tv_sec = 3;
 
-    // while (io_uring_peek_cqe(ring, &cqe) == 0) {
     while (io_uring_wait_cqe_timeout(ring, &cqe, &ts) == 0) {
         io_uring_cqe_seen(ring, cqe);
     }
