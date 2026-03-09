@@ -13,7 +13,7 @@
 #include "macroses/macroses.h"
 
 
-PyTypeObject UringLoopType;
+extern PyTypeObject UringLoopType;
 
 typedef struct UringLoop {
     // Now its basicaly a driver, but in next versions it will be loop

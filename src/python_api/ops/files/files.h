@@ -16,7 +16,7 @@
 #include "python_api/future/future.h"
 
 
-PyTypeObject UringFileType;
+extern PyTypeObject UringFileType;
 
 typedef struct UringFile {
     PyObject_HEAD

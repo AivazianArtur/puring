@@ -15,7 +15,7 @@
 #include "registry/registry.h"
 
 
-PyTypeObject UringSocketType;
+extern PyTypeObject UringSocketType;
 
 typedef struct UringSocket {
     PyObject_HEAD

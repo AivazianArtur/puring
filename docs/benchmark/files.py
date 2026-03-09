@@ -83,15 +83,15 @@ async def puring_write_sequential():
     loop = puring.uring()
     loop.add_reader()
 
-    fd = await loop.open(path=FILE_PURING_SEQ)
+    uring_file = await loop.open(path=FILE_PURING_SEQ)
 
     start = time.perf_counter()
 
     for _ in range(ITERATIONS):
-        await loop.write(fd, DATA)
+        await uring_file.write(DATA)
 
-    await loop.fsync(fd)
-    await loop.close(fd)
+    await uring_file.fsync()
+    await uring_file.close()
 
     return time.perf_counter() - start
 
@@ -104,13 +104,13 @@ async def puring_write_sequential__include_init():
     loop = puring.uring()
     loop.add_reader()
 
-    fd = await loop.open(path=FILE_PURING_SEQ__INIT)
+    uring_file = await loop.open(path=FILE_PURING_SEQ__INIT)
 
     for _ in range(ITERATIONS):
-        await loop.write(fd, DATA)
+        await uring_file.write(DATA)
 
-    # await loop.fsync(fd) // OPTIONAL
-    await loop.close(fd)
+    # await uring_file.fsync() // OPTIONAL
+    await uring_file.close()
 
     return time.perf_counter() - start
 
@@ -143,6 +143,9 @@ async def run():
 
 
 if __name__ == '__main__':
-    os.mkdir(FILES_FOLDER)
+    try:
+        os.mkdir(FILES_FOLDER)
+    except FileExistsError:
+        pass
     asyncio.run(run())
     shutil.rmtree(FILES_FOLDER)

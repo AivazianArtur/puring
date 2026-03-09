@@ -20,6 +20,7 @@ UringLoop_open(
         return NULL;
     }
     file->loop = self;
+    file->closed = false;
     Py_INCREF(self);
 
     int dfd = AT_FDCWD;
@@ -111,14 +112,6 @@ UringFile_read(
         return NULL;
     }
 
-    int fd = 0;
-
-    static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &fd))) {
-        PyErr_SetString(PyExc_RuntimeError, "Wrong input params\n");
-        return NULL;
-    }
-
     PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
@@ -151,7 +144,7 @@ UringFile_read(
 
     char *buf = PyBytes_AS_STRING(buffer);
 
-    if (uring_read(self->loop->ring, request_idx, fd, buf, (unsigned) size) < 0) {
+    if (uring_read(self->loop->ring, request_idx, self->fd, buf, (unsigned) size) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -177,11 +170,10 @@ UringFile_write(
         return NULL;
     }
 
-    int fd = 0;
     PyObject *data = NULL;
 
-    static char *kwlist[] = {"fd", "data", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &fd, &data))) {
+    static char *kwlist[] = {"data", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &data))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -212,7 +204,7 @@ UringFile_write(
     char *buf = PyBytes_AS_STRING(data);
     Py_ssize_t size = PyBytes_GET_SIZE(data);
 
-    if (uring_write(self->loop->ring, request_idx, fd, buf, (unsigned) size) < 0) {
+    if (uring_write(self->loop->ring, request_idx, self->fd, buf, (unsigned) size) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -235,14 +227,6 @@ UringFile_close(
     }
     if (self->closed) {
         PyErr_SetString(PyExc_RuntimeError, "File is closed");
-        return NULL;
-    }
-
-    int fd = 0;
-
-    static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &fd))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
@@ -277,7 +261,7 @@ UringFile_close(
 
     char *buf = PyBytes_AS_STRING(buffer);
 
-    if (uring_close_file(self->loop->ring, request_idx, fd, buf) < 0) {
+    if (uring_close_file(self->loop->ring, request_idx, self->fd, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -303,11 +287,10 @@ UringFile_stat(
         return NULL;
     }
 
-    int dfd;
     static char path;
 
-    static char *kwlist[] = {"dfd", "path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &dfd, &path))) {
+    static char *kwlist[] = {"path", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "s", kwlist, &path))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
@@ -343,7 +326,7 @@ UringFile_stat(
 
     char *buf = PyBytes_AS_STRING(buffer);
 
-    if (uring_stat(self->loop->ring, request_idx, dfd, &path, buf) < 0) {
+    if (uring_stat(self->loop->ring, request_idx, self->fd, &path, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -366,14 +349,6 @@ UringFile_fsync(
     }
     if (self->closed) {
         PyErr_SetString(PyExc_RuntimeError, "File is closed");
-        return NULL;
-    }
-
-    int fd = 0;
-
-    static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
@@ -400,7 +375,7 @@ UringFile_fsync(
         return NULL;
     }
 
-    if (uring_fsync(self->loop->ring, request_idx, fd) < 0) {
+    if (uring_fsync(self->loop->ring, request_idx, self->fd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
