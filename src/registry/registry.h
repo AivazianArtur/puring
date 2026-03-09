@@ -9,12 +9,14 @@
 #define DEFAULT_REGISTRY_SIZE 128 
 
 typedef struct UringSocket UringSocket;
+typedef struct UringFile UringFile;
 
 typedef struct {
     uint64_t user_data;
     PyObject *future;
     PyObject *buffer;
     int opcode;
+    UringFile *file;
     UringSocket *socket;
 } RequestSlot;
 
@@ -35,6 +37,7 @@ int registry_add(
     PyObject *future,
     PyObject *buffer,
     int opcode,
+    UringFile *file,
     UringSocket *socket
 );
 

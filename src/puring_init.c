@@ -9,21 +9,13 @@
 
 
 static PyMethodDef uring_loop_methods[] = {
-    // LOOP
     {"add_reader", (PyCFunction)UringLoop_add_reader, METH_NOARGS, "Register FD with UringLoop"},
     {"close_loop", (PyCFunction)UringLoop_close_loop, METH_VARARGS,  "Close loop"},
-    // {"run",   (PyCFunction)UringLoop_run,   METH_NOARGS,  "Run loop"},
-    // {"stop",  (PyCFunction)UringLoop_stop,  METH_NOARGS,  "Stop loop"},
 
-    // OPS
-    // Files
+    // Create File
     {"open", (PyCFunction)UringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file"},
-    {"read", (PyCFunction)UringLoop_read, METH_VARARGS | METH_KEYWORDS,  "Read file"},
-    {"write", (PyCFunction)UringLoop_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
-    {"close", (PyCFunction)UringLoop_close, METH_VARARGS | METH_KEYWORDS,  "Close file"},
-    {"stat", (PyCFunction)UringLoop_stat, METH_VARARGS | METH_KEYWORDS,  "File info"},
-    {"fsync", (PyCFunction)UringLoop_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
-    // Sockets
+
+    // Create Socket
     {"tcp_socket", (PyCFunction)UringLoop_tcp_socket, METH_VARARGS | METH_KEYWORDS,  "Opens tcp-socket"},
     {"udp_socket", (PyCFunction)UringLoop_udp_socket, METH_VARARGS | METH_KEYWORDS,  "Opens udp-socket"},
     {"stream_socket", (PyCFunction)UringLoop_unix_stream, METH_VARARGS | METH_KEYWORDS,  "Opens unix stream-socket"},
@@ -33,7 +25,6 @@ static PyMethodDef uring_loop_methods[] = {
 
 
 static PyMethodDef uring_socket_methods[] = {
-    // TEMP: IN bind Always hitting OSE22 on WSL, seems like some socket ops not supported on WSL2. Later i'll try on proper setting to debug. 
     {"bind", (PyCFunction)UringSocket_bind, METH_VARARGS | METH_KEYWORDS,  "Bind socket"},
     {"listen", (PyCFunction)UringSocket_listen, METH_VARARGS | METH_KEYWORDS,  "Listen socket"},
     {"connect", (PyCFunction)UringSocket_connect, METH_VARARGS | METH_KEYWORDS,  "Connect"},
@@ -42,6 +33,15 @@ static PyMethodDef uring_socket_methods[] = {
     {"accept", (PyCFunction)UringSocket_accept, METH_VARARGS | METH_KEYWORDS,  "Accept"},
     {"close", (PyCFunction)UringSocket_close, METH_VARARGS | METH_KEYWORDS,  "Close"},
 
+    {NULL, NULL, 0, NULL}
+};
+
+static PyMethodDef uring_file_methods[] = {
+    {"read", (PyCFunction)UringFile_read, METH_VARARGS | METH_KEYWORDS,  "Read file"},
+    {"write", (PyCFunction)UringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
+    {"close", (PyCFunction)UringFile_close, METH_VARARGS | METH_KEYWORDS,  "Close file"},
+    {"stat", (PyCFunction)UringFile_stat, METH_VARARGS | METH_KEYWORDS,  "File info"},
+    {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -58,6 +58,18 @@ PyTypeObject UringLoopType = {
     .tp_methods = uring_loop_methods,
 };
 
+PyTypeObject UringFileType = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "puring.src.python_api.ops.files.UringFile",
+    .tp_doc = PyDoc_STR("Puring file adapter"),
+    .tp_basicsize = sizeof(UringFile),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+    .tp_init = NULL,
+    .tp_dealloc = (destructor)UringFile_dealloc,
+    .tp_methods = uring_file_methods,
+};
 
 PyTypeObject UringSocketType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
@@ -82,7 +94,13 @@ uring_loop_module_exec(PyObject *m)
     if (PyType_Ready(&UringSocketType) < 0) {
         return -1;
     }
+    if (PyType_Ready(&UringFileType) < 0) {
+        return -1;
+    }
     if (PyModule_AddObjectRef(m, "uring", (PyObject *) &UringLoopType) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "file", (PyObject *) &UringFileType) < 0) {
         return -1;
     }
     if (PyModule_AddObjectRef(m, "socket", (PyObject *) &UringSocketType) < 0) {
@@ -99,6 +117,8 @@ static PyModuleDef_Slot uring_loop_module_slots[] = {
 };
 
 
+// TEMP: These part is left because of first architecture. 
+// TODO: Import loop/file/socket or rename loop->puring
 static PyModuleDef uring_loop_module = {
     .m_base = PyModuleDef_HEAD_INIT,
     .m_name = "loop",

@@ -15,7 +15,7 @@
 #include "registry/registry.h"
 
 
-typedef struct UringLoop UringLoop;
+PyTypeObject UringSocketType;
 
 typedef struct UringSocket {
     PyObject_HEAD

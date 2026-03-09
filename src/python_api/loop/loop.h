@@ -13,9 +13,7 @@
 #include "macroses/macroses.h"
 
 
-// typedef struct RequestRegistry RequestRegistry;
-
-/* Objects */
+PyTypeObject UringLoopType;
 
 typedef struct UringLoop {
     // Now its basicaly a driver, but in next versions it will be loop
@@ -34,10 +32,7 @@ typedef struct UringLoop {
     bool is_closing;
 } UringLoop;
 
-extern PyTypeObject UringLoopType;
-extern PyTypeObject UringSocketType;
 
-/* Functions */
 PyObject*
 UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 

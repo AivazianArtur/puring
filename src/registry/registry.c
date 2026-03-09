@@ -65,6 +65,7 @@ int registry_add(
     PyObject *future,
     PyObject *buffer,
     int opcode,
+    UringFile *file,
     UringSocket *socket
 ) 
 {
@@ -87,7 +88,9 @@ int registry_add(
     if (buffer != NULL) Py_INCREF(buffer);
 
     slot->socket = socket;
+    slot->file = file;
     if (socket != NULL) Py_INCREF(socket);
+    if (file != NULL) Py_INCREF(file);
 
     return index;
 }
@@ -98,7 +101,6 @@ RequestSlot* registry_get(RequestRegistry *reg, int index)
         return NULL;
     }
     
-    // Return pointer to the slot so the caller can read future/buffer
     return &reg->slots[index];
 }
 
@@ -121,8 +123,7 @@ void registry_remove(RequestRegistry *reg, int index)
     if (slot->opcode) {
         slot->opcode = 0;
     }
-    // 2. Push index back onto the Free List Stack
-    // (We know top < size because we just freed one)
+
     reg->top++;
     reg->available_indices[reg->top] = index;
 }

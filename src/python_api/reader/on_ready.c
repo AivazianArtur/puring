@@ -33,6 +33,14 @@ void on_uring_ready(UringLoop *loop)
                         result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer), cqe->res);
                     }
                     break;
+                case IORING_OP_OPENAT2:
+                    if (slot->file) {
+                        UringFile *file = (UringFile *)slot->file;
+                        file->fd = cqe->res;
+                        // TODO: maybe should try to fix return types to return file and socket here and below?
+                        result = (PyObject *)slot->file;
+                    }
+                    break;
                 case IORING_OP_SOCKET:
                     if (slot->socket) {
                         UringSocket *sock = (UringSocket *)slot->socket;
