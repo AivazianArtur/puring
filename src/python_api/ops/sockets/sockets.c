@@ -8,7 +8,7 @@ UringLoop_tcp_socket(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
+    ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -68,7 +68,7 @@ UringLoop_udp_socket(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
+    ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -128,7 +128,7 @@ UringLoop_unix_stream(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
+    ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -188,7 +188,7 @@ UringLoop_unix_dgram(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
+    ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -255,7 +255,7 @@ UringSocket_dealloc(UringSocket *self)
 PyObject*
 UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -329,7 +329,7 @@ UringSocket_listen(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -387,7 +387,7 @@ UringSocket_connect(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -457,7 +457,7 @@ UringSocket_send(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -515,7 +515,7 @@ UringSocket_recv(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -578,7 +578,7 @@ UringSocket_accept(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -636,7 +636,7 @@ UringSocket_close(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;

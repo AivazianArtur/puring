@@ -8,7 +8,7 @@ UringLoop_open(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
+    ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -102,7 +102,7 @@ UringFile_read(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -160,7 +160,7 @@ UringFile_write(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -220,7 +220,7 @@ UringFile_close(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -277,7 +277,7 @@ UringFile_stat(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
@@ -342,7 +342,7 @@ UringFile_fsync(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop);
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;

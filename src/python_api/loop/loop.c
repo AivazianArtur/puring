@@ -47,8 +47,6 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
     Py_INCREF(python_loop);
     self->py_loop = python_loop;
 
-    ASSERT_LOOP_THREAD(self);
-
     memory_params mem_par = {0};
     ring_init_params params = {0};
 
@@ -90,7 +88,7 @@ UringLoop_dealloc(UringLoop *self) {
 PyObject*
 UringLoop_close_loop(UringLoop *self, PyObject *args)
 {
-    ASSERT_LOOP_THREAD(self);
+    ASSERT_LOOP_THREAD(self->py_loop);
 
     if (self->is_closing)
         Py_RETURN_NONE;
@@ -132,26 +130,8 @@ UringLoop_add_reader(UringLoop *self, PyObject *args)
 
 
 // In next versions
-// PyObject*
+
 // UringLoop_run_forever(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }
-
-// PyObject*
 // UringLoop_stop(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }
-
-// PyObject*
 // UringLoop_call_soon(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }
-
-// PyObject*
 // UringLoop_call_later(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }

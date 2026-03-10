@@ -3,9 +3,9 @@
 ## v0.2 - Stabilize current implementation
 - [ ] Polish current implementation:
     - [X] Debug sockets and add simple benchmark.
-    - [ ] Implement `ASSERT_LOOP_THREAD` macros.
+    - [X] Implement `ASSERT_LOOP_THREAD` macros.
     - [X] Replace `peek_cqe` with `wait_cqe_timeout` on app shutdown and loop closing.
-    - [ ] Implement `UringFile` to fix file API and shadow FD usage.
+    - [X] Implement `UringFile` to fix file API and shadow FD usage.
     - [X] Move initialization to separate module.
     - [X] Improve separation between C and Python layers.
 
@@ -47,6 +47,9 @@
     - [ ] Write contribution guidelines.
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
+
+## v0.9 - Discussion
+- [ ] Do we need not to wrap but implement Loop? Need a discussion with community.
 
 ---
 

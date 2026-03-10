@@ -14,6 +14,7 @@
 #include "registry/registry.h"
 #include "python_api/loop/loop.h"
 #include "python_api/future/future.h"
+#include "macroses.h"
 
 
 extern PyTypeObject UringFileType;

@@ -16,13 +16,13 @@ async def main():
     loop = puring.uring(registry_size=8)
 
     loop.add_reader()
-    fd = await loop.open(path='testfile.txt')
+    file = await loop.open(path='testfile.txt')
 
     data = b'Hello, puring!\n'
-    await loop.write(fd, data=data)
-    await loop.read(fd=fd)
+    await file.write(data=data)
+    await file.read()
 
-    await  loop.close(fd=fd)
+    await file.close()
 
     loop.close_loop()
 

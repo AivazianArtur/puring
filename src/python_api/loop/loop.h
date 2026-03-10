@@ -10,7 +10,7 @@
 #include "ring/ring.h"
 #include "registry/registry.h"
 #include "reader/reader.h"
-#include "macroses/macroses.h"
+#include "macroses.h"
 
 
 extern PyTypeObject UringLoopType;
