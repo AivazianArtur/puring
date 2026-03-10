@@ -1,7 +1,7 @@
 #pragma once
-#define PY_SSIZE_T_CLEAN
 
-#include <Python.h>
+#include <stdio.h>
+#include <string.h>
 #include <linux/openat2.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

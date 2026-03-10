@@ -1,8 +1,13 @@
 #pragma once
-#define PY_SSIZE_T_CLEAN
 
-#include <Python.h>
+#define _GNU_SOURCE
+
 #include <linux/openat2.h>
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
 
 #include "liburing.h"
 
@@ -22,7 +27,7 @@ int uring_read(
     int request_idx,
     int fd,
     char *buf,
-    Py_ssize_t size 
+    unsigned size 
     // __u64 offset,  TODO
 );
 
@@ -31,7 +36,7 @@ int uring_write(
     int request_idx,
     int fd,
     char *buf,
-    Py_ssize_t size 
+    unsigned size 
 );
 
 int uring_close_file(

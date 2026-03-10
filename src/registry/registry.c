@@ -1,4 +1,4 @@
-#include "core.h"
+#include "registry.h"
 
 
 RequestRegistry* registry_new(unsigned int size) 
@@ -18,15 +18,15 @@ RequestRegistry* registry_new(unsigned int size)
         return NULL;
     }
 
-    registry->free_indices = malloc(size * sizeof(int));
-    if (!registry->free_indices) {
+    registry->available_indices = malloc(size * sizeof(int));
+    if (!registry->available_indices) {
         free(registry->slots);
-        perror("Cant allocate memory for `free_indices` while creating registry");
+        perror("Cant allocate memory for `available_indices` while creating registry");
         return NULL;
     }
 
     for (int i = 0; i < size; i++) {
-        registry->free_indices[i] = i;
+        registry->available_indices[i] = i;
     }
     
     registry->top = size - 1;
@@ -50,12 +50,12 @@ void registry_destroy(RequestRegistry *reg)
         free(reg->slots);
     }
 
-    if (reg->free_indices) {
-        free(reg->free_indices);
+    if (reg->available_indices) {
+        free(reg->available_indices);
     }
     
     reg->slots = NULL;
-    reg->free_indices = NULL;
+    reg->available_indices = NULL;
     reg->size = 0;
     reg->top = -1;
 }
@@ -65,6 +65,7 @@ int registry_add(
     PyObject *future,
     PyObject *buffer,
     int opcode,
+    UringFile *file,
     UringSocket *socket
 ) 
 {
@@ -72,7 +73,7 @@ int registry_add(
         return -1;
     }
 
-    int index = reg->free_indices[reg->top];
+    int index = reg->available_indices[reg->top];
     reg->top--;
 
     RequestSlot *slot = &reg->slots[index];
@@ -87,7 +88,9 @@ int registry_add(
     if (buffer != NULL) Py_INCREF(buffer);
 
     slot->socket = socket;
+    slot->file = file;
     if (socket != NULL) Py_INCREF(socket);
+    if (file != NULL) Py_INCREF(file);
 
     return index;
 }
@@ -98,7 +101,6 @@ RequestSlot* registry_get(RequestRegistry *reg, int index)
         return NULL;
     }
     
-    // Return pointer to the slot so the caller can read future/buffer
     return &reg->slots[index];
 }
 
@@ -121,8 +123,7 @@ void registry_remove(RequestRegistry *reg, int index)
     if (slot->opcode) {
         slot->opcode = 0;
     }
-    // 2. Push index back onto the Free List Stack
-    // (We know top < size because we just freed one)
+
     reg->top++;
-    reg->free_indices[reg->top] = index;
+    reg->available_indices[reg->top] = index;
 }

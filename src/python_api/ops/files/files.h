@@ -10,12 +10,22 @@
 
 #include <liburing.h>
 
-#include "python_api/future/future.h"
-#include "python_api/loop/loop.h"
 #include "ops/files/files.h"
+#include "registry/registry.h"
+#include "python_api/loop/loop.h"
+#include "python_api/future/future.h"
+#include "macroses.h"
 
 
-typedef struct UringLoop UringLoop;
+extern PyTypeObject UringFileType;
+
+typedef struct UringFile {
+    PyObject_HEAD
+
+    int fd;
+    UringLoop *loop;
+    bool closed;
+} UringFile;
 
 
 PyObject* 
@@ -25,37 +35,40 @@ UringLoop_open(
     PyObject *kwargs
 );
 
+void 
+UringFile_dealloc(UringFile *self);
+
 PyObject*
-UringLoop_read(
-    UringLoop *self,
+UringFile_read(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringLoop_write(
-    UringLoop *self,
+UringFile_write(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringLoop_close(
-    UringLoop *self,
+UringFile_close(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringLoop_stat(
-    UringLoop *self,
+UringFile_stat(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringLoop_fsync(
-    UringLoop *self,
+UringFile_fsync(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 );

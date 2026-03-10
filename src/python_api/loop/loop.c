@@ -47,12 +47,10 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
     Py_INCREF(python_loop);
     self->py_loop = python_loop;
 
-    ASSERT_LOOP_THREAD(self);
-
-    memory_params memory_params = {0};
+    memory_params mem_par = {0};
     ring_init_params params = {0};
 
-    int ret = ring_init(&memory_params, &params, self->ring);
+    int ret = ring_init(&mem_par, &params, self->ring);
     if (ret < 0) {
         PyErr_SetString(PyExc_OSError, strerror(-ret));
         return -1;
@@ -90,7 +88,7 @@ UringLoop_dealloc(UringLoop *self) {
 PyObject*
 UringLoop_close_loop(UringLoop *self, PyObject *args)
 {
-    ASSERT_LOOP_THREAD(self);
+    ASSERT_LOOP_THREAD(self->py_loop);
 
     if (self->is_closing)
         Py_RETURN_NONE;
@@ -99,9 +97,12 @@ UringLoop_close_loop(UringLoop *self, PyObject *args)
 
     PyObject_CallMethod(self->py_loop, "remove_reader", "i", self->ring->ring_fd);
 
-    // TODO: Somehow to move to ring_destoy and registry_destroy
     struct io_uring_cqe *cqe;
-    while (io_uring_peek_cqe(self->ring, &cqe) == 0) {
+    struct __kernel_timespec ts;
+    ts.tv_nsec = 0;
+    ts.tv_sec = 3;
+
+     while (io_uring_wait_cqe_timeout(self->ring, &cqe, &ts) == 0) {
         int index = (int)(uintptr_t)cqe->user_data;
         registry_remove(self->registry, index);  // TODO: set future exception
         io_uring_cqe_seen(self->ring, cqe);
@@ -129,26 +130,8 @@ UringLoop_add_reader(UringLoop *self, PyObject *args)
 
 
 // In next versions
-// PyObject*
+
 // UringLoop_run_forever(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }
-
-// PyObject*
 // UringLoop_stop(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }
-
-// PyObject*
 // UringLoop_call_soon(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }
-
-// PyObject*
 // UringLoop_call_later(UringLoop *self, PyObject *args)
-// {
-//     ASSERT_LOOP_THREAD(self);
-// }

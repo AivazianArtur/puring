@@ -12,9 +12,11 @@
 #include "ops/sockets/sockets.h"
 #include "python_api/loop/loop.h"
 #include "python_api/future/future.h"
+#include "registry/registry.h"
+#include "macroses.h"
 
 
-typedef struct UringLoop UringLoop;
+extern PyTypeObject UringSocketType;
 
 typedef struct UringSocket {
     PyObject_HEAD

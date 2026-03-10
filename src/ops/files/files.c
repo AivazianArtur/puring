@@ -40,7 +40,7 @@ int uring_read(
     int request_idx,
     int fd,
     char *buf,
-    Py_ssize_t size 
+    unsigned size 
     // __u64 offset,  TODO
 )
 {
@@ -62,7 +62,7 @@ int uring_write(
     int request_idx,
     int fd,
     char *buf,
-    Py_ssize_t size 
+    unsigned size 
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);

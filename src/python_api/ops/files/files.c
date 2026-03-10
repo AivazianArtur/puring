@@ -8,11 +8,20 @@ UringLoop_open(
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
+    ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
+
+    UringFile *file = PyObject_New(UringFile, &UringFileType);
+    if (!file) {
+        PyErr_SetString(PyExc_RuntimeError, "Can't create file");
+        return NULL;
+    }
+    file->loop = self;
+    file->closed = false;
+    Py_INCREF(self);
 
     int dfd = AT_FDCWD;
     PyObject *py_path_obj = NULL;
@@ -20,23 +29,27 @@ UringLoop_open(
 
     static char *kwlist[] = {"dfd", "path", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", kwlist, &dfd, &py_path_obj)) {
+        Py_DECREF(file);
         PyErr_SetString(PyExc_RuntimeError, "Invalid arguments");
         return NULL;
     }
 
     if (!py_path_obj || !PyUnicode_Check(py_path_obj)) {
+        Py_DECREF(file);
         PyErr_SetString(PyExc_TypeError, "Path must be a str");
         return NULL;
     }
 
     path = PyUnicode_AsUTF8(py_path_obj);
     if (!path) {
+        Py_DECREF(file);
         PyErr_SetString(PyExc_TypeError, "Failed to convert path to UTF-8");
         return NULL;
     }
 
     PyObject *future = create_future(self);
     if (!future) {
+        Py_DECREF(file);
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
     }
@@ -44,14 +57,24 @@ UringLoop_open(
     int opcode = IORING_OP_OPENAT2;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
+    int request_idx = registry_add(
+        self->registry,
+        future,
+        buffer,
+        opcode,
+        file,
+        NULL
+    );
+
     if (request_idx < 0) {
+        Py_DECREF(file);
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
     if (open_file(self->ring, request_idx, dfd, path) < 0) {
+        Py_DECREF(file);
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
@@ -61,28 +84,35 @@ UringLoop_open(
 }
 
 
+void 
+UringFile_dealloc(UringFile *self)
+{
+    self->closed = true;
+    if (self->loop) {
+        Py_XDECREF(self->loop);
+    }
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
+
 PyObject*
-UringLoop_read(
-    UringLoop *self,
+UringFile_read(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
-    if (self->is_closing) {
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
-
-    int fd = 0;
-
-    static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &fd))) {
-        PyErr_SetString(PyExc_RuntimeError, "Wrong input params\n");
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "File is closed");
         return NULL;
     }
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -98,7 +128,14 @@ UringLoop_read(
         return PyErr_NoMemory();
     }
 
-    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
+    int request_idx = registry_add(
+        self->loop->registry,
+        future,
+        buffer,
+        opcode,
+        self,
+        NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -107,7 +144,7 @@ UringLoop_read(
 
     char *buf = PyBytes_AS_STRING(buffer);
 
-    if (uring_read(self->ring, request_idx, fd, buf, size) < 0) {
+    if (uring_read(self->loop->ring, request_idx, self->fd, buf, (unsigned) size) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -117,28 +154,31 @@ UringLoop_read(
 
 
 PyObject*
-UringLoop_write(
-    UringLoop *self,
+UringFile_write(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
-    if (self->is_closing) {
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "File is closed");
+        return NULL;
+    }
 
-    int fd = 0;
     PyObject *data = NULL;
 
-    static char *kwlist[] = {"fd", "data", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "iO", kwlist, &fd, &data))) {
+    static char *kwlist[] = {"data", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &data))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -147,7 +187,14 @@ UringLoop_write(
     int opcode = IORING_OP_WRITE;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx = registry_add(self->registry, future, data, opcode, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, 
+        future,
+        data,
+        opcode,
+        self,
+        NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -157,7 +204,7 @@ UringLoop_write(
     char *buf = PyBytes_AS_STRING(data);
     Py_ssize_t size = PyBytes_GET_SIZE(data);
 
-    if (uring_write(self->ring, request_idx, fd, buf, size) < 0) {
+    if (uring_write(self->loop->ring, request_idx, self->fd, buf, (unsigned) size) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -167,27 +214,23 @@ UringLoop_write(
 
 
 PyObject*
-UringLoop_close(
-    UringLoop *self,
+UringFile_close(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
-    if (self->is_closing) {
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
-
-    int fd = 0;
-
-    static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &fd))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "File is closed");
         return NULL;
     }
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -202,7 +245,14 @@ UringLoop_close(
         Py_DECREF(future);
         return PyErr_NoMemory();
     }
-    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
+    int request_idx = registry_add(
+        self->loop->registry,
+        future,
+        buffer,
+        opcode,
+        self,
+        NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -211,7 +261,7 @@ UringLoop_close(
 
     char *buf = PyBytes_AS_STRING(buffer);
 
-    if (uring_close_file(self->ring, request_idx, fd, buf) < 0) {
+    if (uring_close_file(self->loop->ring, request_idx, self->fd, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -221,28 +271,31 @@ UringLoop_close(
 
 
 PyObject*
-UringLoop_stat(
-    UringLoop *self,
+UringFile_stat(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
-    if (self->is_closing) {
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "File is closed");
+        return NULL;
+    }
 
-    int dfd;
     static char path;
 
-    static char *kwlist[] = {"dfd", "path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "is", kwlist, &dfd, &path))) {
+    static char *kwlist[] = {"path", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "s", kwlist, &path))) {
         PyErr_SetString(PyExc_RuntimeError, "No required params\n");
         return NULL;
     }
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -257,7 +310,14 @@ UringLoop_stat(
     }
 
     int opcode = IORING_OP_STATX;
-    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
+    int request_idx = registry_add(
+        self->loop->registry,
+        future,
+        buffer,
+        opcode,
+        self,
+        NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
@@ -266,7 +326,7 @@ UringLoop_stat(
 
     char *buf = PyBytes_AS_STRING(buffer);
 
-    if (uring_stat(self->ring, request_idx, dfd, &path, buf) < 0) {
+    if (uring_stat(self->loop->ring, request_idx, self->fd, &path, buf) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -276,27 +336,23 @@ UringLoop_stat(
 
 
 PyObject*
-UringLoop_fsync(
-    UringLoop *self,
+UringFile_fsync(
+    UringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self);
-    if (self->is_closing) {
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    if (self->loop->is_closing) {
         PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
         return NULL;
     }
-
-    int fd = 0;
-
-    static char *kwlist[] = {"fd", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &fd))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+    if (self->closed) {
+        PyErr_SetString(PyExc_RuntimeError, "File is closed");
         return NULL;
     }
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(self->loop);
     if (!future) {
         PyErr_SetString(PyExc_RuntimeError, "Can't create future");
         return NULL;
@@ -305,14 +361,21 @@ UringLoop_fsync(
     int opcode = IORING_OP_FSYNC;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx = registry_add(self->registry, future, buffer, opcode, NULL);
+    int request_idx = registry_add(
+        self->loop->registry,
+        future,
+        buffer,
+        opcode,
+        self,
+        NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
         return NULL;
     }
 
-    if (uring_fsync(self->ring, request_idx, fd) < 0) {
+    if (uring_fsync(self->loop->ring, request_idx, self->fd) < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;

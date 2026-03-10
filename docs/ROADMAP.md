@@ -1,15 +1,15 @@
 # Roadmap
 
-## v0.2 Stabilize current implementation
+## v0.2 - Stabilize current implementation
 - [ ] Polish current implementation:
     - [X] Debug sockets and add simple benchmark.
-    - [ ] Implement `ASSERT_LOOP_THREAD` macros.
+    - [X] Implement `ASSERT_LOOP_THREAD` macros.
     - [X] Replace `peek_cqe` with `wait_cqe_timeout` on app shutdown and loop closing.
-    - [ ] Implement `UringFile` to fix file API and shadow FD usage.
+    - [X] Implement `UringFile` to fix file API and shadow FD usage.
     - [X] Move initialization to separate module.
-    - [ ] Improve separation between C and Python layers.
+    - [X] Improve separation between C and Python layers.
 
-## v0.3 — Core features
+## v0.3 - Core features
 - [ ] Translate internal errors into native Python exceptions.
 - [ ] Proper GIL handling.
 - [ ] Add timer support (`IORING_OP_TIMEOUT`).
@@ -25,7 +25,7 @@
 - [ ] Implement a puring-based memory pool for buffers.
 - [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
 
-## v0.6 CQE and SQE production features
+## v0.6 - CQE and SQE production features
 - [ ] CQE batching.
 - [ ] SQPOLL.
 - [ ] FASTPOLL.
@@ -40,13 +40,16 @@
 - [ ] Revisit loop replacement (currently uncertain but likely needed).
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
 
-## v0.8 Community & Contribution
+## v0.8 - Community & Contribution
 - [ ] Publish library on PyPI (`pip` installable).
 - [ ] Document everything.
 - [ ] Add contribution support:
     - [ ] Write contribution guidelines.
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
+
+## v0.9 - Discussion
+- [ ] Do we need not to wrap but implement Loop? Need a discussion with community.
 
 ---
 
