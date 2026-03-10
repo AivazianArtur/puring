@@ -1,7 +1,7 @@
 # Roadmap
 
 ## v0.2 - Stabilize current implementation
-- [ ] Polish current implementation:
+- [X] Polish current implementation:
     - [X] Debug sockets and add simple benchmark.
     - [X] Implement `ASSERT_LOOP_THREAD` macros.
     - [X] Replace `peek_cqe` with `wait_cqe_timeout` on app shutdown and loop closing.
@@ -18,7 +18,7 @@
 - [ ] Add tests.
 - [ ] Implement GitHub CI.
 
-## v0.4 - Performance io_uring features
+## v0.4 - Buffer features
 - [ ] Implement fixed buffers (`io_uring_register_buffers`).
 - [ ] Implement zero-copy send (`send_zc`).
 - [ ] Use Python application buffers as `UringLoop` buffers.
@@ -49,7 +49,7 @@
     - [ ] Enable GitHub issue tracking.
 
 ## v0.9 - Discussion
-- [ ] Do we need not to wrap but implement Loop? Need a discussion with community.
+- [ ] Do we need to not wrap but implement Loop? Need a discussion with community.
 
 ---
 
