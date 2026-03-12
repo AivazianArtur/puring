@@ -30,7 +30,7 @@ This benchmark compares throughput when writing files of various sizes using dif
 | 8192 | 8 | 25.36 | 17.07 | 21.55 | **18.37** |
 
 ---
-![file benchmark result](docs/assets/benchmark_results/files_benchmark.png)
+![file benchmark result](assets/benchmark_results/files_benchmark.png)
 
 ### Observations
 
