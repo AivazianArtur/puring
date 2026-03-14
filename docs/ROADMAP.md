@@ -50,6 +50,7 @@
 
 ## v0.9 - Discussion
 - [ ] Do we need to not wrap but implement Loop? Need a discussion with community.
+- [ ] Explore ring usage in multiple-loop app.
 
 ---
 
