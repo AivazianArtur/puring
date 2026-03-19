@@ -98,7 +98,7 @@ For ping-pong benchmark of sockets, puring now shows results close or event bett
 
 ### File Results:
 
-![file benchmark result](docs/assets/benchmark_results/files_benchmark.png)
+![file benchmark result](docs/assets/files_benchmark.png)
 
 ### Sockets Results:
 
