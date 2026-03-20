@@ -7,7 +7,13 @@ Experimental async runtime for Python built on Linux io_uring.
 Puring enables true async file I/O in Python without relying on thread pools,
 using Linux io_uring and a CPython C-extension runtime.
 
-⚠️ Experimental project ⚠️ APIs and internals may change.
+⚠️
+
+Experimental project \
+APIs and internals may change \
+Used for experimenting with async I/O performance in Python \
+Looking for contributors and feedback \
+⚠️
 
 ## Why Puring?
 * **True Async File I/O:** Unlike epoll-based `asyncio` and `uvloop`, `puring` is based on io_uring, which provides real async I/O without thread pools for files \
