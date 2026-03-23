@@ -25,6 +25,14 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
         return PyErr_NoMemory();
     }
 
+    self->interpreter_view = PyInterpreterView_Get();
+    if (!self->interpreter_view) {
+        registry_destroy(registry);
+        free(self->ring);
+        Py_TYPE(self)->tp_free((PyObject*)self);
+        return PyErr_NoMemory();
+    }
+
     self->registry = registry;
     self->py_loop = NULL;
     self->initialized = false;
@@ -79,6 +87,10 @@ UringLoop_dealloc(UringLoop *self) {
 
     if (self->registry) {
         registry_destroy(self->registry);
+    }
+
+    if (self->interpreter_view) {
+        PyInterpreterView_Close(self->interpreter_view);
     }
 
     Py_TYPE(self)->tp_free((PyObject *)self);

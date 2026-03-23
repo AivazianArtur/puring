@@ -8,6 +8,3 @@
     } \
     Py_DECREF(is_same_thread); \
 } while (0)
-
-
-#define GIT_RELEASER() // TODO

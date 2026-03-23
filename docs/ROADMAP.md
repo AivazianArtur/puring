@@ -40,7 +40,7 @@
 - [ ] Revisit loop replacement (currently uncertain but likely needed).
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
 
-## v0.8 - Community & Contribution
+## v0.7.1 - Community & Contribution
 - [ ] Publish library on PyPI (`pip` installable).
 - [ ] Document everything.
 - [ ] Add contribution support:
@@ -48,9 +48,10 @@
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
 
-## v0.9 - Discussion
-- [ ] Do we need to not wrap but implement Loop? Need a discussion with community.
-- [ ] Explore ring usage in multiple-loop app.
+## v0.8 - Multithread and NoGIL [Discussion] 
+- [ ] Implement loop.
+- [ ] Run reader in separate thread.
+- [ ] Explore ring usage in multiple-loop and multithread app.
 
 ---
 
