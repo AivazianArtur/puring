@@ -11,10 +11,10 @@
 
 ## v0.3 - Core features
 - [ ] Translate internal errors into native Python exceptions.
-- [ ] Proper GIL handling.
 - [ ] Add timer support (`IORING_OP_TIMEOUT`).
 - [ ] Add signal handling (`SIGINT`, `SIGTERM`) via `IORING_OP_POLL_ADD`.
-- [ ] Add not implemented `loop`, `file` and `socket` methods.
+- [ ] Finish AbstractEventLoop Protocol.
+- [ ] Add not implemented `file` and `socket` methods.
 - [ ] Add tests.
 - [ ] Implement GitHub CI.
 
@@ -48,11 +48,11 @@
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
 
-## v0.8 - Multithread and NoGIL [Discussion] 
-- [ ] Implement loop.
+## v0.8 - Read Completion Queue in separate thread per process
 - [ ] Run reader in separate thread.
-- [ ] Explore ring usage in multiple-loop and multithread app.
 
+## v0.9 - Rings per Thread
+- [ ] Each thread must own it`s own Rings
 ---
 
 ### Note

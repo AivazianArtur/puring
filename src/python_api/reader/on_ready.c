@@ -4,14 +4,6 @@ void on_uring_ready(UringLoop *loop)
 {
     struct io_uring_cqe *cqe;
 
-    PyInterpreterGuard guard = PyInterpreterGuard_FromView(view);
-    if (guard == 0) {
-        PyInterpreterView_Close(view);
-        PyErr_SetString(PyExc_RuntimeError, "Can't guard from finalizing.");
-        PyErr_Print();
-        return -1;
-    }
-
     while (io_uring_peek_cqe(loop->ring, &cqe) == 0) {
         int index = (int)(uintptr_t)cqe->user_data;
         RequestSlot *slot = registry_get(loop->registry, index);
@@ -94,5 +86,4 @@ void on_uring_ready(UringLoop *loop)
         io_uring_cqe_seen(loop->ring, cqe);
     }
 
-    PyInterpreterGuard_Close(guard);
 }

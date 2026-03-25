@@ -20,7 +20,6 @@ typedef struct UringLoop {
 
     struct io_uring *ring;
     PyObject *py_loop;
-    PyInterpreterView *interpreter_view;
     pid_t loop_tid;
     RequestRegistry *registry;
     unsigned int entries;

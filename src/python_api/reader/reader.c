@@ -11,6 +11,7 @@ py_on_uring_ready(PyObject *capsule)
     }
 
     on_uring_ready(loop);
+
     Py_RETURN_NONE;
 }
 
