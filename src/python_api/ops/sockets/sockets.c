@@ -10,13 +10,13 @@ UringLoop_tcp_socket(
 {
     ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
 
     UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
     if (!sock) {
-        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
+        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");  // HEREERROR Change
         return NULL;
     }
     sock->closed = false;
@@ -27,7 +27,7 @@ UringLoop_tcp_socket(
     PyObject *future = create_future(self);
     if (!future) {
         Py_DECREF(sock);
-        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");  // HEREERROR Change
         return NULL;
     }
 
@@ -43,15 +43,14 @@ UringLoop_tcp_socket(
         NULL,
         sock
     );
-
     if (request_idx < 0) {
         Py_DECREF(sock);
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (tcp_socket(self->ring, request_idx) < 0) {
+    if (tcp_socket(self->ring, request_idx) < 0) {  // HEREERROR Dispatch
         Py_DECREF(sock);
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -70,13 +69,13 @@ UringLoop_udp_socket(
 {
     ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
 
     UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
     if (!sock) {
-        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
+        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");  // HEREERROR Change
         return NULL;
     }
 
@@ -87,7 +86,7 @@ UringLoop_udp_socket(
     PyObject *future = create_future(self);
     if (!future) {
         Py_DECREF(sock);
-        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");  // HEREERROR Change
         return NULL;
     }
 
@@ -103,15 +102,14 @@ UringLoop_udp_socket(
         NULL,
         sock
     );
-
     if (request_idx < 0) {
         Py_DECREF(sock);
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (udp_socket(self->ring, request_idx) < 0) {
+    if (udp_socket(self->ring, request_idx) < 0) {  // HEREERROR Dispatch
         Py_DECREF(sock);
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -130,13 +128,13 @@ UringLoop_unix_stream(
 {
     ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
 
     UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
     if (!sock) {
-        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
+        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");  // HEREERROR Change
         return NULL;
     }
 
@@ -147,7 +145,7 @@ UringLoop_unix_stream(
     PyObject *future = create_future(self);
     if (!future) {
         Py_DECREF(sock);
-        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");   // HEREERROR Change
         return NULL;
     }
 
@@ -163,15 +161,14 @@ UringLoop_unix_stream(
         NULL,
         sock
     );
-
     if (request_idx < 0) {
         Py_DECREF(sock);
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (unix_stream(self->ring, request_idx) < 0) {
+    if (unix_stream(self->ring, request_idx) < 0) {  // HEREERROR Dispatch
         Py_DECREF(sock);
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -190,13 +187,13 @@ UringLoop_unix_dgram(
 {
     ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
 
     UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
     if (!sock) {
-        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
+        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");  // HEREERROR Change
         return NULL;
     }
 
@@ -207,7 +204,7 @@ UringLoop_unix_dgram(
     PyObject *future = create_future(self);
     if (!future) {
         Py_DECREF(sock);
-        PyErr_SetString(PyExc_RuntimeError, "Can't create future");
+        PyErr_SetString(PyExc_RuntimeError, "Can't create future");  // HEREERROR Change
         return NULL;
     }
 
@@ -227,11 +224,11 @@ UringLoop_unix_dgram(
     if (request_idx < 0) {
         Py_DECREF(sock);
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (unix_dgram(self->ring, request_idx) < 0) {
+    if (unix_dgram(self->ring, request_idx) < 0) {  // HEREERROR dispatch
         Py_DECREF(sock);
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -257,11 +254,11 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
     if (self->closed) {
-        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");
+        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");  // HEREERROR Change
         return NULL;
     }
 
@@ -270,26 +267,29 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
 
     static char *kwlist[] = {"host", "port", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si", kwlist, &host, &port)) {
-        PyErr_SetString(PyExc_RuntimeError, "Expected host:str and port:int");
+        PyErr_SetString(PyExc_RuntimeError, "Expected host:str and port:int");  // HEREERROR Change
         return NULL;
     }
 
     struct sockaddr_in *addr = malloc(sizeof(*addr));
-    if (!addr) { PyErr_NoMemory(); return NULL; }
+    if (!addr) {
+        PyErr_NoMemory();  // HEREERROR Change
+        return NULL;
+    }
     memset(addr, 0, sizeof(*addr));
 
     addr->sin_family = AF_INET;
     addr->sin_port = htons(port);
     if (inet_pton(AF_INET, host, &addr->sin_addr) != 1) {
         free(addr);
-        PyErr_SetString(PyExc_ValueError, "Invalid IP address");
+        PyErr_SetString(PyExc_ValueError, "Invalid IP address");  // HEREERROR Change
         return NULL;
     }
 
     PyObject *future = create_future(self->loop);
     if (!future) { 
         free(addr); 
-        return NULL; 
+        return NULL;   // HEREERROR Change
     }
 
     int opcode = IORING_OP_BIND;
@@ -306,11 +306,11 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
     if (request_idx < 0) {
         Py_DECREF(future);
         free(addr);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is full");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is full");  // HEREERROR Change
         return NULL;
     }
 
-    if (uring_bind(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, sizeof(*addr), buffer) < 0) {
+    if (uring_bind(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, sizeof(*addr), buffer) < 0) {  // HEREERROR Dispatch
         Py_DECREF(future);
         free(addr);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
@@ -331,11 +331,11 @@ UringSocket_listen(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
     if (self->closed) {
-        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");
+        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");  // HEREERROR Change
         return NULL;
     }
 
@@ -343,13 +343,13 @@ UringSocket_listen(
 
     static char *kwlist[] = {"backlog", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &backlog))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+        PyErr_SetString(PyExc_RuntimeError, "No required params\n");  // HEREERROR Change
         return NULL;
     }
 
     PyObject *future = create_future(self->loop);
     if (!future) {
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
@@ -367,11 +367,11 @@ UringSocket_listen(
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog) < 0) {
+    if (uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog) < 0) {  // HEREERROR dispatch
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -389,11 +389,11 @@ UringSocket_connect(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
     if (self->closed) {
-        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");
+        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");  // HEREERROR Change
         return NULL;
     }
 
@@ -402,7 +402,7 @@ UringSocket_connect(
 
     static char *kwlist[] = {"host", "port", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si", kwlist, &host, &port)) {
-        PyErr_SetString(PyExc_RuntimeError, "Expected host:str and port:int");
+        PyErr_SetString(PyExc_RuntimeError, "Expected host:str and port:int");  // HEREERROR Change
         return NULL;
     }
 
@@ -414,13 +414,13 @@ UringSocket_connect(
     addr->sin_port = htons(port);
     if (inet_pton(AF_INET, host, &addr->sin_addr) != 1) {
         free(addr);
-        PyErr_SetString(PyExc_ValueError, "Invalid IP address");
+        PyErr_SetString(PyExc_ValueError, "Invalid IP address");  // HEREERROR Change
         return NULL;
     }
 
     PyObject *future = create_future(self->loop);
     if (!future) {
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
@@ -437,11 +437,11 @@ UringSocket_connect(
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (uring_connect(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, sizeof(*addr)) < 0) {
+    if (uring_connect(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, sizeof(*addr)) < 0) {  // HEREERROR dispatch
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -459,11 +459,11 @@ UringSocket_send(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
     if (self->closed) {
-        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");
+        PyErr_SetString(PyExc_RuntimeError, "Socket is closed"); // HEREERROR Change 
         return NULL;
     }
 
@@ -473,13 +473,13 @@ UringSocket_send(
 
     static char *kwlist[] = {"bytes_buf", "bytes_len", "flags", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "y#|i", kwlist, &bytes_buf, &bytes_len, &flags))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+        PyErr_SetString(PyExc_RuntimeError, "No required params\n");  // HEREERROR Change
         return NULL;
     }
 
     PyObject *future = create_future(self->loop);
     if (!future) {
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
@@ -496,11 +496,11 @@ UringSocket_send(
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (uring_send(self->loop->ring, request_idx, self->sock_fd, bytes_buf, (socklen_t)bytes_len, flags) < 0) {
+    if (uring_send(self->loop->ring, request_idx, self->sock_fd, bytes_buf, (socklen_t)bytes_len, flags) < 0) {  // HEREERROR dispatch
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -517,11 +517,11 @@ UringSocket_recv(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
     if (self->closed) {
-        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");
+        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");  // HEREERROR Change
         return NULL;
     }
 
@@ -530,13 +530,13 @@ UringSocket_recv(
 
     static char *kwlist[] = {"len", "flags", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", kwlist, &len, &flags))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+        PyErr_SetString(PyExc_RuntimeError, "No required params\n");  // HEREERROR Change
         return NULL;
     }
 
     PyObject *future = create_future(self->loop);
     if (!future) {
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
@@ -545,7 +545,7 @@ UringSocket_recv(
     char *buffer = PyMem_Malloc(len);
     if (!buffer) {
         Py_DECREF(future);
-        PyErr_NoMemory();
+        PyErr_NoMemory();  // HEREERROR Change
         return NULL;
     }
 
@@ -559,11 +559,11 @@ UringSocket_recv(
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (uring_recv(self->loop->ring, request_idx, self->sock_fd, buffer, (size_t)len, flags) < 0) {
+    if (uring_recv(self->loop->ring, request_idx, self->sock_fd, buffer, (size_t)len, flags) < 0) {  // HEREERROR dispatch
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -580,11 +580,11 @@ UringSocket_accept(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
     if (self->closed) {
-        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");
+        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");  // HEREERROR Change
         return NULL;
     }
 
@@ -593,13 +593,13 @@ UringSocket_accept(
 
     static char *kwlist[] = {"len", "flags", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", kwlist, &len, &flags))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+        PyErr_SetString(PyExc_RuntimeError, "No required params\n");  // HEREERROR Change
         return NULL;
     }
 
     PyObject *future = create_future(self->loop);
     if (!future) {
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
@@ -616,11 +616,11 @@ UringSocket_accept(
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (uring_accept(self->loop->ring, request_idx, self->sock_fd, buffer, &len, flags) < 0) {
+    if (uring_accept(self->loop->ring, request_idx, self->sock_fd, buffer, &len, flags) < 0) {  // HEREERROR dispatch
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
@@ -638,23 +638,23 @@ UringSocket_close(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");
+        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
         return NULL;
     }
     if (self->closed) {
-        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");
+        PyErr_SetString(PyExc_RuntimeError, "Socket is closed");  // HEREERROR Change
         return NULL;
     }
 
     static char *kwlist[] = {NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "", kwlist))) {
-        PyErr_SetString(PyExc_RuntimeError, "No required params\n");
+        PyErr_SetString(PyExc_RuntimeError, "No required params\n");  // HEREERROR Change
         return NULL;
     }
 
     PyObject *future = create_future(self->loop);
     if (!future) {
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
@@ -671,11 +671,11 @@ UringSocket_close(
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");
+        PyErr_SetString(PyExc_RuntimeError, "Registry is not awailable\n");  // HEREERROR Change
         return NULL;
     }
 
-    if (uring_close_socket(self->loop->ring, request_idx, self->sock_fd) < 0) {
+    if (uring_close_socket(self->loop->ring, request_idx, self->sock_fd) < 0) {  // HEREERROR dispatch
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
         return NULL;
