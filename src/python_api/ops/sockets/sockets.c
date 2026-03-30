@@ -10,7 +10,10 @@ UringLoop_tcp_socket(
 {
     ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
-        PyErr_SetString(PyExc_RuntimeError, "Loop is closing");  // HEREERROR Change
+        PyErr_SetString(
+            PyExc_RuntimeError,
+            PyUnicode_FromFormat("Ring Event Loop is closing - %S", self->py_loop)
+        );
         return NULL;
     }
 
