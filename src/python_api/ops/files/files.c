@@ -10,9 +10,10 @@ UringLoop_open(
 {
     ASSERT_LOOP_THREAD(self->py_loop);
     if (self->is_closing) {
-        PyErr_SetString(
+        PyErr_Format(
             PyExc_RuntimeError,
-            PyUnicode_FromFormat("Ring Event Loop is closing - %S", self->py_loop)
+            "Ring Event Loop is closing - %S",
+            self->py_loop
         );
         return NULL;
     }
@@ -77,11 +78,13 @@ UringLoop_open(
     if (result == -1) {
         Py_DECREF(file);
         Py_DECREF(future);
+        registry_remove(self->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(file);
         Py_DECREF(future);
+        registry_remove(self->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }
@@ -110,9 +113,10 @@ UringFile_read(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(
+        PyErr_Format(
             PyExc_RuntimeError,
-            PyUnicode_FromFormat("Ring Event Loop is closing - %S", self->loop->py_loop)
+            "Ring Event Loop is closing - %S",
+            self->loop->py_loop
         );
         return NULL;
     }
@@ -153,18 +157,22 @@ UringFile_read(
     char *buf = PyBytes_AS_STRING(buffer);
     if (!buf) {
         Py_DECREF(future);
-        PyErr_SetString(PyErr_BadArgument, "Data in buffer is not byte objects");
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
         return NULL;
     }
 
     int result = uring_read(self->loop->ring, request_idx, self->fd, buf, (unsigned) size);
     if (result < 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
+        return NULL;
     }
     return future;
 }
@@ -179,10 +187,12 @@ UringFile_write(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(
+        PyErr_Format(
             PyExc_RuntimeError,
-            PyUnicode_FromFormat("Ring Event Loop is closing - %S", self->loop->py_loop)
+            "Ring Event Loop is closing - %S",
+            self->loop->py_loop
         );
+
         return NULL;
     }
     if (self->closed) {
@@ -222,7 +232,8 @@ UringFile_write(
     char *buf = PyBytes_AS_STRING(data);
     if (!buf) {
         Py_DECREF(future);
-        PyErr_SetString(PyErr_BadArgument, "Data in buffer is not byte objects");
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
         return NULL;
     }
     Py_ssize_t size = PyBytes_GET_SIZE(data);
@@ -230,10 +241,12 @@ UringFile_write(
     int result = uring_write(self->loop->ring, request_idx, self->fd, buf, (unsigned) size);
     if (result < 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }
@@ -251,9 +264,10 @@ UringFile_close(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(
+        PyErr_Format(
             PyExc_RuntimeError,
-            PyUnicode_FromFormat("Ring Event Loop is closing - %S", self->loop->py_loop)
+            "Ring Event Loop is closing - %S",
+            self->loop->py_loop
         );
         return NULL;
     }
@@ -293,16 +307,19 @@ UringFile_close(
     char *buf = PyBytes_AS_STRING(buffer);
     if (!buf) {
         Py_DECREF(future);
-        PyErr_SetString(PyErr_BadArgument, "Data in buffer is not byte objects");
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
         return NULL;
     }
     int result = uring_close_file(self->loop->ring, request_idx, self->fd, buf);
     if (result < 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }
@@ -320,9 +337,10 @@ UringFile_stat(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(
+        PyErr_Format(
             PyExc_RuntimeError,
-            PyUnicode_FromFormat("Ring Event Loop is closing - %S", self->loop->py_loop)
+            "Ring Event Loop is closing - %S",
+            self->loop->py_loop
         );
         return NULL;
     }
@@ -369,17 +387,20 @@ UringFile_stat(
     char *buf = PyBytes_AS_STRING(buffer);
     if (!buf) {
         Py_DECREF(future);
-        PyErr_SetString(PyErr_BadArgument, "Data in buffer is not byte objects");
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
         return NULL;
     }
 
     int result = uring_stat(self->loop->ring, request_idx, self->fd, &path, buf);
     if (result < 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }
@@ -397,9 +418,10 @@ UringFile_fsync(
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     if (self->loop->is_closing) {
-        PyErr_SetString(
+        PyErr_Format(
             PyExc_RuntimeError,
-            PyUnicode_FromFormat("Ring Event Loop is closing - %S", self->loop->py_loop)
+            "Ring Event Loop is closing - %S",
+            self->loop->py_loop
         );
         return NULL;
     }
@@ -433,10 +455,12 @@ UringFile_fsync(
     int result = uring_fsync(self->loop->ring, request_idx, self->fd);
     if (result < 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }
