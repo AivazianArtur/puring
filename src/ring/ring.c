@@ -23,7 +23,7 @@ int ring_init(
     // TODO: Do full initialization
     int result = io_uring_queue_init(256, ring, 0);
     if (result < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        fprintf(stderr, "Error while setuping SQ and CQ: %s\n", strerror(-result));
         return -1;
     }
     return 0;
@@ -32,20 +32,20 @@ int ring_init(
 
 void ring_destroy(struct io_uring* ring) {
     if (!ring) {
-        fprintf(stderr, "Error: io_uring is NULL\n");
+        fprintf(stderr, "Ring desctruction error: io_uring is NULL\n");
         return;
     }
 
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
     if (!sqe) {
-        fprintf(stderr, "Error: SQE is not available\n");
+        fprintf(stderr, "Ring desctruction error: SQE is not available\n");
         return;
     }
     io_uring_prep_cancel(sqe, NULL, IORING_ASYNC_CANCEL_ANY);
     int result = io_uring_submit(ring);
 
     if (result < 0) {
-        fprintf(stderr, "Error: io_uring_submit failed: %s\n", strerror(-result));
+        fprintf(stderr, "Ring desctruction error: io_uring_submit failed: %s\n", strerror(-result));
         return;
     }
     io_uring_queue_exit(ring);

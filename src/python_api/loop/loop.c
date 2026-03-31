@@ -6,8 +6,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     int registry_size = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char*[]){"registry_size", NULL}, &registry_size))
-        ;
+    PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char*[]){"registry_size", NULL}, &registry_size);
 
     RequestRegistry* registry = registry_new(registry_size);
     if (!registry) return PyErr_NoMemory();
@@ -42,7 +41,7 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 {
     PyObject* python_loop = _get_loop();
     if (!python_loop)
-        return -1; // HEREERROR
+        return -1;
 
     Py_INCREF(python_loop);
     self->py_loop = python_loop;
@@ -50,9 +49,9 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
     memory_params mem_par = {0};
     ring_init_params params = {0};
 
-    int ret = ring_init(&mem_par, &params, self->ring);  // HEREERROR and below
+    int ret = ring_init(&mem_par, &params, self->ring);
     if (ret < 0) {
-        PyErr_SetString(PyExc_OSError, strerror(-ret));
+        PyErr_SetFromErrno(PyExc_OSError);
         return -1;
     }
 
@@ -104,7 +103,7 @@ UringLoop_close_loop(UringLoop *self, PyObject *args)
 
      while (io_uring_wait_cqe_timeout(self->ring, &cqe, &ts) == 0) {
         int index = (int)(uintptr_t)cqe->user_data;
-        registry_remove(self->registry, index);  // TODO: set future exception  HEREERROR 
+        registry_remove(self->registry, index);  // TODO: set future exception
         io_uring_cqe_seen(self->ring, cqe);
     }
 

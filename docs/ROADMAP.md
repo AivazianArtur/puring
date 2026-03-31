@@ -10,7 +10,7 @@
     - [X] Improve separation between C and Python layers.
 
 ## v0.3 - Core features
-- [ ] Translate internal errors into native Python exceptions.
+- [X] Translate internal errors into native Python exceptions.
 - [ ] Add timer support (`IORING_OP_TIMEOUT`).
 - [ ] Add signal handling (`SIGINT`, `SIGTERM`) via `IORING_OP_POLL_ADD`.
 - [ ] Finish AbstractEventLoop Protocol.
