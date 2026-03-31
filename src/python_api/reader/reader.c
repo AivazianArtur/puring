@@ -23,19 +23,19 @@ static PyMethodDef py_uring_reader_cb_def = {
 };
 
 
-void uring_loop_register_fd(UringLoop *loop)
+int uring_loop_register_fd(UringLoop *loop)
 {
-    if (loop->is_reader_installed)
-        return;
-
     loop->reader_capsule = PyCapsule_New(loop, "uring_loop", NULL);
-    if (!loop->reader_capsule) return;
-
+    if (!loop->reader_capsule) {
+        PyErr_SetString(PyExc_RuntimeError, "No capsule to handle CQ ring.");
+        return -1;
+    }
     loop->reader_callback = PyCFunction_New(&py_uring_reader_cb_def, loop->reader_capsule);
     if (!loop->reader_callback) {
         Py_DECREF(loop->reader_capsule);
         loop->reader_capsule = NULL;
-        return;
+        PyErr_SetString(PyExc_RuntimeError, "Can`t execute function inside capsule");
+        return -1;
     }
 
     Py_INCREF(loop->reader_capsule);
@@ -51,12 +51,12 @@ void uring_loop_register_fd(UringLoop *loop)
         loop->reader_callback,
         loop->reader_capsule
     );
-
     if (!res) {
-        PyErr_Print();
-    } else {
-        Py_DECREF(res);
+        PyErr_SetString(PyExc_RuntimeError, "Reader not added");
+        return -1;
     }
 
+    Py_DECREF(res);
     loop->is_reader_installed = true;
+    return 1;
 }

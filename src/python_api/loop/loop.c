@@ -121,8 +121,10 @@ PyObject*
 UringLoop_add_reader(UringLoop *self, PyObject *args)
 {
     if (!self->is_reader_installed) {
-        uring_loop_register_fd(self);  // HEREERROR!!! NO errors are handled
-        self->is_reader_installed = true;
+        int res = uring_loop_register_fd(self);
+        if (res == 1) {
+            self->is_reader_installed = true;
+        }
     }
     Py_RETURN_NONE;
 }
