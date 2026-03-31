@@ -10,11 +10,11 @@
     - [X] Improve separation between C and Python layers.
 
 ## v0.3 - Core features
-- [ ] Translate internal errors into native Python exceptions.
-- [ ] Proper GIL handling.
+- [X] Translate internal errors into native Python exceptions.
 - [ ] Add timer support (`IORING_OP_TIMEOUT`).
 - [ ] Add signal handling (`SIGINT`, `SIGTERM`) via `IORING_OP_POLL_ADD`.
-- [ ] Add not implemented `loop`, `file` and `socket` methods.
+- [ ] Finish AbstractEventLoop Protocol.
+- [ ] Add not implemented `file` and `socket` methods.
 - [ ] Add tests.
 - [ ] Implement GitHub CI.
 
@@ -40,7 +40,7 @@
 - [ ] Revisit loop replacement (currently uncertain but likely needed).
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
 
-## v0.8 - Community & Contribution
+## v0.7.1 - Community & Contribution
 - [ ] Publish library on PyPI (`pip` installable).
 - [ ] Document everything.
 - [ ] Add contribution support:
@@ -48,10 +48,11 @@
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
 
-## v0.9 - Discussion
-- [ ] Do we need to not wrap but implement Loop? Need a discussion with community.
-- [ ] Explore ring usage in multiple-loop app.
+## v0.8 - Read Completion Queue in separate thread per process
+- [ ] Run reader in separate thread.
 
+## v0.9 - Rings per Thread
+- [ ] Each thread must own it`s own Rings
 ---
 
 ### Note

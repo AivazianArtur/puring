@@ -24,7 +24,7 @@ int tcp_socket(struct io_uring *ring, int request_idx)
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -52,7 +52,7 @@ int udp_socket(struct io_uring *ring, int request_idx)
         return 0;
     }
 
-    return 0;
+    return 1;
 }
 
 
@@ -80,7 +80,7 @@ int unix_stream(struct io_uring *ring, int request_idx)
         return 0;
     }
 
-    return 0;
+    return 1;
 }
 
 
@@ -107,7 +107,7 @@ int unix_dgram(struct io_uring *ring, int request_idx)
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -136,7 +136,7 @@ int uring_bind(
         return 0;
     }
 
-    return 0;
+    return 1;
 }
 
 
@@ -163,7 +163,7 @@ int uring_listen(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -191,7 +191,7 @@ int uring_connect(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -215,8 +215,12 @@ int uring_send(
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    io_uring_submit(ring);
-    return 0;
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        return 0;
+    }
+    return 1;
 }
 
 
@@ -245,7 +249,7 @@ int uring_recv(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -277,7 +281,7 @@ int uring_accept(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -303,7 +307,7 @@ int uring_close_socket(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 // TODO

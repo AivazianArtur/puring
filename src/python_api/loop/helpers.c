@@ -5,13 +5,27 @@ PyObject*
 _get_loop(void)
 {
     PyObject *asyncio = PyImport_ImportModule("asyncio");
-    if (!asyncio) return NULL;
-
+    if (!asyncio) {
+        PyObject* err_msg = PyUnicode_FromString("Can`t import asyncio");
+        PyObject* module_name = PyUnicode_FromString("asyncio");
+        PyErr_SetImportError(
+            err_msg,
+            module_name,
+            NULL
+        );
+        Py_DECREF(err_msg);
+        Py_DECREF(module_name);
+        return NULL;
+    }
     PyObject *get_loop_fn = PyObject_GetAttrString(asyncio, "get_event_loop");
     PyObject *loop = PyObject_CallNoArgs(get_loop_fn);
 
     Py_DECREF(get_loop_fn);
     Py_DECREF(asyncio);
+
+    if (!loop) {
+        PyErr_SetString(PyExc_RuntimeError, "No active event loop");
+    }
     return loop;
 }
 

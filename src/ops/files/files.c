@@ -31,7 +31,7 @@ int open_file(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -50,10 +50,15 @@ int uring_read(
 
     io_uring_prep_read(sqe, fd, buf, size, 0);
 
-    io_uring_sqe_set_data(sqe, (void *)(uintptr_t)request_idx);
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    int ret = io_uring_submit(ring);
-    return ret < 0 ? -1 : 0;
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        return 0;
+    }
+    return 1;
 }
 
 
@@ -83,7 +88,7 @@ int uring_write(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -112,7 +117,7 @@ int uring_close_file(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -146,7 +151,7 @@ int uring_stat(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 
@@ -175,7 +180,7 @@ int uring_fsync(
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
         return 0;
     }
-    return 0;
+    return 1;
 }
 
 // TODO: Vector ops

@@ -5,7 +5,7 @@
 PyObject* create_future(UringLoop *self) 
 {
     if (!self->py_loop) {
-        PyErr_SetString(PyExc_RuntimeError, "Ring loop not attached");
+        PyErr_SetString(PyExc_RuntimeError, "Ring Event Loop not attached");
         return NULL;
     }
 

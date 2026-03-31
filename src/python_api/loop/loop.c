@@ -6,8 +6,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     int registry_size = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char*[]){"registry_size", NULL}, &registry_size))
-        return NULL;
+    PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char*[]){"registry_size", NULL}, &registry_size);
 
     RequestRegistry* registry = registry_new(registry_size);
     if (!registry) return PyErr_NoMemory();
@@ -52,7 +51,7 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 
     int ret = ring_init(&mem_par, &params, self->ring);
     if (ret < 0) {
-        PyErr_SetString(PyExc_OSError, strerror(-ret));
+        PyErr_SetFromErrno(PyExc_OSError);
         return -1;
     }
 
@@ -122,8 +121,10 @@ PyObject*
 UringLoop_add_reader(UringLoop *self, PyObject *args)
 {
     if (!self->is_reader_installed) {
-        uring_loop_register_fd(self);
-        self->is_reader_installed = true;
+        int res = uring_loop_register_fd(self);
+        if (res == 1) {
+            self->is_reader_installed = true;
+        }
     }
     Py_RETURN_NONE;
 }

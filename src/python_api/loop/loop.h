@@ -16,8 +16,8 @@
 extern PyTypeObject UringLoopType;
 
 typedef struct UringLoop {
-    // Now its basicaly a driver, but in next versions it will be loop
     PyObject_HEAD
+
     struct io_uring *ring;
     PyObject *py_loop;
     pid_t loop_tid;
