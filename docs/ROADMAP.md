@@ -30,6 +30,7 @@
 - [ ] SQPOLL.
 - [ ] FASTPOLL.
 - [ ] Support linked SQEs for chained operations.
+- [ ] Support `IOSQE_CQE_SKIP_SUCCESS` and `IOSQE_BUFFER_SELECT`.
 - [ ] Keep file descriptors registered (`io_uring_register_files`).
 
 ## v0.7 - Async Runtime & Architecture

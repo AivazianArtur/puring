@@ -36,7 +36,10 @@ int uring_write(
     int request_idx,
     int fd,
     char *buf,
-    unsigned size 
+    unsigned size,
+    // struct Timeout,
+    int timeout_seconds,
+    int timeout_nanoseconds 
 );
 
 int uring_close_file(
