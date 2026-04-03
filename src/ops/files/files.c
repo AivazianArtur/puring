@@ -68,9 +68,8 @@ int uring_write(
     int fd,
     char *buf,
     unsigned size,
-    // struct Timeout,
-    int timeout_seconds,
-    int timeout_nanoseconds 
+    // Below are optional
+    struct TimeoutParams *timeout_params,
 )
 {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
@@ -85,18 +84,11 @@ int uring_write(
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
-    
-    if (timeout) {
-        sqe->flags |= IOSQE_IO_LINK;
 
-        struct io_uring_sqe *timeout_sqe = io_uring_get_sqe(ring);
-        struct __kernel_timespec ts = {
-            .tv_sec = 5,
-            .tv_nsec = 0,
-        };
-
-        io_uring_prep_link_timeout(sqe, &ts, 0);
+    if (timeout(ring, sqe, timeout_params) < 0) {
+        return -1;
     }
+
     int result = io_uring_submit(ring);
     if (result < 0) {
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
