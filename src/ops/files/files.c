@@ -5,16 +5,16 @@ int open_file(
     struct io_uring *ring,
     int request_idx,
     int dfd,
-    const char *path
+    const char *path,
     // int flags,  TODO
 	// mode_t mode
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+
     struct open_how how = {
         // TODO: O_APPEND to append, basically need to implement getting this as param
         .flags = O_RDWR | O_CREAT,
@@ -40,13 +40,14 @@ int uring_read(
     int request_idx,
     int fd,
     char *buf,
-    unsigned size 
+    unsigned size,
     // __u64 offset,  TODO
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe)
-        return -1;
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_read(sqe, fd, buf, size, 0);
 
@@ -69,14 +70,10 @@ int uring_write(
     char *buf,
     unsigned size,
     // Below are optional
-    struct TimeoutParams *timeout_params,
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     __u64 offset = 0;
 
@@ -102,14 +99,12 @@ int uring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    char *buf
+    char *buf,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     __u64 offset = 0;
 
@@ -128,20 +123,20 @@ int uring_close_file(
 
 
 int uring_stat(
+    // TEMP: Not stable
+
     struct io_uring *ring,
     int request_idx,
     int dfd,
     const char *path,
-    char *buf
+    char *buf,
     // int flags,  TODO
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    // TEMP: Not stable
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     int flags = 0;
     unsigned mask = STATX_ALL;
@@ -164,15 +159,14 @@ int uring_stat(
 int uring_fsync(
     struct io_uring *ring,
     int request_idx,
-    int fd
+    int fd,
     // unsigned fsync_flags,  TODO
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     unsigned fsync_flags = 0;
 

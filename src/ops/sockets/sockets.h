@@ -8,13 +8,39 @@
 
 #include "liburing.h"
 
+#include "timer/timer.h"
+#include "macroses.h"
+
 
 /* Functions */
 // Init functions - their Future become socket, so next works with socket
-int tcp_socket(struct io_uring *ring, int request_idx);
-int udp_socket(struct io_uring *ring, int request_idx);
-int unix_stream(struct io_uring *ring, int request_idx);
-int unix_dgram(struct io_uring *ring, int request_idx);
+int tcp_socket(
+    struct io_uring *ring,
+    int request_idx,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int udp_socket(
+    struct io_uring *ring,
+    int request_idx,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int unix_stream(
+    struct io_uring *ring,
+    int request_idx,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int unix_dgram(
+    struct io_uring *ring,
+    int request_idx,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
 
 
 int uring_bind(
@@ -23,14 +49,18 @@ int uring_bind(
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen, 
-    const void *buf
+    const void *buf,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    int backlog
+    int backlog,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_connect(
@@ -38,7 +68,9 @@ int uring_connect(
     int request_idx,
     int fd,
     struct sockaddr *addr, 
-    socklen_t addrlen
+    socklen_t addrlen,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_send(
@@ -47,7 +79,9 @@ int uring_send(
     int sockfd,
     const void *buf,
     size_t len,
-    int flags
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_recv(
@@ -56,7 +90,9 @@ int uring_recv(
     int sockfd,
 	void *buf,
     size_t len,
-    int flags
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_accept(
@@ -65,11 +101,15 @@ int uring_accept(
     int sockfd,
 	void *buf,
     socklen_t *len,
-    int flags
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_close_socket(
     struct io_uring *ring,
     int request_idx,
-    int sockfd
+    int sockfd,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );

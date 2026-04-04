@@ -688,7 +688,7 @@ UringSocket_accept(
 
     static char *kwlist[] = {"len", "flags", NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", kwlist, &len, &flags))) {
-        ;
+        return NULL;
     }
 
     PyObject *future = create_future(self->loop);
@@ -752,7 +752,7 @@ UringSocket_close(
 
     static char *kwlist[] = {NULL};
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "", kwlist))) {
-        ;
+        return NULL;
     }
 
     PyObject *future = create_future(self->loop);

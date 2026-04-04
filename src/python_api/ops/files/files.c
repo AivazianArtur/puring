@@ -32,7 +32,7 @@ UringLoop_open(
     const char *path = NULL;
 
     static char *kwlist[] = {"path", "dfd", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", kwlist, &py_path_obj, &dfd)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", kwlist, py_path_obj, &dfd)) {
         Py_DECREF(file);
         return NULL;
     }

@@ -1,13 +1,14 @@
 #include "sockets.h"
 
 
-int tcp_socket(struct io_uring *ring, int request_idx) 
+int tcp_socket(
+    struct io_uring *ring, 
+    int request_idx,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+)
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     int domain = AF_INET; // AF_INET6;
     int type = SOCK_STREAM;
@@ -28,13 +29,14 @@ int tcp_socket(struct io_uring *ring, int request_idx)
 }
 
 
-int udp_socket(struct io_uring *ring, int request_idx)
+int udp_socket(
+    struct io_uring *ring,
+    int request_idx,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+)
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     int domain = AF_INET;
     int type = SOCK_DGRAM;
@@ -56,13 +58,14 @@ int udp_socket(struct io_uring *ring, int request_idx)
 }
 
 
-int unix_stream(struct io_uring *ring, int request_idx)
+int unix_stream(
+    struct io_uring *ring,
+    int request_idx,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+)
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     int domain = AF_UNIX;
     int type = SOCK_STREAM;
@@ -84,13 +87,14 @@ int unix_stream(struct io_uring *ring, int request_idx)
 }
 
 
-int unix_dgram(struct io_uring *ring, int request_idx)
+int unix_dgram(
+    struct io_uring *ring,
+    int request_idx,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+)
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     int domain = AF_UNIX;
     int type = SOCK_DGRAM;
@@ -117,14 +121,13 @@ int uring_bind(
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen, 
-    const void *buf
+    const void *buf,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+
     io_uring_prep_bind(sqe, fd, addr, addrlen);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
@@ -144,14 +147,12 @@ int uring_listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    int backlog
+    int backlog,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_listen(sqe, fd, backlog);
 
@@ -172,14 +173,12 @@ int uring_connect(
     int request_idx,
     int fd,
     struct sockaddr *addr, 
-    socklen_t addrlen
+    socklen_t addrlen,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_connect(sqe, fd, addr, addrlen);
 
@@ -201,14 +200,12 @@ int uring_send(
     int sockfd,
     const void *buf,
     size_t len,
-    int flags
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_send(sqe, sockfd, buf, len, flags);
 
@@ -230,14 +227,12 @@ int uring_recv(
     int sockfd,
 	void *buf,
     size_t len,
-    int flags
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_recv(sqe, sockfd, buf, len, flags);
 
@@ -259,14 +254,12 @@ int uring_accept(
     int sockfd,
 	void *buf,
     socklen_t *len,
-    int flags
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 )
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_accept(sqe, sockfd, buf, len, flags);
 
@@ -288,14 +281,12 @@ int uring_accept(
 int uring_close_socket(
     struct io_uring *ring,
     int request_idx,
-    int sockfd
+    int sockfd,
+    // Below are optional
+    struct TimeoutParams *timeout_params
 ) 
 {
-    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) {
-        fprintf(stderr, "SQE is not available\n");
-        return -1;
-    }
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_close(sqe, sockfd);
 

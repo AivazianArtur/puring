@@ -10,7 +10,7 @@
 #include "ring/ring.h"
 #include "registry/registry.h"
 #include "reader/reader.h"
-#include "macroses.h"
+#include "python_macroses.h"
 
 
 extern PyTypeObject UringLoopType;
@@ -68,8 +68,5 @@ UringLoop_add_reader(UringLoop *self, PyObject *args);
 // Helpers
 PyObject* _get_loop(void);
 int _parse_memory_params(PyObject *obj, memory_params *out);
-int _parse_ring_init_params(PyObject *obj, ring_init_params *out);
 void fast_shutdown(struct io_uring* ring, RequestRegistry *reg); 
 void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg);
-int _parse_sq_offset(PyObject *obj, struct io_sqring_offsets *out);
-int _parse_cq_offset(PyObject *obj, struct io_cqring_offsets *out);
