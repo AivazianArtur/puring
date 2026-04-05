@@ -11,15 +11,20 @@
 
 #include "liburing.h"
 
+#include "macroses.h"
+
 
 /* Functions */
 int open_file(
     struct io_uring *ring,
     int request_idx,
     int dfd,
-    const char *path
+    const char *path,
     // int flags,  TODO
 	// mode_t mode
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_read(
@@ -27,8 +32,11 @@ int uring_read(
     int request_idx,
     int fd,
     char *buf,
-    unsigned size 
+    unsigned size,
     // __u64 offset,  TODO
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_write(
@@ -36,14 +44,20 @@ int uring_write(
     int request_idx,
     int fd,
     char *buf,
-    unsigned size 
+    unsigned size,
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    char *buf
+    char *buf,
+    
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_stat(
@@ -51,14 +65,20 @@ int uring_stat(
     int request_idx,
     int dfd,
     const char *path,
-    char *buf
+    char *buf,
     // int flags,  TODO
 	// mode_t mode
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );
 
 int uring_fsync(
     struct io_uring *ring,
     int request_idx,
-    int fd
+    int fd,
     // unsigned fsync_flags,  TODO
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
 );

@@ -6,6 +6,13 @@
 #include "python_api/loop/loop.h"
 #include "python_api/ops/files/files.h"
 #include "python_api/ops/sockets/sockets.h"
+#include "python_api/timer/timer.h"
+
+
+static PyMethodDef uring_module_methods[] = {
+    {"timer", (PyCFunction)UringLoop_timer, METH_VARARGS | METH_KEYWORDS, "Sets a timer"},
+    {NULL, NULL, 0, NULL}
+};
 
 
 static PyMethodDef uring_loop_methods[] = {
@@ -124,6 +131,7 @@ static PyModuleDef uring_loop_module = {
     .m_name = "loop",
     .m_doc = "Module contains loop with uring",
     .m_size = 0,
+    .m_methods = uring_module_methods,
     .m_slots = uring_loop_module_slots,
 };
 

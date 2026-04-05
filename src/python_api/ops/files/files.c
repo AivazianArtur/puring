@@ -27,12 +27,13 @@ UringLoop_open(
     file->closed = false;
     Py_INCREF(self);
 
+    const char *path = NULL;
     int dfd = AT_FDCWD;
     PyObject *py_path_obj = NULL;
-    const char *path = NULL;
+    PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"path", "dfd", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", kwlist, &py_path_obj, &dfd)) {
+    static char *kwlist[] = {"path", "dfd", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", kwlist, &py_path_obj, &dfd, &timeout_params_obj)) {
         Py_DECREF(file);
         return NULL;
     }
@@ -49,6 +50,9 @@ UringLoop_open(
         PyErr_SetString(PyExc_TypeError, "Failed to convert path to UTF-8");
         return NULL;
     }
+
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self);
     if (!future) {
@@ -74,7 +78,7 @@ UringLoop_open(
         return NULL;
     }
 
-    int result = open_file(self->ring, request_idx, dfd, path);
+    int result = open_file(self->ring, request_idx, dfd, path, &timeout_params);
     if (result == -1) {
         Py_DECREF(file);
         Py_DECREF(future);
@@ -125,6 +129,14 @@ UringFile_read(
         return NULL;
     }
 
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+    
     PyObject *future = create_future(self->loop);
     if (!future) {
         return NULL;
@@ -162,7 +174,7 @@ UringFile_read(
         return NULL;
     }
 
-    int result = uring_read(self->loop->ring, request_idx, self->fd, buf, (unsigned) size);
+    int result = uring_read(self->loop->ring, request_idx, self->fd, buf, (unsigned) size, &timeout_params);
     if (result < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -201,11 +213,14 @@ UringFile_write(
     }
 
     PyObject *data = NULL;
+    PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"data", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &data))) {
+    static char *kwlist[] = {"data", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", kwlist, &data, &timeout_params_obj))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -238,7 +253,14 @@ UringFile_write(
     }
     Py_ssize_t size = PyBytes_GET_SIZE(data);
 
-    int result = uring_write(self->loop->ring, request_idx, self->fd, buf, (unsigned) size);
+    int result = uring_write(
+        self->loop->ring,
+        request_idx,
+        self->fd,
+        buf,
+        (unsigned) size,
+        &timeout_params
+    );
     if (result < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -276,6 +298,14 @@ UringFile_close(
         return NULL;
     }
 
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+
     PyObject *future = create_future(self->loop);
     if (!future) {
         return NULL;
@@ -311,7 +341,7 @@ UringFile_close(
         PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
         return NULL;
     }
-    int result = uring_close_file(self->loop->ring, request_idx, self->fd, buf);
+    int result = uring_close_file(self->loop->ring, request_idx, self->fd, buf, &timeout_params);
     if (result < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -350,11 +380,14 @@ UringFile_stat(
     }
 
     static char path;
+    PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"path", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "s", kwlist, &path))) {
+    static char *kwlist[] = {"path", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "s|O", kwlist, &path, &timeout_params_obj))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -392,7 +425,7 @@ UringFile_stat(
         return NULL;
     }
 
-    int result = uring_stat(self->loop->ring, request_idx, self->fd, &path, buf);
+    int result = uring_stat(self->loop->ring, request_idx, self->fd, &path, buf, &timeout_params);
     if (result < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -430,6 +463,14 @@ UringFile_fsync(
         return NULL;
     }
 
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+
     PyObject *future = create_future(self->loop);
     if (!future) {
         return NULL;
@@ -452,7 +493,7 @@ UringFile_fsync(
         return NULL;
     }
 
-    int result = uring_fsync(self->loop->ring, request_idx, self->fd);
+    int result = uring_fsync(self->loop->ring, request_idx, self->fd, &timeout_params);
     if (result < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);

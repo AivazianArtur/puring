@@ -6,7 +6,9 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     int registry_size = 0;
 
-    PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char*[]){"registry_size", NULL}, &registry_size);
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char*[]){"registry_size", NULL}, &registry_size)) {
+        return NULL;
+    }
 
     RequestRegistry* registry = registry_new(registry_size);
     if (!registry) return PyErr_NoMemory();

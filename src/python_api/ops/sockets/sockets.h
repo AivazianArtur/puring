@@ -13,7 +13,7 @@
 #include "python_api/loop/loop.h"
 #include "python_api/future/future.h"
 #include "registry/registry.h"
-#include "macroses.h"
+#include "python_macroses.h"
 
 
 extern PyTypeObject UringSocketType;
