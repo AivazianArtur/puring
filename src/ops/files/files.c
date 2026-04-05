@@ -82,10 +82,6 @@ int uring_write(
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
 
-    if (timeout(ring, sqe, timeout_params) < 0) {
-        return -1;
-    }
-
     int result = io_uring_submit(ring);
     if (result < 0) {
         fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));

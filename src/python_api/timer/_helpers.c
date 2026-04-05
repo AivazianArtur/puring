@@ -3,7 +3,12 @@
 
 int parse_timer_params(PyObject *obj, TimerParams *out)
 {
-    if (!obj && !PyDict_Check(obj)) {
+    if (!obj || obj == Py_None) {
+        return -1;
+    }
+
+    if (!PyDict_Check(obj)) {
+        PyErr_SetString(PyExc_TypeError, "timer_params must be a dict");
         return -1;
     }
 
@@ -47,10 +52,16 @@ int parse_timeout_params(PyObject *obj, TimeoutParams *out)
     PyObject *nsec_obj = PyDict_GetItemString(obj, "nsec");
     PyObject *is_required_obj = PyDict_GetItemString(obj, "is_required");
 
-    if (!sec_obj || !PyLong_Check(sec_obj) ||
-        !nsec_obj || !PyLong_Check(nsec_obj) ||
-        !is_required_obj || !PyBool_Check(is_required_obj)) {
-        PyErr_SetString(PyExc_TypeError, "Invalid timeout_params structure");
-        return -1;
+    if (
+        (sec_obj && PyLong_Check(sec_obj))
+        && (nsec_obj && PyLong_Check(nsec_obj))
+        && (is_required_obj && PyBool_Check(is_required_obj))
+    )
+    {
+        out->sec = (int)PyLong_AsLong(sec_obj);
+        out->nsec = (int)PyLong_AsLong(nsec_obj);
+        out->is_required = PyObject_IsTrue(is_required_obj);
     }
+    return 1;
 }
+

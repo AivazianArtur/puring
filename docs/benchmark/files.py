@@ -15,7 +15,7 @@ try:
 except ImportError:
     pass
 
-CHUNK_SIZE = 8 * 1024
+CHUNK_SIZE = 1024 * 1024
 ITERATIONS = 2000
 DATA = b'x' * CHUNK_SIZE
 
