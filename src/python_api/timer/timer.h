@@ -6,12 +6,15 @@
 
 #include "macroses.h"
 #include "python_macroses.h"
-#include "sqe/sqe.h"
+#include "queue_events/sqe/sqe.h"
 
 
 PyObject*
 UringLoop_timer(
-    UringLoop *self,
+    PyObject *self,
     PyObject *args,
     PyObject *kwargs
 );
+
+int parse_timer_params(PyObject *obj, TimerParams *out);
+int parse_timeout_params(PyObject *obj, TimeoutParams *out);

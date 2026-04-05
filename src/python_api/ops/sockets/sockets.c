@@ -26,6 +26,13 @@ UringLoop_tcp_socket(
     sock->loop = self;
     Py_INCREF(self);
 
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self);
     if (!future) {
@@ -52,7 +59,7 @@ UringLoop_tcp_socket(
         return NULL;
     }
 
-    int result = tcp_socket(self->ring, request_idx);
+    int result = tcp_socket(self->ring, request_idx, &timeout_params);
     if (result == -1) {
         Py_DECREF(sock);
         Py_DECREF(future);
@@ -97,6 +104,14 @@ UringLoop_udp_socket(
     sock->loop = self;
     Py_INCREF(self);
 
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+
     PyObject *future = create_future(self);
     if (!future) {
         Py_DECREF(sock);
@@ -122,7 +137,7 @@ UringLoop_udp_socket(
         return NULL;
     }
 
-    int result = udp_socket(self->ring, request_idx);
+    int result = udp_socket(self->ring, request_idx, &timeout_params);
     if (result == -1) {
         Py_DECREF(sock);
         Py_DECREF(future);
@@ -167,6 +182,14 @@ UringLoop_unix_stream(
     sock->loop = self;
     Py_INCREF(self);
 
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+
     PyObject *future = create_future(self);
     if (!future) {
         Py_DECREF(sock);
@@ -192,7 +215,7 @@ UringLoop_unix_stream(
         return NULL;
     }
 
-    int result = unix_stream(self->ring, request_idx);
+    int result = unix_stream(self->ring, request_idx, &timeout_params);
     if (result == -1) {
         Py_DECREF(sock);
         Py_DECREF(future);
@@ -237,6 +260,14 @@ UringLoop_unix_dgram(
     sock->loop = self;
     Py_INCREF(self);
 
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+
     PyObject *future = create_future(self);
     if (!future) {
         Py_DECREF(sock);
@@ -262,7 +293,7 @@ UringLoop_unix_dgram(
         return NULL;
     }
 
-    int result = unix_dgram(self->ring, request_idx);
+    int result = unix_dgram(self->ring, request_idx, &timeout_params);
     if (result == -1) {
         Py_DECREF(sock);
         Py_DECREF(future);
@@ -310,9 +341,9 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
 
     const char *host;
     int port;
-
-    static char *kwlist[] = {"host", "port", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si", kwlist, &host, &port)) {
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"host", "port", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si|O", kwlist, &host, &port, &timeout_params_obj)) {
         return NULL;
     }
 
@@ -330,6 +361,9 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
         PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IP address");
         return NULL;
     }
+
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) { 
@@ -355,7 +389,15 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    int result = uring_bind(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, sizeof(*addr), buffer);
+    int result = uring_bind(
+        self->loop->ring, 
+        request_idx,
+        self->sock_fd,
+        (struct sockaddr *)addr,
+        sizeof(*addr),
+        buffer,
+        &timeout_params
+    );
     if (result == -1) {
         Py_DECREF(future);
         free(addr);
@@ -396,11 +438,15 @@ UringSocket_listen(
     }
 
     int backlog = 0;
+    PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"backlog", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &backlog))) {
+    static char *kwlist[] = {"backlog", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i|O", kwlist, &backlog, &timeout_params_obj))) {
         return NULL;
     }
+
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -425,7 +471,7 @@ UringSocket_listen(
         return NULL;
     }
 
-    int result = uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog); 
+    int result = uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, &timeout_params); 
     if (result == -1) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -464,9 +510,10 @@ UringSocket_connect(
 
     const char *host;
     int port;
+    PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"host", "port", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si", kwlist, &host, &port)) {
+    static char *kwlist[] = {"host", "port", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si|O", kwlist, &host, &port, &timeout_params_obj)) {
         return NULL;
     }
 
@@ -481,6 +528,9 @@ UringSocket_connect(
         PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IP address");
         return NULL;
     }
+
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -504,7 +554,14 @@ UringSocket_connect(
         return NULL;
     }
 
-    int result = uring_connect(self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, sizeof(*addr));
+    int result = uring_connect(
+        self->loop->ring,
+        request_idx,
+        self->sock_fd,
+        (struct sockaddr *)addr,
+        sizeof(*addr),
+        &timeout_params
+    );
     if (result == -1) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -544,11 +601,13 @@ UringSocket_send(
     const char* bytes_buf;
     Py_ssize_t bytes_len;
     int flags = 0;
-
-    static char *kwlist[] = {"bytes_buf", "bytes_len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "y#|i", kwlist, &bytes_buf, &bytes_len, &flags))) {
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"bytes_buf", "bytes_len", "flags", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "y#|iO", kwlist, &bytes_buf, &bytes_len, &flags, &timeout_params_obj))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -572,7 +631,15 @@ UringSocket_send(
         return NULL;
     }
 
-    int result = uring_send(self->loop->ring, request_idx, self->sock_fd, bytes_buf, (socklen_t)bytes_len, flags);
+    int result = uring_send(
+        self->loop->ring,
+        request_idx,
+        self->sock_fd,
+        bytes_buf,
+        (socklen_t)bytes_len,
+        flags,
+        &timeout_params
+    );
     if (result == -1) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -611,10 +678,13 @@ UringSocket_recv(
     unsigned int len = 1024;
     int flags = 0;
 
-    static char *kwlist[] = {"len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", kwlist, &len, &flags))) {
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"len", "flags", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", kwlist, &len, &flags, &timeout_params_obj))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -645,7 +715,15 @@ UringSocket_recv(
         return NULL;
     }
     
-    int result = uring_recv(self->loop->ring, request_idx, self->sock_fd, buffer, (size_t)len, flags);
+    int result = uring_recv(
+        self->loop->ring,
+        request_idx,
+        self->sock_fd,
+        buffer,
+        (size_t)len,
+        flags,
+        &timeout_params
+    );
     if (result == -1) {
         Py_DECREF(future);
         PyMem_Free(buffer);
@@ -685,11 +763,13 @@ UringSocket_accept(
 
     unsigned int len = 1024;
     int flags = 0;
-
-    static char *kwlist[] = {"len", "flags", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|ii", kwlist, &len, &flags))) {
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"len", "flags", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", kwlist, &len, &flags, &timeout_params_obj))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -713,7 +793,15 @@ UringSocket_accept(
         return NULL;
     }
 
-    int result = uring_accept(self->loop->ring, request_idx, self->sock_fd, buffer, &len, flags);
+    int result = uring_accept(
+        self->loop->ring,
+        request_idx,
+        self->sock_fd,
+        buffer,
+        &len,
+        flags,
+        &timeout_params
+    );
     if (result == -1) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -750,10 +838,15 @@ UringSocket_close(
         return NULL;
     }
 
-    static char *kwlist[] = {NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "", kwlist))) {
+    PyObject* timeout_params_obj = NULL;
+
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj))) {
         return NULL;
     }
+
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -777,7 +870,7 @@ UringSocket_close(
         return NULL;
     }
 
-    int result = uring_close_socket(self->loop->ring, request_idx, self->sock_fd);
+    int result = uring_close_socket(self->loop->ring, request_idx, self->sock_fd, &timeout_params);
     if (result == -1) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);

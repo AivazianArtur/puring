@@ -14,4 +14,3 @@
     }  \
     if (timeout(ring, sqe, timeout_params) < 0)  \
         return -1;  \
-

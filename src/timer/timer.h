@@ -6,6 +6,8 @@
 #include "Python.h"
 #include "liburing.h"
 
+#include "queue_events/sqe/sqe.h"
+
 
 typedef struct TimerParams {
     int sec;
@@ -22,8 +24,5 @@ typedef struct TimeoutParams {
 } TimeoutParams;
 
 
-int timer(struct io_uring *ring, struct io_uring_sqe *sqe, TimerParams *timer_params);
+int timer(struct io_uring *ring, TimerParams *timer_params);
 int timeout(struct io_uring *ring, struct io_uring_sqe *sqe, TimeoutParams *timeout_params);
-
-int parse_timer_params(PyObject *obj, TimerParams *out);
-int parse_timeout_params(PyObject *obj, TimeoutParams *out);

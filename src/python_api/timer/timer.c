@@ -29,7 +29,7 @@ UringLoop_timer(
     TimerParams timer_params = {0};
     parse_timer_params(timer_params_obj, &timer_params);
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(loop);
     if (!future) {
         return NULL;
     }
@@ -52,15 +52,10 @@ UringLoop_timer(
         return NULL;
     }
 
-    struct io_uring *sqe = create_sqe(loop->ring);
-    if (!sqe) {
+    int result = timer(loop->ring, &timer_params);
+    if (result < 0) {   
         return NULL;
     }
 
-    int result = timer(loop->ring, sqe, &timer_params);
-    if (result < 0) {   
-        return 0;
-    }
-
-    return 1;
+    return PyLong_FromLong(1);
 }

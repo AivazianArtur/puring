@@ -1,7 +1,7 @@
 #include "timer.h"
 
 
-int timer(struct io_uring *ring, struct io_uring_sqe *sqe, TimerParams *timer_params) {
+int timer(struct io_uring *ring, TimerParams *timer_params) {
     if (!timer_params) {
         fprintf(stderr, "To required params\n");
         return -1;
@@ -20,7 +20,7 @@ int timer(struct io_uring *ring, struct io_uring_sqe *sqe, TimerParams *timer_pa
     int flag = 0;
     if (timer_params->is_multishot) {
         // Implemented full interface, but not tested.
-        // Will be ready with whole multishot functionality
+        // TODO: Will be ready with whole multishot functionality
         flag = IORING_TIMEOUT_MULTISHOT;
     }
 
