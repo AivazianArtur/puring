@@ -13,3 +13,4 @@ puring.egg-info/
 *.so
 
 docs/assets/testfiles.txt
+docs/assets/tempfile.txt

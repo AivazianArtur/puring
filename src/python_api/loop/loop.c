@@ -57,6 +57,8 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
         return -1;
     }
 
+    set_signals_handler(self->ring);
+
     self->initialized = true;
     return 0;
 }

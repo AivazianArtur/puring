@@ -25,6 +25,13 @@ void on_uring_ready(UringLoop *loop)
                 PyErr_Print();
             }
         } else {
+            if (IS_SIGNALS_DATA(cqe->user_data)) {
+                char buf[64];
+                struct SignalsData *signals_data = (struct SignalsData *)cqe->user_data;
+                read(signals_data->fd, buf, sizeof(buf));
+                PyErr_CheckSignals();
+            }
+
             switch (slot->opcode) {
                 case IORING_OP_READ:
                     if (slot->buffer && PyBytes_Check(slot->buffer)) {

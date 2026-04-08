@@ -11,8 +11,8 @@
 
 ## v0.3 - Core features
 - [X] Translate internal errors into native Python exceptions.
-- [ ] Add timer support (`IORING_OP_TIMEOUT`).
-- [ ] Add signal handling (`SIGINT`, `SIGTERM`) via `IORING_OP_POLL_ADD`.
+- [X] Add timer support (`IORING_OP_TIMEOUT`).
+- [X] Add signal handling (`SIGINT`, `SIGTERM`, `SIGQUIT`) via `IORING_OP_POLL_ADD`.
 - [ ] Finish AbstractEventLoop Protocol.
 - [ ] Add not implemented `file` and `socket` methods.
 - [ ] Add tests.

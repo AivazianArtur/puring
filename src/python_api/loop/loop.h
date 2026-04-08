@@ -10,6 +10,7 @@
 #include "ring/ring.h"
 #include "registry/registry.h"
 #include "reader/reader.h"
+#include "signals/signals.h"
 #include "python_macroses.h"
 
 
