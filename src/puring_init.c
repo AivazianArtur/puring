@@ -45,10 +45,13 @@ static PyMethodDef uring_socket_methods[] = {
 
 static PyMethodDef uring_file_methods[] = {
     {"read", (PyCFunction)UringFile_read, METH_VARARGS | METH_KEYWORDS,  "Read file"},
+    {"readv", (PyCFunction)UringFile_readv, METH_VARARGS | METH_KEYWORDS,  "Read file, vectorized"},
     {"write", (PyCFunction)UringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
+    {"writev", (PyCFunction)UringFile_writev, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized"},
     {"close", (PyCFunction)UringFile_close, METH_VARARGS | METH_KEYWORDS,  "Close file"},
     {"stat", (PyCFunction)UringFile_stat, METH_VARARGS | METH_KEYWORDS,  "File info"},
     {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
+    {"splice", (PyCFunction)UringFile_splice, METH_VARARGS | METH_KEYWORDS,  "Splicing two file into one pipe"},
     {NULL, NULL, 0, NULL}
 };
 

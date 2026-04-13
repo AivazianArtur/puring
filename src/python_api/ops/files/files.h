@@ -49,7 +49,21 @@ UringFile_read(
 );
 
 PyObject*
+UringFile_readv(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
 UringFile_write(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
+UringFile_writev(
     UringFile *self,
     PyObject *args,
     PyObject *kwargs
@@ -71,6 +85,13 @@ UringFile_stat(
 
 PyObject*
 UringFile_fsync(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
+UringFile_splice(
     UringFile *self,
     PyObject *args,
     PyObject *kwargs

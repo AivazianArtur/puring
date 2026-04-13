@@ -191,6 +191,16 @@ UringFile_read(
 
 
 PyObject*
+UringFile_readv(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+)
+{
+
+}
+
+PyObject*
 UringFile_write(
     UringFile *self,
     PyObject *args,
@@ -274,6 +284,17 @@ UringFile_write(
     }
 
     return future;
+}
+
+
+PyObject*
+UringFile_writev(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+)
+{
+
 }
 
 
@@ -506,4 +527,15 @@ UringFile_fsync(
         return NULL;
     }
     return future;
+}
+
+
+PyObject*
+UringFile_splice(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+)
+{
+
 }
