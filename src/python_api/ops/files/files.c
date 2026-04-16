@@ -31,9 +31,23 @@ UringLoop_open(
     int dfd = AT_FDCWD;
     PyObject *py_path_obj = NULL;
     PyObject *timeout_params_obj = NULL;
+    int flags = 0;
+    int resolve = 0;
+    int mode = 0644;
 
-    static char *kwlist[] = {"path", "dfd", "timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", kwlist, &py_path_obj, &dfd, &timeout_params_obj)) {
+    static char *kwlist[] = {"path", "dfd", "timeout_params", "flags", "resolve", "mode", NULL};
+    if (!PyArg_ParseTupleAndKeywords(
+        args,
+        kwargs,
+        "O|iOKKK",
+        kwlist,
+        &py_path_obj,
+        &dfd,
+        &timeout_params_obj,
+        &flags,
+        &resolve,
+        &mode
+    )) {
         Py_DECREF(file);
         return NULL;
     }
@@ -78,7 +92,16 @@ UringLoop_open(
         return NULL;
     }
 
-    int result = open_file(self->ring, request_idx, dfd, path, &timeout_params);
+    int result = open_file(
+        self->ring,
+        request_idx,
+        dfd,
+        path,
+        &timeout_params,
+        flags,
+        resolve,
+        mode
+    );
     if (result == -1) {
         Py_DECREF(file);
         Py_DECREF(future);
@@ -130,8 +153,9 @@ UringFile_read(
     }
 
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+    int offset = 0;
+    static char *kwlist[] = {"offset", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", kwlist, &offset, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};

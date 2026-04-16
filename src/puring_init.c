@@ -9,13 +9,13 @@
 #include "python_api/timer/timer.h"
 
 
-static PyMethodDef uring_module_methods[] = {
+static PyMethodDef puring_module_methods[] = {
     {"timer", (PyCFunction)UringLoop_timer, METH_VARARGS | METH_KEYWORDS, "Sets a timer"},
     {NULL, NULL, 0, NULL}
 };
 
 
-static PyMethodDef uring_loop_methods[] = {
+static PyMethodDef puring_loop_methods[] = {
     {"add_reader", (PyCFunction)UringLoop_add_reader, METH_NOARGS, "Register FD with UringLoop"},
     {"close_loop", (PyCFunction)UringLoop_close_loop, METH_VARARGS,  "Close loop"},
 
@@ -31,7 +31,7 @@ static PyMethodDef uring_loop_methods[] = {
 };
 
 
-static PyMethodDef uring_socket_methods[] = {
+static PyMethodDef puring_socket_methods[] = {
     {"bind", (PyCFunction)UringSocket_bind, METH_VARARGS | METH_KEYWORDS,  "Bind socket"},
     {"listen", (PyCFunction)UringSocket_listen, METH_VARARGS | METH_KEYWORDS,  "Listen socket"},
     {"connect", (PyCFunction)UringSocket_connect, METH_VARARGS | METH_KEYWORDS,  "Connect"},
@@ -43,7 +43,7 @@ static PyMethodDef uring_socket_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-static PyMethodDef uring_file_methods[] = {
+static PyMethodDef puring_file_methods[] = {
     {"read", (PyCFunction)UringFile_read, METH_VARARGS | METH_KEYWORDS,  "Read file"},
     {"readv", (PyCFunction)UringFile_readv, METH_VARARGS | METH_KEYWORDS,  "Read file, vectorized"},
     {"write", (PyCFunction)UringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
@@ -65,7 +65,7 @@ PyTypeObject UringLoopType = {
     .tp_new = UringLoop_new,
     .tp_init = (initproc)UringLoop_init,
     .tp_dealloc = (destructor)UringLoop_dealloc,
-    .tp_methods = uring_loop_methods,
+    .tp_methods = puring_loop_methods,
 };
 
 PyTypeObject UringFileType = {
@@ -78,7 +78,7 @@ PyTypeObject UringFileType = {
     .tp_new = PyType_GenericNew,
     .tp_init = NULL,
     .tp_dealloc = (destructor)UringFile_dealloc,
-    .tp_methods = uring_file_methods,
+    .tp_methods = puring_file_methods,
 };
 
 PyTypeObject UringSocketType = {
@@ -91,12 +91,12 @@ PyTypeObject UringSocketType = {
     .tp_new = PyType_GenericNew,
     .tp_init = NULL,
     .tp_dealloc = (destructor)UringSocket_dealloc,
-    .tp_methods = uring_socket_methods,
+    .tp_methods = puring_socket_methods,
 };
 
 
 static int
-uring_loop_module_exec(PyObject *m)
+puring_module_exec(PyObject *m)
 {
     if (PyType_Ready(&UringLoopType) < 0) {
         return -1;
@@ -116,30 +116,39 @@ uring_loop_module_exec(PyObject *m)
     if (PyModule_AddObjectRef(m, "socket", (PyObject *) &UringSocketType) < 0) {
         return -1;
     }
+
+    PyObject *resolve_flags = create_resolve_enum();
+    if (!resolve_flags) {
+        return -1;
+    }
+    if (PyModule_AddObject(m, "ResolveFlags", resolve_flags) < 0) {
+        Py_DECREF(resolve_flags);
+        return -1;
+    }
+
     return 0;
 }
 
 
-static PyModuleDef_Slot uring_loop_module_slots[] = {
-    {Py_mod_exec, uring_loop_module_exec},
+static PyModuleDef_Slot puring_module_slots[] = {
+    {Py_mod_exec, puring_module_exec},
     {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_NOT_SUPPORTED},
     {0, NULL}
 };
 
 
-// TEMP: These part is left because of first architecture. 
-// TODO: Import loop/file/socket or rename loop->puring
-static PyModuleDef uring_loop_module = {
+static PyModuleDef puring_module = {
     .m_base = PyModuleDef_HEAD_INIT,
-    .m_name = "loop",
-    .m_doc = "Module contains loop with uring",
+    .m_name = "puring",        
+    .m_doc = "Module contains uring based loop",
     .m_size = 0,
-    .m_methods = uring_module_methods,
-    .m_slots = uring_loop_module_slots,
+    .m_methods = puring_module_methods,
+    .m_slots = puring_module_slots,
 };
+
 
 PyMODINIT_FUNC
 PyInit_puring(void)
 {
-    return PyModuleDef_Init(&uring_loop_module);
+    return PyModuleDef_Init(&puring_module);
 }

@@ -6,19 +6,24 @@ int open_file(
     int request_idx,
     int dfd,
     const char *path,
-    // int flags,  TODO
-	// mode_t mode
 
     // Below are optional
+    int flags,
+    int resolve,
+	mode_t mode,
     struct TimeoutParams *timeout_params
 )
 {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
+    if (!flags) {
+        flags = O_RDWR | O_CREAT;
+    }
+
     struct open_how how = {
-        // TODO: O_APPEND to append, basically need to implement getting this as param
-        .flags = O_RDWR | O_CREAT,
-        .mode = 0644,
+        .flags = (uint64_t*)flags,
+        .mode = (mode_t*)mode,
+        .resolve = (uint64_t*)resolve,
     };
 
     io_uring_prep_openat2(sqe, dfd, path, &how);
