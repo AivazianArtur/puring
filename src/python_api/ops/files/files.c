@@ -97,10 +97,10 @@ UringLoop_open(
         request_idx,
         dfd,
         path,
-        &timeout_params,
         flags,
         resolve,
-        mode
+        mode,
+        &timeout_params
     );
     if (result == -1) {
         Py_DECREF(file);
@@ -198,7 +198,15 @@ UringFile_read(
         return NULL;
     }
 
-    int result = uring_read(self->loop->ring, request_idx, self->fd, buf, (unsigned) size, &timeout_params);
+    int result = uring_read(
+        self->loop->ring,
+        request_idx,
+        self->fd,
+        buf,
+        (unsigned) size,
+        offset,
+        &timeout_params
+    );
     if (result < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -247,10 +255,11 @@ UringFile_write(
     }
 
     PyObject *data = NULL;
+    int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"data", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", kwlist, &data, &timeout_params_obj))) {
+    static char *kwlist[] = {"data", "offset", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", kwlist, &data, &offset, &timeout_params_obj))) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -293,6 +302,7 @@ UringFile_write(
         self->fd,
         buf,
         (unsigned) size,
+        offset,
         &timeout_params
     );
     if (result < 0) {
@@ -425,10 +435,12 @@ UringFile_stat(
     }
 
     static char path;
+    int flags = 0;
+    unsigned mask = 0;
     PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"path", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "s|O", kwlist, &path, &timeout_params_obj))) {
+    static char *kwlist[] = {"path", "timeout_params", "flags", "mask", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "s|OiI", kwlist, &path, &timeout_params_obj, &flags, &mask))) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -470,7 +482,16 @@ UringFile_stat(
         return NULL;
     }
 
-    int result = uring_stat(self->loop->ring, request_idx, self->fd, &path, buf, &timeout_params);
+    int result = uring_stat(
+        self->loop->ring,
+        request_idx,
+        self->fd,
+        &path,
+        buf,
+        flags,
+        mask,
+        &timeout_params
+    );
     if (result < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -539,6 +560,73 @@ UringFile_fsync(
     }
 
     int result = uring_fsync(self->loop->ring, request_idx, self->fd, &timeout_params);
+    if (result < 0) {
+        Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
+        return NULL;
+    } else if (result == 0) {
+        Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
+        return NULL;
+    }
+    return future;
+}
+
+
+PyObject*
+UringFile_fdatasync(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+)
+{
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    if (self->loop->is_closing) {
+        PyErr_Format(
+            PyExc_RuntimeError,
+            "Ring Event Loop is closing - %S",
+            self->loop->py_loop
+        );
+        return NULL;
+    }
+    if (self->closed) {
+        PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
+        return NULL;
+    }
+
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+
+    PyObject *future = create_future(self->loop);
+    if (!future) {
+        return NULL;
+    }
+
+    int opcode = IORING_OP_FSYNC;
+    // For now whoile puring without buffer, we'll do it in next v.
+    PyObject *buffer = NULL;
+    int request_idx = registry_add(
+        self->loop->registry,
+        future,
+        buffer,
+        opcode,
+        self,
+        NULL
+    );
+    if (request_idx < 0) {
+        Py_DECREF(future);
+        PyErr_SetString(PyExc_RuntimeError, "Registry is full");
+        return NULL;
+    }
+
+    int result = uring_fdatasync(self->loop->ring, request_idx, self->fd, &timeout_params);
     if (result < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);

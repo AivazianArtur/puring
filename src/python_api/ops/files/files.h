@@ -92,8 +92,20 @@ UringFile_fsync(
 );
 
 PyObject*
+UringFile_fdatasync(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
 UringFile_splice(
     UringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
+
+
+PyObject* create_resolve_enum(void);
+PyObject* create_statx_flags_enum(void);
+PyObject* create_statx_mask_enum(void);

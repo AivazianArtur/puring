@@ -51,6 +51,7 @@ static PyMethodDef puring_file_methods[] = {
     {"close", (PyCFunction)UringFile_close, METH_VARARGS | METH_KEYWORDS,  "Close file"},
     {"stat", (PyCFunction)UringFile_stat, METH_VARARGS | METH_KEYWORDS,  "File info"},
     {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
+    {"fdatasync", (PyCFunction)UringFile_fdatasync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file with in fdatasync mode"},
     {"splice", (PyCFunction)UringFile_splice, METH_VARARGS | METH_KEYWORDS,  "Splicing two file into one pipe"},
     {NULL, NULL, 0, NULL}
 };
@@ -123,6 +124,24 @@ puring_module_exec(PyObject *m)
     }
     if (PyModule_AddObject(m, "ResolveFlags", resolve_flags) < 0) {
         Py_DECREF(resolve_flags);
+        return -1;
+    }
+
+    PyObject *statx_flags = create_statx_flags_enum();
+    if (!statx_flags) {
+        return -1;
+    }
+    if (PyModule_AddObject(m, "StatxFlags", statx_flags) < 0) {
+        Py_DECREF(statx_flags);
+        return -1;
+    }
+
+    PyObject *statx_mask = create_statx_mask_enum();
+    if (!statx_mask) {
+        return -1;
+    }
+    if (PyModule_AddObject(m, "StatxMask", statx_mask) < 0) {
+        Py_DECREF(statx_mask);
         return -1;
     }
 
