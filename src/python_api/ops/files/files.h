@@ -57,6 +57,13 @@ UringFile_readv(
 );
 
 PyObject*
+UringFile_readv_raw(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
 UringFile_write(
     UringFile *self,
     PyObject *args,

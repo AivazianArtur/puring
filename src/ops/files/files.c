@@ -68,6 +68,33 @@ int uring_read(
 }
 
 
+int uring_readv(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int offset,
+    int flags,
+
+    struct TimeoutParams *timeout_params
+) {
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+
+    io_uring_prep_readv2(sqe, fd, iovecs, nr_vecs, offset, flags);
+
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        return 0;
+    }
+    return 1;
+}
+
+
 int uring_write(
     struct io_uring *ring,
     int request_idx,
@@ -82,6 +109,34 @@ int uring_write(
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_write(sqe, fd, buf, size, offset);
+
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        return 0;
+    }
+    return 1;
+}
+
+
+int uring_writev(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int offset,
+    int flags,
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
+) {
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+
+    io_uring_prep_writev2(sqe, fd, iovecs, nr_vecs, offset, flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -210,6 +265,7 @@ int uring_fdatasync(
 }
 
 
-// TODO: Vector ops
-// io_uring_prep_sendmsg
-// io_uring_prep_recvmsg
+// io_uring_prep_writev
+// io_uring_prep_readv
+
+// TODO: io_uring_prep_read_fixed + io_uring_prep_write_fixed

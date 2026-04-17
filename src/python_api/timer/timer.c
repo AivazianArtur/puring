@@ -42,6 +42,7 @@ UringLoop_timer(
         loop->registry,
         future,
         buffer,
+        NULL,
         opcode,
         NULL,
         NULL

@@ -28,6 +28,7 @@ int open_file(
     struct TimeoutParams *timeout_params
 );
 
+
 int uring_read(
     struct io_uring *ring,
     int request_idx,
@@ -40,6 +41,20 @@ int uring_read(
     struct TimeoutParams *timeout_params
 );
 
+
+int uring_readv(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int offset,
+    int flags,
+
+    struct TimeoutParams *timeout_params
+);
+
+
 int uring_write(
     struct io_uring *ring,
     int request_idx,
@@ -51,6 +66,21 @@ int uring_write(
     struct TimeoutParams *timeout_params
 );
 
+
+int uring_writev(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int offset,
+    int flags,
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+
 int uring_close_file(
     struct io_uring *ring,
     int request_idx,
@@ -60,6 +90,7 @@ int uring_close_file(
     // Below are optional
     struct TimeoutParams *timeout_params
 );
+
 
 int uring_stat(
     struct io_uring *ring,
@@ -74,6 +105,7 @@ int uring_stat(
     struct TimeoutParams *timeout_params
 );
 
+
 int uring_fsync(
     struct io_uring *ring,
     int request_idx,
@@ -82,6 +114,7 @@ int uring_fsync(
     // Below are optional
     struct TimeoutParams *timeout_params
 );
+
 
 int uring_fdatasync(
     struct io_uring *ring,
