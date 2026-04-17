@@ -124,6 +124,11 @@ void registry_remove(RequestRegistry *reg, int index)
         slot->buffer = NULL;
     }
 
+    if (slot->iovecs_buffer) {
+        Py_DECREF(slot->iovecs_buffer);
+        slot->iovecs_buffer = NULL;
+    }
+
     if (slot->opcode) {
         slot->opcode = 0;
     }

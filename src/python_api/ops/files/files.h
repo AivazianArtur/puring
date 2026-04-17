@@ -78,6 +78,13 @@ UringFile_writev(
 );
 
 PyObject*
+UringFile_writev_raw(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
 UringFile_close(
     UringFile *self,
     PyObject *args,

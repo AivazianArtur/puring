@@ -46,8 +46,10 @@ static PyMethodDef puring_socket_methods[] = {
 static PyMethodDef puring_file_methods[] = {
     {"read", (PyCFunction)UringFile_read, METH_VARARGS | METH_KEYWORDS,  "Read file"},
     {"readv", (PyCFunction)UringFile_readv, METH_VARARGS | METH_KEYWORDS,  "Read file, vectorized"},
+    {"readv_raw", (PyCFunction)UringFile_readv_raw, METH_VARARGS | METH_KEYWORDS,  "Read file, vectorized with custom iovecs"},
     {"write", (PyCFunction)UringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
     {"writev", (PyCFunction)UringFile_writev, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized"},
+    {"writev_raw", (PyCFunction)UringFile_writev_raw, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized with custom iovecs"},
     {"close", (PyCFunction)UringFile_close, METH_VARARGS | METH_KEYWORDS,  "Close file"},
     {"stat", (PyCFunction)UringFile_stat, METH_VARARGS | METH_KEYWORDS,  "File info"},
     {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
