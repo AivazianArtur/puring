@@ -92,13 +92,6 @@ UringFile_close(
 );
 
 PyObject*
-UringFile_stat(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-);
-
-PyObject*
 UringFile_fsync(
     UringFile *self,
     PyObject *args,
@@ -119,6 +112,7 @@ UringFile_splice(
     PyObject *kwargs
 );
 
+static PyObject* _check_result(int result, UringFile *file, int request_idx, PyObject *future);
 
 PyObject* create_resolve_enum(void);
 PyObject* create_statx_flags_enum(void);

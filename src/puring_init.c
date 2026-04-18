@@ -5,6 +5,7 @@
 
 #include "python_api/loop/loop.h"
 #include "python_api/ops/files/files.h"
+#include "python_api/ops/dirs/dirs.h"
 #include "python_api/ops/sockets/sockets.h"
 #include "python_api/timer/timer.h"
 
@@ -51,12 +52,17 @@ static PyMethodDef puring_file_methods[] = {
     {"writev", (PyCFunction)UringFile_writev, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized"},
     {"writev_raw", (PyCFunction)UringFile_writev_raw, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized with custom iovecs"},
     {"close", (PyCFunction)UringFile_close, METH_VARARGS | METH_KEYWORDS,  "Close file"},
-    {"stat", (PyCFunction)UringFile_stat, METH_VARARGS | METH_KEYWORDS,  "File info"},
     {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
     {"fdatasync", (PyCFunction)UringFile_fdatasync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file with in fdatasync mode"},
     {"splice", (PyCFunction)UringFile_splice, METH_VARARGS | METH_KEYWORDS,  "Splicing two file pipes"},
     {NULL, NULL, 0, NULL}
 };
+
+static PyMethodDef puring_dir_methods[] = {
+    {"stat", (PyCFunction)UringDir_stat, METH_VARARGS | METH_KEYWORDS,  "Directory info"},
+    {NULL, NULL, 0, NULL}
+};
+
 
 PyTypeObject UringLoopType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0)

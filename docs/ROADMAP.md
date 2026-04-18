@@ -13,19 +13,19 @@
 - [X] Translate internal errors into native Python exceptions.
 - [X] Add timer support (`IORING_OP_TIMEOUT`).
 - [X] Add signal handling (`SIGINT`, `SIGTERM`, `SIGQUIT`) via `IORING_OP_POLL_ADD`.
+- [X] Add not implemented `file` methods.
+- [ ] Add not implemented `socket` methods.
+- [ ] Implement `dir` object completely.
 - [ ] Finish AbstractEventLoop Protocol.
-- [ ] Add not implemented `file` and `socket` methods.
-- [ ] Add tests.
-- [ ] Implement GitHub CI.
 
-## v0.4 - Buffer features
+## v0.3.5 - Buffer features
 - [ ] Implement fixed buffers (`io_uring_register_buffers`).
 - [ ] Implement zero-copy send (`send_zc`).
 - [ ] Use Python application buffers as `UringLoop` buffers.
 - [ ] Implement a puring-based memory pool for buffers.
 - [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
 
-## v0.5 - Async Runtime & Architecture
+## v0.4 - Async Runtime & Architecture
 - [ ] Run reader in separate thread.
 - [ ] Each thread must own it`s own Rings
 - [ ] Multiring support.
@@ -36,21 +36,24 @@
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
 - [ ] `Batcher` and `Chainer` OOP interface.
 
-## v0.5.1 - Community & Contribution
-- [ ] Publish library on PyPI (`pip` installable).
-- [ ] Document everything.
-- [ ] Add contribution support:
-    - [ ] Write contribution guidelines.
-    - [ ] Add repository badges.
-    - [ ] Enable GitHub issue tracking.
-
-## v0.6 - CQE and SQE production features
+## v0.5.0 - CQE and SQE production features
 - [ ] CQE batching.
 - [ ] SQPOLL.
 - [ ] FASTPOLL.
 - [ ] Support linked SQEs for chained operations.
 - [ ] Support `IOSQE_CQE_SKIP_SUCCESS` and `IOSQE_BUFFER_SELECT`.
 - [ ] Keep file descriptors registered (`io_uring_register_files`).
+
+
+## v0.5.1 - Community & Contribution
+- [ ] Add tests.
+- [ ] Implement GitHub CI.
+- [ ] Publish library on PyPI (`pip` installable).
+- [ ] Document everything.
+- [ ] Add contribution support:
+    - [ ] Write contribution guidelines.
+    - [ ] Add repository badges.
+    - [ ] Enable GitHub issue tracking.
 
 
 ### Note
