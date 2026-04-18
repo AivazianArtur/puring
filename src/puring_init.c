@@ -54,7 +54,7 @@ static PyMethodDef puring_file_methods[] = {
     {"stat", (PyCFunction)UringFile_stat, METH_VARARGS | METH_KEYWORDS,  "File info"},
     {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
     {"fdatasync", (PyCFunction)UringFile_fdatasync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file with in fdatasync mode"},
-    {"splice", (PyCFunction)UringFile_splice, METH_VARARGS | METH_KEYWORDS,  "Splicing two file into one pipe"},
+    {"splice", (PyCFunction)UringFile_splice, METH_VARARGS | METH_KEYWORDS,  "Splicing two file pipes"},
     {NULL, NULL, 0, NULL}
 };
 

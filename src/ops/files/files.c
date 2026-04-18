@@ -265,7 +265,42 @@ int uring_fdatasync(
 }
 
 
-// io_uring_prep_writev
-// io_uring_prep_readv
+int uring_splice(
+    struct io_uring *ring,
+    int request_idx,
+    int fd_in,
+    int off_in,
+	int fd_out, 
+    int off_out,
+	int nbytes,
+	int flag,
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
+)
+{
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+
+    io_uring_prep_splice(
+        sqe,
+        fd_in,
+        (int64_t)off_in,
+        fd_out,
+        (int64_t)off_out,
+        (unsigned int)nbytes,
+        (unsigned int)flag
+    );
+
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        return 0;
+    }
+    return 1;
+}
+
 
 // TODO: io_uring_prep_read_fixed + io_uring_prep_write_fixed

@@ -124,3 +124,17 @@ int uring_fdatasync(
     // Below are optional
     struct TimeoutParams *timeout_params
 );
+
+int uring_splice(
+    struct io_uring *ring,
+    int request_idx,
+    int fd_in,
+    int off_in,
+	int fd_out, 
+    int off_out,
+	int nbytes,
+	int flag,
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);

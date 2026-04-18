@@ -192,19 +192,19 @@ UringFile_read(
         return NULL;
     }
 
-    // char *buf = PyBytes_AS_STRING(buffer);
-    // if (!buf) {
-    //    Py_DECREF(future);
-    //    registry_remove(self->loop->registry, request_idx);
-    //    PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
-    //    return NULL;
-    // }
+    char *buf = PyBytes_AS_STRING(buffer);
+    if (!buf) {
+       Py_DECREF(future);
+       registry_remove(self->loop->registry, request_idx);
+       PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
+       return NULL;
+    }
 
     int result = uring_read(
         self->loop->ring,
         request_idx,
         self->fd,
-        buffer,
+        buf,
         (unsigned) size,
         offset,
         &timeout_params
@@ -611,6 +611,7 @@ UringFile_writev(
         iovecs,
         (unsigned) nr_vecs,
         offset,
+        flags,
         &timeout_params
     );
     if (result < 0) {
@@ -709,6 +710,7 @@ UringFile_writev_raw(
         iovecs,
         (unsigned) nr_vecs,
         offset,
+        flags,
         &timeout_params
     );
     if (result < 0) {
@@ -1048,5 +1050,91 @@ UringFile_splice(
     PyObject *kwargs
 )
 {
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    if (self->loop->is_closing) {
+        PyErr_Format(
+            PyExc_RuntimeError,
+            "Ring Event Loop is closing - %S",
+            self->loop->py_loop
+        );
+        return NULL;
+    }
+    if (self->closed) {
+        PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
+        return NULL;
+    }
 
+    int src = 0;
+    int dst = 0;
+    int count = 0;
+    int offset_src = 0;
+    int offset_dst = 0;
+    int flag = 0;
+
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"src", "dst", "count", "offset_src", "offset_dst", "flag", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(
+        args,
+        kwargs,
+        "iii|iiiO",
+        kwlist,
+        &src,
+        &dst,
+        &count,
+        &offset_src,
+        &offset_dst,
+        &flag,
+        &timeout_params_obj
+    )) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+
+    PyObject *future = create_future(self->loop);
+    if (!future) {
+        return NULL;
+    }
+
+    int opcode = IORING_OP_SPLICE;
+    // For now whoile puring without buffer, we'll do it in next v.
+    PyObject *buffer = NULL;
+        int request_idx = registry_add(
+        self->loop->registry,
+        future,
+        buffer,
+        NULL,
+        opcode,
+        self,
+        NULL
+    );
+    if (request_idx < 0) {
+        Py_DECREF(future);
+        PyErr_SetString(PyExc_RuntimeError, "Registry is full");
+        return NULL;
+    }
+
+    int result = uring_splice(
+        self->loop->ring,
+        request_idx,
+        src,
+        offset_src,
+        dst,
+        offset_dst,
+        count,
+        flag,
+        &timeout_params
+    );
+    if (result < 0) {
+        Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
+        return NULL;
+    } else if (result == 0) {
+        Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
+        return NULL;
+    }
+    return future;
 }
