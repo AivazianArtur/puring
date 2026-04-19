@@ -45,6 +45,9 @@ static PyMethodDef puring_socket_methods[] = {
 };
 
 static PyMethodDef puring_file_methods[] = {
+    // TODO: DOCS: Describe that short read/write handling is responsibility of client
+    // TODO: DOCS: Describe that because of async nature, we should explicitly send offsets
+
     {"read", (PyCFunction)UringFile_read, METH_VARARGS | METH_KEYWORDS,  "Read file"},
     {"readv", (PyCFunction)UringFile_readv, METH_VARARGS | METH_KEYWORDS,  "Read file, vectorized"},
     {"readv_raw", (PyCFunction)UringFile_readv_raw, METH_VARARGS | METH_KEYWORDS,  "Read file, vectorized with custom iovecs"},

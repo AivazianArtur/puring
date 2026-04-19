@@ -15,7 +15,6 @@
 - [X] Add signal handling (`SIGINT`, `SIGTERM`, `SIGQUIT`) via `IORING_OP_POLL_ADD`.
 - [X] Add not implemented `file` methods.
 - [ ] Add not implemented `socket` methods.
-- [ ] Implement `dir` object completely.
 - [ ] Finish AbstractEventLoop Protocol.
 
 ## v0.3.5 - Buffer features
@@ -35,6 +34,7 @@
 - [ ] Revisit loop replacement (currently uncertain but likely needed).
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
 - [ ] `Batcher` and `Chainer` OOP interface.
+- [ ] Implement `dir` object completely.
 
 ## v0.5.0 - CQE and SQE production features
 - [ ] CQE batching.

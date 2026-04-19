@@ -219,7 +219,7 @@ UringFile_readv(
     PyObject *timeout_params_obj = NULL;
     int flags = 0;
     int offset = 0;
-    static char *kwlist[] = {"buffer", "offset", "flags", "timeout_params", NULL};
+    static char *kwlist[] = {"buffers", "offset", "flags", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiO", kwlist, &buffers_obj, &offset, &flags, &timeout_params_obj)) {
         return NULL;
     }
@@ -453,15 +453,14 @@ UringFile_writev(
         return NULL;
     }
 
-    PyObject *data = NULL;
     PyObject *buffers_obj;
 
     int flags = 0;
     int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"data", "buffers", "flags", "offset", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iiO", kwlist, &data, &buffers_obj, &flags, &offset, &timeout_params_obj))) {
+    static char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iiO", kwlist, &buffers_obj, &flags, &offset, &timeout_params_obj))) {
         return NULL;
     }
 
@@ -508,7 +507,7 @@ UringFile_writev(
     int request_idx = registry_add(
         self->loop->registry, 
         future,
-        data,
+        NULL,
         iovecs_buf,
         opcode,
         self,
@@ -549,15 +548,14 @@ UringFile_writev_raw(
         return NULL;
     }
 
-    PyObject *data = NULL;
     Py_buffer iovecs_buf;
 
     int flags = 0;
     int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"data", "buffers", "flags", "offset", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "Oy|iiO", kwlist, &data, &iovecs_buf, &flags, &offset, &timeout_params_obj))) {
+    static char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "Oy|iiO", kwlist, &iovecs_buf, &flags, &offset, &timeout_params_obj))) {
         return NULL;
     }
 
@@ -588,7 +586,7 @@ UringFile_writev_raw(
     int request_idx = registry_add(
         self->loop->registry, 
         future,
-        data,
+        NULL,
         &iovecs_buf,
         opcode,
         self,
