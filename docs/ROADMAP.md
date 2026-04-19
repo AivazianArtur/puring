@@ -1,6 +1,6 @@
 # Roadmap
 
-## v0.2 - Stabilize current implementation
+## v0.2.0 - Stabilize current implementation
 - [X] Polish current implementation:
     - [X] Debug sockets and add simple benchmark.
     - [X] Implement `ASSERT_LOOP_THREAD` macros.
@@ -9,7 +9,7 @@
     - [X] Move initialization to separate module.
     - [X] Improve separation between C and Python layers.
 
-## v0.3 - Core features
+## v0.3.0 - Core features
 - [X] Translate internal errors into native Python exceptions.
 - [X] Add timer support (`IORING_OP_TIMEOUT`).
 - [X] Add signal handling (`SIGINT`, `SIGTERM`, `SIGQUIT`) via `IORING_OP_POLL_ADD`.
@@ -24,7 +24,7 @@
 - [ ] Implement a puring-based memory pool for buffers.
 - [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
 
-## v0.4 - Async Runtime & Architecture
+## v0.4.0 - Async Runtime & Architecture
 - [ ] Run reader in separate thread.
 - [ ] Each thread must own it`s own Rings
 - [ ] Multiring support.
