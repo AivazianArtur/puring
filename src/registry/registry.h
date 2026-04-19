@@ -15,6 +15,7 @@ typedef struct {
     uint64_t user_data;
     PyObject *future;
     PyObject *buffer;
+    Py_buffer *iovecs_buffer;
     int opcode;
     UringFile *file;
     UringSocket *socket;
@@ -36,6 +37,7 @@ int registry_add(
     RequestRegistry *reg,
     PyObject *future,
     PyObject *buffer,
+    Py_buffer *iovecs_buffer,
     int opcode,
     UringFile *file,
     UringSocket *socket

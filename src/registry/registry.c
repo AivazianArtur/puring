@@ -64,6 +64,7 @@ int registry_add(
     RequestRegistry *reg,
     PyObject *future,
     PyObject *buffer,
+    Py_buffer *iovecs_buffer,
     int opcode,
     UringFile *file,
     UringSocket *socket
@@ -86,6 +87,9 @@ int registry_add(
 
     slot->buffer = buffer;
     if (buffer != NULL) Py_INCREF(buffer);
+
+    slot->iovecs_buffer = iovecs_buffer;
+    if (iovecs_buffer != NULL) Py_INCREF(iovecs_buffer);
 
     slot->socket = socket;
     slot->file = file;
@@ -118,6 +122,11 @@ void registry_remove(RequestRegistry *reg, int index)
     if (slot->buffer) {
         Py_DECREF(slot->buffer);
         slot->buffer = NULL;
+    }
+
+    if (slot->iovecs_buffer) {
+        Py_DECREF(slot->iovecs_buffer);
+        slot->iovecs_buffer = NULL;
     }
 
     if (slot->opcode) {

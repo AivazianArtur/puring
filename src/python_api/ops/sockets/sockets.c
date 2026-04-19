@@ -48,6 +48,7 @@ UringLoop_tcp_socket(
         self->registry, 
         future,
         buffer,
+        NULL,
         opcode,
         NULL,
         sock
@@ -126,6 +127,7 @@ UringLoop_udp_socket(
         self->registry, 
         future, 
         buffer, 
+        NULL,
         opcode, 
         NULL,
         sock
@@ -204,6 +206,7 @@ UringLoop_unix_stream(
         self->registry, 
         future,
         buffer,
+        NULL,
         opcode,
         NULL,
         sock
@@ -282,6 +285,7 @@ UringLoop_unix_dgram(
         self->registry, 
         future, 
         buffer, 
+        NULL,
         opcode, 
         NULL,
         sock
@@ -378,6 +382,7 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
         self->loop->registry,
         future, 
         buffer,
+        NULL,
         opcode,
         NULL,
         self
@@ -461,6 +466,7 @@ UringSocket_listen(
         self->loop->registry, 
         future, 
         buffer, 
+        NULL,
         opcode, 
         NULL,
         self
@@ -544,6 +550,7 @@ UringSocket_connect(
         self->loop->registry, 
         future, 
         buffer, 
+        NULL,
         opcode, 
         NULL,
         self
@@ -621,6 +628,7 @@ UringSocket_send(
         self->loop->registry,
         future,
         buffer,
+        NULL,
         opcode, 
         NULL,
         self
@@ -704,6 +712,7 @@ UringSocket_recv(
         self->loop->registry,
         future,
         (PyObject*)buffer,
+        NULL,
         opcode,
         NULL,
         self
@@ -783,6 +792,7 @@ UringSocket_accept(
         self->loop->registry, 
         future, 
         buffer, 
+        NULL,
         opcode, 
         NULL,
         self
@@ -860,6 +870,7 @@ UringSocket_close(
         self->loop->registry, 
         future, 
         buffer, 
+        NULL,
         opcode, 
         NULL,
         self

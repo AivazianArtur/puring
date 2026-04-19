@@ -13,6 +13,7 @@
 #include "timer/timer.h"
 #include "ops/files/files.h"
 #include "registry/registry.h"
+#include <linux/openat2.h>
 
 #include "python_api/loop/loop.h"
 #include "python_api/future/future.h"
@@ -49,7 +50,35 @@ UringFile_read(
 );
 
 PyObject*
+UringFile_readv(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
+UringFile_readv_raw(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
 UringFile_write(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
+UringFile_writev(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject*
+UringFile_writev_raw(
     UringFile *self,
     PyObject *args,
     PyObject *kwargs
@@ -63,15 +92,28 @@ UringFile_close(
 );
 
 PyObject*
-UringFile_stat(
+UringFile_fsync(
     UringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_fsync(
+UringFile_fdatasync(
     UringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
+
+PyObject*
+UringFile_splice(
+    UringFile *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+static PyObject* _check_result(int result, UringFile *file, int request_idx, PyObject *future);
+
+PyObject* create_resolve_enum(void);
+PyObject* create_statx_flags_enum(void);
+PyObject* create_statx_mask_enum(void);
