@@ -24,10 +24,7 @@ static PyMethodDef puring_loop_methods[] = {
     {"open", (PyCFunction)UringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file"},
 
     // Create Socket
-    {"tcp_socket", (PyCFunction)UringLoop_tcp_socket, METH_VARARGS | METH_KEYWORDS, "Opens tcp-socket"},
-    {"udp_socket", (PyCFunction)UringLoop_udp_socket, METH_VARARGS | METH_KEYWORDS, "Opens udp-socket"},
-    {"stream_socket", (PyCFunction)UringLoop_unix_stream, METH_VARARGS | METH_KEYWORDS, "Opens unix stream-socket"},
-    {"dgram_socket", (PyCFunction)UringLoop_unix_dgram, METH_VARARGS | METH_KEYWORDS, "Opens unix dgram-socket"},
+    {"prep_socket", (PyCFunction)UringLoop_prep_socket, METH_VARARGS | METH_KEYWORDS, "Opens socket"},
     {NULL, NULL, 0, NULL}
 };
 

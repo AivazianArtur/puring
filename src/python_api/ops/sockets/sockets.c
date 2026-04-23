@@ -26,9 +26,11 @@ UringLoop_prep_socket(
     sock->loop = self;
     Py_INCREF(self);
 
+    int domain = 0;
+    int type = 0;
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+    static char *kwlist[] = {"domain", "type", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii|O", kwlist, &domain, &type, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -60,12 +62,18 @@ UringLoop_prep_socket(
         return NULL;
     }
 
-    int result = tcp_socket(self->ring, request_idx, &timeout_params);
+    int result = prep_socket(self->ring, request_idx, domain, type, &timeout_params);
     if (result == -1) {
         Py_DECREF(sock);
         Py_DECREF(future);
         registry_remove(self->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
+        return NULL;
+    } else if (result == -2) { 
+        Py_DECREF(sock);
+        Py_DECREF(future);
+        registry_remove(self->registry, request_idx);
+        PyErr_SetString(PyExc_RuntimeError, "Passed socket domain or type values are not awailable\n");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(sock);

@@ -17,12 +17,12 @@ int prep_socket(
         domain == AF_INET ||
         domain == AF_INET6
     ) || !(
-        type == UNIX ||
-        type == INET ||
-        type == INET6
+        type == SOCK_STREAM ||
+        type == SOCK_DGRAM ||
+        type == SOCK_RAW
     ))  {
         fprintf(stderr, "Domain or type is not supported: %s\n", strerror(-1));
-        return -1;
+        return -2;
     }
 
     io_uring_prep_socket(sqe, domain, type, 0, 0);

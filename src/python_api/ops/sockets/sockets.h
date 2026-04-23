@@ -41,28 +41,7 @@ typedef struct UringSocket {
 
 
 PyObject* 
-UringLoop_tcp_socket(
-    UringLoop *self,
-    PyObject *args,
-    PyObject *kwargs
-);
-
-PyObject* 
-UringLoop_udp_socket(
-    UringLoop *self,
-    PyObject *args,
-    PyObject *kwargs
-);
-
-PyObject* 
-UringLoop_unix_stream(
-    UringLoop *self,
-    PyObject *args,
-    PyObject *kwargs
-);
-
-PyObject* 
-UringLoop_unix_dgram(
+UringLoop_prep_socket(
     UringLoop *self,
     PyObject *args,
     PyObject *kwargs
