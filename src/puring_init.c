@@ -17,29 +17,29 @@ static PyMethodDef puring_module_methods[] = {
 
 
 static PyMethodDef puring_loop_methods[] = {
-    {"add_reader", (PyCFunction)UringLoop_add_reader, METH_NOARGS, "Register FD with UringLoop"},
-    {"close_loop", (PyCFunction)UringLoop_close_loop, METH_VARARGS,  "Close loop"},
+    {"add_reader", (PyCFunction)UringLoop_add_reader, METH_NOARGS,"Register FD with UringLoop"},
+    {"close_loop", (PyCFunction)UringLoop_close_loop, METH_VARARGS, "Close loop"},
 
     // Create File
     {"open", (PyCFunction)UringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file"},
 
     // Create Socket
-    {"tcp_socket", (PyCFunction)UringLoop_tcp_socket, METH_VARARGS | METH_KEYWORDS,  "Opens tcp-socket"},
-    {"udp_socket", (PyCFunction)UringLoop_udp_socket, METH_VARARGS | METH_KEYWORDS,  "Opens udp-socket"},
-    {"stream_socket", (PyCFunction)UringLoop_unix_stream, METH_VARARGS | METH_KEYWORDS,  "Opens unix stream-socket"},
-    {"dgram_socket", (PyCFunction)UringLoop_unix_dgram, METH_VARARGS | METH_KEYWORDS,  "Opens unix dgram-socket"},
+    {"tcp_socket", (PyCFunction)UringLoop_tcp_socket, METH_VARARGS | METH_KEYWORDS, "Opens tcp-socket"},
+    {"udp_socket", (PyCFunction)UringLoop_udp_socket, METH_VARARGS | METH_KEYWORDS, "Opens udp-socket"},
+    {"stream_socket", (PyCFunction)UringLoop_unix_stream, METH_VARARGS | METH_KEYWORDS, "Opens unix stream-socket"},
+    {"dgram_socket", (PyCFunction)UringLoop_unix_dgram, METH_VARARGS | METH_KEYWORDS, "Opens unix dgram-socket"},
     {NULL, NULL, 0, NULL}
 };
 
 
 static PyMethodDef puring_socket_methods[] = {
-    {"bind", (PyCFunction)UringSocket_bind, METH_VARARGS | METH_KEYWORDS,  "Bind socket"},
-    {"listen", (PyCFunction)UringSocket_listen, METH_VARARGS | METH_KEYWORDS,  "Listen socket"},
-    {"connect", (PyCFunction)UringSocket_connect, METH_VARARGS | METH_KEYWORDS,  "Connect"},
-    {"send", (PyCFunction)UringSocket_send, METH_VARARGS | METH_KEYWORDS,  "Send"},
-    {"recv", (PyCFunction)UringSocket_recv, METH_VARARGS | METH_KEYWORDS,  "Recv"},
-    {"accept", (PyCFunction)UringSocket_accept, METH_VARARGS | METH_KEYWORDS,  "Accept"},
-    {"close", (PyCFunction)UringSocket_close, METH_VARARGS | METH_KEYWORDS,  "Close"},
+    {"bind", (PyCFunction)UringSocket_bind, METH_VARARGS | METH_KEYWORDS, "Bind socket"},
+    {"listen", (PyCFunction)UringSocket_listen, METH_VARARGS | METH_KEYWORDS, "Listen socket"},
+    {"connect", (PyCFunction)UringSocket_connect, METH_VARARGS | METH_KEYWORDS, "Connect"},
+    {"send", (PyCFunction)UringSocket_send, METH_VARARGS | METH_KEYWORDS, "Send"},
+    {"recv", (PyCFunction)UringSocket_recv, METH_VARARGS | METH_KEYWORDS, "Recv"},
+    {"accept", (PyCFunction)UringSocket_accept, METH_VARARGS | METH_KEYWORDS, "Accept"},
+    {"close", (PyCFunction)UringSocket_close, METH_VARARGS | METH_KEYWORDS, "Close"},
 
     {NULL, NULL, 0, NULL}
 };
@@ -48,21 +48,21 @@ static PyMethodDef puring_file_methods[] = {
     // TODO: DOCS: Describe that short read/write handling is responsibility of client
     // TODO: DOCS: Describe that because of async nature, we should explicitly send offsets
 
-    {"read", (PyCFunction)UringFile_read, METH_VARARGS | METH_KEYWORDS,  "Read file"},
-    {"readv", (PyCFunction)UringFile_readv, METH_VARARGS | METH_KEYWORDS,  "Read file, vectorized"},
-    {"readv_raw", (PyCFunction)UringFile_readv_raw, METH_VARARGS | METH_KEYWORDS,  "Read file, vectorized with custom iovecs"},
+    {"read", (PyCFunction)UringFile_read, METH_VARARGS | METH_KEYWORDS, "Read file"},
+    {"readv", (PyCFunction)UringFile_readv, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized"},
+    {"readv_raw", (PyCFunction)UringFile_readv_raw, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized with custom iovecs"},
     {"write", (PyCFunction)UringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
     {"writev", (PyCFunction)UringFile_writev, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized"},
     {"writev_raw", (PyCFunction)UringFile_writev_raw, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized with custom iovecs"},
-    {"close", (PyCFunction)UringFile_close, METH_VARARGS | METH_KEYWORDS,  "Close file"},
-    {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file"},
-    {"fdatasync", (PyCFunction)UringFile_fdatasync, METH_VARARGS | METH_KEYWORDS,  "Flush file buffer to file with in fdatasync mode"},
-    {"splice", (PyCFunction)UringFile_splice, METH_VARARGS | METH_KEYWORDS,  "Splicing two file pipes"},
+    {"close", (PyCFunction)UringFile_close, METH_VARARGS | METH_KEYWORDS, "Close file"},
+    {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file"},
+    {"fdatasync", (PyCFunction)UringFile_fdatasync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file with in fdatasync mode"},
+    {"splice", (PyCFunction)UringFile_splice, METH_VARARGS | METH_KEYWORDS, "Splicing two file pipes"},
     {NULL, NULL, 0, NULL}
 };
 
 static PyMethodDef puring_dir_methods[] = {
-    {"stat", (PyCFunction)UringDir_stat, METH_VARARGS | METH_KEYWORDS,  "Directory info"},
+    {"stat", (PyCFunction)UringDir_stat, METH_VARARGS | METH_KEYWORDS, "Directory info"},
     {NULL, NULL, 0, NULL}
 };
 

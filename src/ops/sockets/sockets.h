@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <linux/openat2.h>
 #include <sys/socket.h>
@@ -12,32 +13,11 @@
 #include "macroses.h"
 
 
-/* Functions */
-// Init functions - their Future become socket, so next works with socket
-int tcp_socket(
-    struct io_uring *ring,
+int prep_socket(
+    struct io_uring *ring, 
     int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-int udp_socket(
-    struct io_uring *ring,
-    int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-int unix_stream(
-    struct io_uring *ring,
-    int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-int unix_dgram(
-    struct io_uring *ring,
-    int request_idx,
+    int domain,
+    int type,
     // Below are optional
     struct TimeoutParams *timeout_params
 );

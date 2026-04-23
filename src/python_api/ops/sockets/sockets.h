@@ -18,11 +18,24 @@
 
 extern PyTypeObject UringSocketType;
 
+
+typedef enum SOCKET_STATES {
+  NEW,
+  BOUND,
+  LISTENING,
+  CONNECTED,
+  CLOSED
+} SOCKET_STATES;
+
+
 typedef struct UringSocket {
     PyObject_HEAD
 
     int sock_fd;
     UringLoop *loop;
+    int domain;
+    int type;
+    SOCKET_STATES state;
     bool closed;
 } UringSocket;
 

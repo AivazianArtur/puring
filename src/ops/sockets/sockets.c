@@ -1,107 +1,31 @@
 #include "sockets.h"
 
 
-int tcp_socket(
+int prep_socket(
     struct io_uring *ring, 
     int request_idx,
+    int domain,
+    int type,
     // Below are optional
     struct TimeoutParams *timeout_params
 )
 {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
-    int domain = AF_INET; // AF_INET6;
-    int type = SOCK_STREAM;
-    int protocol = IPPROTO_TCP;
-    unsigned int flags = 0;
-
-    io_uring_prep_socket(sqe, domain, type, protocol, flags);
-
-    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
-    io_uring_sqe_set_data(sqe, rings_data_pointer);
-
-    int result = io_uring_submit(ring);
-    if (result < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
-        return 0;
-    }
-    return 1;
-}
-
-
-int udp_socket(
-    struct io_uring *ring,
-    int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-)
-{
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
-
-    int domain = AF_INET;
-    int type = SOCK_DGRAM;
-    int protocol = IPPROTO_UDP;
-    unsigned int flags = 0;
-
-    io_uring_prep_socket(sqe, domain, type, protocol, flags);
-
-    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
-    io_uring_sqe_set_data(sqe, rings_data_pointer);
-
-    int result = io_uring_submit(ring);
-    if (result < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
-        return 0;
+    if (!(
+        domain == AF_UNIX ||
+        domain == AF_INET ||
+        domain == AF_INET6
+    ) || !(
+        type == UNIX ||
+        type == INET ||
+        type == INET6
+    ))  {
+        fprintf(stderr, "Domain or type is not supported: %s\n", strerror(-1));
+        return -1;
     }
 
-    return 1;
-}
-
-
-int unix_stream(
-    struct io_uring *ring,
-    int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-)
-{
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
-
-    int domain = AF_UNIX;
-    int type = SOCK_STREAM;
-    int protocol = IPPROTO_UDP;
-    unsigned int flags = 0;
-
-    io_uring_prep_socket(sqe, domain, type, protocol, flags);
-
-    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
-    io_uring_sqe_set_data(sqe, rings_data_pointer);
-
-    int result = io_uring_submit(ring);
-    if (result < 0) {
-        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
-        return 0;
-    }
-
-    return 1;
-}
-
-
-int unix_dgram(
-    struct io_uring *ring,
-    int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-)
-{
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
-
-    int domain = AF_UNIX;
-    int type = SOCK_DGRAM;
-    int protocol = IPPROTO_UDP;
-    unsigned int flags = 0;
-
-    io_uring_prep_socket(sqe, domain, type, protocol, flags);
+    io_uring_prep_socket(sqe, domain, type, 0, 0);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);

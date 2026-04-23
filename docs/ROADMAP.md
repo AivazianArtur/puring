@@ -16,6 +16,7 @@
 - [X] Add not implemented `file` methods.
 - [ ] Add not implemented `socket` methods.
 - [ ] Finish AbstractEventLoop Protocol.
+- [ ] Publish library on PyPI (`pip` installable).
 
 ## v0.3.5 - Buffer features
 - [ ] Implement fixed buffers (`io_uring_register_buffers`).
@@ -48,7 +49,6 @@
 ## v0.5.1 - Community & Contribution
 - [ ] Add tests.
 - [ ] Implement GitHub CI.
-- [ ] Publish library on PyPI (`pip` installable).
 - [ ] Document everything.
 - [ ] Add contribution support:
     - [ ] Write contribution guidelines.
