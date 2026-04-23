@@ -46,6 +46,9 @@ UringLoop_prep_socket(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
 
+    sock->domain=domain;
+    sock->type=domain;
+
     int request_idx = registry_add(
         self->registry, 
         future,

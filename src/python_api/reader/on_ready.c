@@ -55,6 +55,8 @@ void on_uring_ready(UringLoop *loop)
                     if (slot->socket) {
                         UringSocket *sock = (UringSocket *)slot->socket;
                         sock->sock_fd = cqe->res;
+                        SOCKET_STATES state = NEW;
+                        sock->state = state; 
                         result = (PyObject *)slot->socket;
                     }
                     break;
