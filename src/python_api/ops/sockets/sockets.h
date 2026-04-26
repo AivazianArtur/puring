@@ -24,6 +24,7 @@ typedef enum SOCKET_STATES {
   BOUND,
   LISTENING,
   CONNECTED,
+  ACCEPTED,
   CLOSED
 } SOCKET_STATES;
 
@@ -34,7 +35,6 @@ typedef struct UringSocket {
     int sock_fd;
     UringLoop *loop;
     int domain;
-    int type;
     SOCKET_STATES state;
     bool closed;
 } UringSocket;
@@ -60,6 +60,13 @@ UringSocket_bind(
 );
 
 PyObject* 
+UringSocket_connect(
+    UringSocket *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject* 
 UringSocket_listen(
     UringSocket *self,
     PyObject *args,
@@ -67,7 +74,14 @@ UringSocket_listen(
 );
 
 PyObject* 
-UringSocket_connect(
+UringSocket_accept(
+    UringSocket *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject* 
+UringSocket_close(
     UringSocket *self,
     PyObject *args,
     PyObject *kwargs
@@ -88,15 +102,60 @@ UringSocket_recv(
 );
 
 PyObject* 
-UringSocket_accept(
+UringSocket_sendto(
     UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_close(
+UringSocket_recvfrom(
     UringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
+
+PyObject* 
+UringSocket_sendmsg(
+    UringSocket *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject* 
+UringSocket_recvmsg(
+    UringSocket *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject* 
+UringSocket_gesockname(
+    UringSocket *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject* 
+UringSocket_getpeername(
+    UringSocket *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject* 
+UringSocket_setsockopt(
+    UringSocket *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+PyObject* 
+UringSocket_getsockopt(
+    UringSocket *self,
+    PyObject *args,
+    PyObject *kwargs
+);
+
+
+struct sockaddr* serialize_address(const char *host, int port, int domain);

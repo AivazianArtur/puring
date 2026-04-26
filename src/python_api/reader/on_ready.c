@@ -60,6 +60,27 @@ void on_uring_ready(UringLoop *loop)
                         result = (PyObject *)slot->socket;
                     }
                     break;
+                case IORING_OP_BIND:
+                    if (slot->socket) {
+                        SOCKET_STATES state = BOUND;
+                        slot->socket->state = state; 
+                        result = PyLong_FromLong(cqe->res);
+                    }
+                    break; 
+                case IORING_OP_CONNECT:
+                    if (slot->socket) {
+                        SOCKET_STATES state = CONNECTED;
+                        slot->socket->state = state; 
+                        result = PyLong_FromLong(cqe->res);
+                    }
+                    break; 
+                case IORING_OP_LISTEN:
+                    if (slot->socket) {
+                        SOCKET_STATES state = LISTENING;
+                        slot->socket->state = state; 
+                        result = PyLong_FromLong(cqe->res);
+                    }
+                    break; 
                 case IORING_OP_ACCEPT:
                     if (slot->socket) {
                         UringSocket *conn = PyObject_New(UringSocket, &UringSocketType);
@@ -73,6 +94,8 @@ void on_uring_ready(UringLoop *loop)
                         conn->closed = false;
                         conn->loop = slot->socket->loop;
                         Py_INCREF(conn->loop);
+                        SOCKET_STATES state = ACCEPTED;
+                        slot->socket->state = state; 
                         result = (PyObject *)conn;
                     }
                     break;
@@ -85,6 +108,13 @@ void on_uring_ready(UringLoop *loop)
                         }
                     }
                     break;
+                case IORING_OP_CLOSE:
+                    if (slot->socket) {
+                        SOCKET_STATES state = CLOSED;
+                        slot->socket->state = state; 
+                        result = PyLong_FromLong(cqe->res);
+                    }
+                    break; 
                 default:
                     result = PyLong_FromLong(cqe->res);
             }

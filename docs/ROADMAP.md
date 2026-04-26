@@ -44,6 +44,7 @@
 - [ ] Support linked SQEs for chained operations.
 - [ ] Support `IOSQE_CQE_SKIP_SUCCESS` and `IOSQE_BUFFER_SELECT`.
 - [ ] Keep file descriptors registered (`io_uring_register_files`).
+- [ ] Persistent log of CQ and SQ entry for backuping, optional.
 
 
 ## v0.5.1 - Community & Contribution

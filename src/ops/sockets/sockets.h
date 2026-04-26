@@ -13,32 +13,31 @@
 #include "macroses.h"
 
 
+typedef enum SOCKET_STATES {
+  NEW,
+  BOUND,
+  LISTENING,
+  CONNECTED,
+  ACCEPTED,
+  CLOSED
+} SOCKET_STATES;
+
+
 int prep_socket(
     struct io_uring *ring, 
     int request_idx,
     int domain,
-    int type,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
-
 
 int uring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
     const struct sockaddr *addr,
-    socklen_t addrlen, 
     const void *buf,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-int uring_listen(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    int backlog,
+    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
@@ -48,7 +47,37 @@ int uring_connect(
     int request_idx,
     int fd,
     struct sockaddr *addr, 
-    socklen_t addrlen,
+    SOCKET_STATES state,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_listen(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    int backlog,
+    SOCKET_STATES state,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_accept(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct sockaddr *addr, 
+    socklen_t *len,
+    int flags,
+    SOCKET_STATES state,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_close_socket(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
@@ -60,6 +89,7 @@ int uring_send(
     const void *buf,
     size_t len,
     int flags,
+    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
@@ -69,27 +99,33 @@ int uring_recv(
     int request_idx,
     int sockfd,
 	void *buf,
-    size_t len,
     int flags,
+    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
 
-int uring_accept(
+int uring_sendto(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    const void *buf,
+    size_t len,
+    const struct sockaddr *addr,
+    int flags,
+    SOCKET_STATES state,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
 	void *buf,
-    socklen_t *len,
+    size_t len,
     int flags,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-int uring_close_socket(
-    struct io_uring *ring,
-    int request_idx,
-    int sockfd,
+    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
