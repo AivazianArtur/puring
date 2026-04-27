@@ -159,3 +159,4 @@ UringSocket_getsockopt(
 
 
 struct sockaddr* serialize_address(const char *host, int port, int domain);
+socklen_t get_socket_size(int domain);

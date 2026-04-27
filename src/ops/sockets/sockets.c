@@ -35,6 +35,7 @@ int uring_bind(
     int request_idx,
     int fd,
     const struct sockaddr *addr,
+    socklen_t addrlen,
     const void *buf,
     SOCKET_STATES state,
     // Below are optional
@@ -47,7 +48,6 @@ int uring_bind(
         return -2;
     }
 
-    socklen_t addrlen = sizeof(*addr);
     io_uring_prep_bind(sqe, fd, addr, addrlen);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
@@ -68,6 +68,7 @@ int uring_connect(
     int request_idx,
     int fd,
     struct sockaddr *addr, 
+    socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
@@ -79,7 +80,6 @@ int uring_connect(
         return -2;
     }
 
-    socklen_t addrlen = sizeof(*addr);
     io_uring_prep_connect(sqe, fd, addr, addrlen);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
@@ -217,6 +217,7 @@ int uring_recv(
     int request_idx,
     int sockfd,
 	void *buf,
+    size_t len,
     int flags,
     SOCKET_STATES state,
     // Below are optional
@@ -229,7 +230,7 @@ int uring_recv(
         return -2;
     }
 
-    io_uring_prep_recv(sqe, sockfd, buf, sizeof(*buf), flags);
+    io_uring_prep_recv(sqe, sockfd, buf, len, flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -250,19 +251,15 @@ int uring_sendto(
     const void *buf,
     size_t len,
     const struct sockaddr *addr,
+    size_t addrlen,
     int flags,
-    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 )
 {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
-    if (!(state == CONNECTED)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
-        return -2;
-    }
 
-    io_uring_prep_sendto(sqe, sockfd, buf, len, flags, addr, sizeof(*addr));
+    io_uring_prep_sendto(sqe, sockfd, buf, len, flags, addr, addrlen);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -282,20 +279,114 @@ int uring_recvfrom(
     int sockfd,
 	void *buf,
     size_t len,
+    struct sockaddr *addr, 
+    socklen_t addrlen,
     int flags,
-    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 )
 {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
-    if (!(state == CONNECTED)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
-        return -2;
-    }
 
-    struct msghdr *msg;
-    io_uring_prep_recvmsg(sqe, sockfd, msg, flags);
+    struct msghdr msg;
+    struct iovec iov;
+
+    memset(&msg, 0, sizeof(msg));
+
+    msg.msg_name = addr;
+    msg.msg_namelen = sizeof(addr);
+
+    iov.iov_base = buf;
+    iov.iov_len = len;
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+
+    io_uring_prep_recvmsg(sqe, sockfd, &msg, flags);
+
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        return 0;
+    }
+    return 1;
+}
+
+int uring_sendmsg(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    const struct sockaddr *addr,
+    size_t addrlen,
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+)
+{
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+
+    struct msghdr msg;
+    memset(&msg, 0, sizeof(msg));
+
+    msg.msg_iov = iovecs;
+    msg.msg_iovlen = nr_vecs;
+
+    msg.msg_name = (void *)addr;
+    msg.msg_namelen = addrlen;
+
+    // TODO: Anc.data in next versions
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+
+
+    io_uring_prep_sendmsg(sqe, sockfd, &msg, flags);
+
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
+
+    int result = io_uring_submit(ring);
+    if (result < 0) {
+        fprintf(stderr, "io_uring_submit failed: %s\n", strerror(-result));
+        return 0;
+    }
+    return 1;
+}
+
+
+int uring_recvmsg(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+)
+{
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    struct msghdr msg;
+
+    memset(&msg, 0, sizeof(msg));
+
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+
+    msg.msg_iov = iovecs;
+    msg.msg_iovlen = nr_vecs;
+
+    // TODO: Anc.data in next versions
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+
+    io_uring_prep_recvmsg(sqe, sockfd, &msg, flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);

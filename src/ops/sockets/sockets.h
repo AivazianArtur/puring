@@ -36,6 +36,7 @@ int uring_bind(
     int request_idx,
     int fd,
     const struct sockaddr *addr,
+    socklen_t addrlen,
     const void *buf,
     SOCKET_STATES state,
     // Below are optional
@@ -47,6 +48,7 @@ int uring_connect(
     int request_idx,
     int fd,
     struct sockaddr *addr, 
+    socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
@@ -99,6 +101,7 @@ int uring_recv(
     int request_idx,
     int sockfd,
 	void *buf,
+    size_t len,
     int flags,
     SOCKET_STATES state,
     // Below are optional
@@ -112,8 +115,8 @@ int uring_sendto(
     const void *buf,
     size_t len,
     const struct sockaddr *addr,
+    size_t addrlen,
     int flags,
-    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
@@ -124,8 +127,33 @@ int uring_recvfrom(
     int sockfd,
 	void *buf,
     size_t len,
+    struct sockaddr *addr, 
+    socklen_t addrlen,
     int flags,
-    SOCKET_STATES state,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_sendmsg(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    const struct sockaddr *addr,
+    size_t addrlen,
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_recvmsg(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int flags,
     // Below are optional
     struct TimeoutParams *timeout_params
 );

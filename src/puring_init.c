@@ -31,12 +31,16 @@ static PyMethodDef puring_loop_methods[] = {
 
 static PyMethodDef puring_socket_methods[] = {
     {"bind", (PyCFunction)UringSocket_bind, METH_VARARGS | METH_KEYWORDS, "Bind socket"},
-    {"listen", (PyCFunction)UringSocket_listen, METH_VARARGS | METH_KEYWORDS, "Listen socket"},
     {"connect", (PyCFunction)UringSocket_connect, METH_VARARGS | METH_KEYWORDS, "Connect"},
-    {"send", (PyCFunction)UringSocket_send, METH_VARARGS | METH_KEYWORDS, "Send"},
-    {"recv", (PyCFunction)UringSocket_recv, METH_VARARGS | METH_KEYWORDS, "Recv"},
+    {"listen", (PyCFunction)UringSocket_listen, METH_VARARGS | METH_KEYWORDS, "Listen socket"},
     {"accept", (PyCFunction)UringSocket_accept, METH_VARARGS | METH_KEYWORDS, "Accept"},
     {"close", (PyCFunction)UringSocket_close, METH_VARARGS | METH_KEYWORDS, "Close"},
+    {"send", (PyCFunction)UringSocket_send, METH_VARARGS | METH_KEYWORDS, "Send"},
+    {"recv", (PyCFunction)UringSocket_recv, METH_VARARGS | METH_KEYWORDS, "Recv"},
+    {"sendto", (PyCFunction)UringSocket_sendto, METH_VARARGS | METH_KEYWORDS, "Sendto"},
+    {"recvfrom", (PyCFunction)UringSocket_recvfrom, METH_VARARGS | METH_KEYWORDS, "Recvfrom"},
+    {"sendmsg", (PyCFunction)UringSocket_sendmsg, METH_VARARGS | METH_KEYWORDS, "Sendmsg"},
+    {"recvmsg", (PyCFunction)UringSocket_recvmsg, METH_VARARGS | METH_KEYWORDS, "Recvmsg"},
 
     {NULL, NULL, 0, NULL}
 };

@@ -102,6 +102,7 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
     if (!addr) {
         return NULL;
     }
+    socklen_t addrlen = get_socket_size(self->domain);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -130,6 +131,7 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
         request_idx,
         self->sock_fd,
         addr,
+        addrlen,
         buffer,
         self->state,
         &timeout_params
@@ -178,6 +180,7 @@ UringSocket_connect(
     if (!addr) {
         return NULL;
     }
+    socklen_t addrlen = get_socket_size(self->domain);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -203,7 +206,8 @@ UringSocket_connect(
         self->loop->ring,
         request_idx,
         self->sock_fd,
-        (struct sockaddr *)addr,
+        addr,
+        addrlen,
         self->state,
         &timeout_params
     );
@@ -323,6 +327,7 @@ UringSocket_accept(
 
     struct sockaddr *addr = NULL;
     addr = serialize_address(host, port, domain);
+    socklen_t addrlen = get_socket_size(domain);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -438,12 +443,11 @@ UringSocket_send(
         return NULL;
     }
 
-    const char* data;
-    Py_ssize_t data_len;
+    PyObject *data = NULL;
     int flags = 0;
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"data", "data_len", "flags", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "y#|iO", kwlist, &data, &data_len, &flags, &timeout_params_obj))) {
+    static char *kwlist[] = {"data", "flags", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", kwlist, &data, &flags, &timeout_params_obj))) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -455,10 +459,8 @@ UringSocket_send(
     }
 
     int opcode = IORING_OP_SEND;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->loop->registry, future, buffer, NULL, opcode, NULL, self
+        self->loop->registry, future, data, NULL, opcode, NULL, self
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -466,12 +468,21 @@ UringSocket_send(
         return NULL;
     }
 
+    char *buffer = PyBytes_AS_STRING(data);
+    if (!buffer) {
+        Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
+        return NULL;
+    }
+    Py_ssize_t size = PyBytes_GET_SIZE(data);
+
     int result = uring_send(
         self->loop->ring,
         request_idx,
         self->sock_fd,
-        data,
-        (socklen_t)data_len,
+        buffer,
+        (size_t)size,
         flags,
         self->state,
         &timeout_params
@@ -507,14 +518,37 @@ UringSocket_recv(
     }
 
     unsigned int bufsize = 1024;
+    PyObject *buffer_obj = NULL;
     int flags = 0;
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"bufsize", "flags", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", kwlist, &bufsize, &flags, &timeout_params_obj))) {
+    static char *kwlist[] = {"bufsize", "buffer", "flags", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|iOiO", kwlist, &bufsize, &buffer_obj, &flags, &timeout_params_obj))) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
+
+    void *buffer = NULL;
+    size_t buffer_len;
+
+    Py_buffer view;
+    int buffer_flag;
+    if (buffer_obj && buffer_obj != Py_None) {
+        if (PyObject_GetBuffer(buffer_obj, &view, PyBUF_WRITABLE) < 0) {
+            return NULL;
+        }
+        buffer_flag = 0;
+        buffer = view.buf;
+        buffer_len = view.len;
+    } else {
+        buffer = PyMem_Malloc(bufsize);
+        if (!buffer) {
+            PyErr_NoMemory();
+            return NULL;
+        }
+        buffer_len = (size_t)bufsize;
+        buffer_flag = 1;
+    }
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -522,12 +556,6 @@ UringSocket_recv(
     }
 
     int opcode = IORING_OP_RECV;
-    void *buffer = PyMem_Malloc(bufsize);
-    if (!buffer) {
-        Py_DECREF(future);
-        PyErr_NoMemory();
-        return NULL;
-    }
 
     int request_idx = registry_add(
         self->loop->registry, future, (PyObject*)buffer, NULL, opcode, NULL, self
@@ -544,10 +572,18 @@ UringSocket_recv(
         request_idx,
         self->sock_fd,
         buffer,
+        buffer_len,
         flags,
         self->state,
         &timeout_params
     );
+
+    if (buffer_flag == 0) {
+        PyBuffer_Release(&view);
+    } else {
+        PyMem_Free(buffer);
+    }
+
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -560,7 +596,6 @@ UringSocket_recv(
         registry_remove(self->loop->registry, request_idx);
         return NULL;
     }
-
     return future;
 }
 
@@ -578,21 +613,19 @@ UringSocket_sendto(
         return NULL;
     }
 
-    const char* data;
-    Py_ssize_t data_len;
+    PyObject *data = NULL;
     const char *host;
     int port;
     char domain;
     int flags = 0;
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"data", "data_len", "host", "port", "domain", "flags", "timeout_params", NULL};
+    static char *kwlist[] = {"data", "host", "port", "domain", "flags", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
         args,
         kwargs,
-        "y#sis|iO",
+        "Osis|iO",
         kwlist,
         &data,
-        &data_len,
         &host,
         &port,
         &domain,
@@ -602,9 +635,9 @@ UringSocket_sendto(
         return NULL;
     }
 
-
     struct sockaddr *addr = NULL;
-    addr = serialize_address(host, port, self->domain);
+    addr = serialize_address(host, port, domain);
+    socklen_t addrlen = get_socket_size(domain);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -615,10 +648,8 @@ UringSocket_sendto(
     }
 
     int opcode = IORING_OP_SENDMSG;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->loop->registry, future, buffer, NULL, opcode, NULL, self
+        self->loop->registry, future, data, NULL, opcode, NULL, self
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -626,15 +657,24 @@ UringSocket_sendto(
         return NULL;
     }
 
+    char *buffer = PyBytes_AS_STRING(data);
+    if (!buffer) {
+        Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
+        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
+        return NULL;
+    }
+    Py_ssize_t size = PyBytes_GET_SIZE(data);
+
     int result = uring_sendto(
         self->loop->ring,
         request_idx,
         self->sock_fd,
-        data,
-        (socklen_t)data_len,
+        buffer,
+        (size_t)size,
         addr,
+        addrlen,
         flags,
-        self->state,
         &timeout_params
     );
     if (result < 1) {
@@ -660,7 +700,6 @@ UringSocket_recvfrom(
     PyObject *args,
     PyObject *kwargs
 ) {
-
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -668,36 +707,75 @@ UringSocket_recvfrom(
         return NULL;
     }
 
+    const char *host;
+    int port;
+    char domain;
     unsigned int bufsize = 1024;
+    PyObject *buffer_obj = NULL;
     int flags = 0;
 
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"bufsize", "flags", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", kwlist, &bufsize , &flags, &timeout_params_obj))) {
+    static char *kwlist[] = {"bufsize", "buffer", "host", "port", "domain","flags", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(
+        args,
+        kwargs,
+        "|iOsisiO",
+        kwlist,
+        &bufsize,
+        &buffer_obj,
+        &host,
+        &port,
+        &domain,
+        &flags,
+        &timeout_params_obj
+    ))) {
         return NULL;
     }
-    TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+
+    struct sockaddr *addr = NULL;
+    addr = serialize_address(host, port, domain);
+    socklen_t addrlen = get_socket_size(domain);
+
+    void *buffer = NULL;
+    size_t buffer_len;
+
+    Py_buffer view;
+    int buffer_flag;
+    if (buffer_obj && buffer_obj != Py_None) {
+        if (PyObject_GetBuffer(buffer_obj, &view, PyBUF_WRITABLE) < 0) {
+            return NULL;
+        }
+        buffer_flag = 0;
+        buffer = view.buf;
+        buffer_len = view.len;
+    } else {
+        buffer = PyMem_Malloc(bufsize);
+        if (!buffer) {
+            PyErr_NoMemory();
+            return NULL;
+        }
+        buffer_len = (size_t)bufsize;
+        buffer_flag = 1;
+    }
 
     PyObject *future = create_future(self->loop);
     if (!future) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
 
     int opcode = IORING_OP_RECV;
-    char *buffer = PyMem_Malloc(bufsize);
-    if (!buffer) {
-        Py_DECREF(future);
-        PyErr_NoMemory();
-        return NULL;
-    }
 
     int request_idx = registry_add(
         self->loop->registry, future, (PyObject*)buffer, NULL, opcode, NULL, self
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyMem_Free(buffer);
+        if (buffer_flag == 0) {
+            PyBuffer_Release(&view);
+        } else {
+            PyMem_Free(buffer);
+        }
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
@@ -707,11 +785,19 @@ UringSocket_recvfrom(
         request_idx,
         self->sock_fd,
         buffer,
-        (size_t)bufsize,
+        buffer_len,
+        addr,
+        addrlen,
         flags,
-        self->state,
         &timeout_params
     );
+
+    if (buffer_flag == 0) {
+        PyBuffer_Release(&view);
+    } else {
+        PyMem_Free(buffer);
+    }
+
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -735,7 +821,113 @@ UringSocket_sendmsg(
     PyObject *args,
     PyObject *kwargs
 ) {
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_RING_LOOP_IS_CLOSING(self->loop);
+    if (self->closed) {
+        PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
+        return NULL;
+    }
+ 
+    PyObject *buffers_obj;
+    const char *host;
+    int port;
+    char domain;
+    int flags = 0;
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"buffers", "host", "port", "domain", "flags", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(
+        args,
+        kwargs,
+        "O|sisiO",
+        kwlist,
+        &buffers_obj,
+        &host,
+        &port,
+        &domain,
+        &flags,
+        &timeout_params_obj
+    ))) {
+        return NULL;
+    }
 
+    struct sockaddr *addr = NULL;
+    addr = serialize_address(host, port, domain);
+    socklen_t addrlen = get_socket_size(domain);
+
+    // Start Buff
+    PyObject *seq = PySequence_Fast(buffers_obj, "Buffers must be a sequence");
+    if (!seq) {
+        return NULL;
+    }
+    Py_ssize_t nr_vecs = PySequence_Fast_GET_SIZE(seq);
+    PyObject **items = PySequence_Fast_ITEMS(seq);
+
+    struct iovec *iovecs = PyMem_Malloc(sizeof(struct iovec) * nr_vecs);
+    if (!iovecs) {
+        Py_DECREF(seq);
+        return PyErr_NoMemory();
+    }
+
+    Py_buffer *iovecs_buf = PyMem_Malloc(sizeof(Py_buffer) * nr_vecs);
+
+    for (Py_ssize_t i = 0; i < nr_vecs; i++) {
+        if (PyObject_GetBuffer(items[i], &iovecs_buf[i], PyBUF_SIMPLE) < 0) {
+            for (Py_ssize_t j = 0; j < i; j++) {
+                PyBuffer_Release(&iovecs_buf[j]);
+            }
+            PyMem_Free(iovecs_buf);
+            PyMem_Free(iovecs);
+            Py_DECREF(seq);
+            return NULL;
+        }
+
+        iovecs[i].iov_base = iovecs_buf[i].buf;
+        iovecs[i].iov_len  = iovecs_buf[i].len;
+    }
+
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
+
+    PyObject *future = create_future(self->loop);
+    if (!future) {
+        return NULL;
+    }
+
+    int opcode = IORING_OP_SENDMSG;
+    int request_idx = registry_add(
+        self->loop->registry, future, NULL, iovecs_buf, opcode, NULL, self
+    );
+    if (request_idx < 0) {
+        Py_DECREF(future);
+        PyErr_SetString(PyExc_RuntimeError, "Registry is full");
+        return NULL;
+    }
+
+    int result = uring_sendmsg(
+        self->loop->ring,
+        request_idx,
+        self->sock_fd,
+        iovecs,
+        nr_vecs,
+        addr,
+        addrlen,
+        flags,
+        &timeout_params
+    );
+    if (result < 1) {
+        if (result == -1) {
+            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
+        } else if (result == -2) {
+            PyErr_SetString(PyExc_RuntimeError, "Wrong socket status.\n");
+        } else if (result == 0) {
+            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
+        }
+        Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
+        return NULL;
+    }
+
+    return future;
 }
 
 
@@ -745,7 +937,102 @@ UringSocket_recvmsg(
     PyObject *args,
     PyObject *kwargs
 ) {
+    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_RING_LOOP_IS_CLOSING(self->loop);
+    if (self->closed) {
+        PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
+        return NULL;
+    }
 
+    PyObject *buffers_obj;
+    int flags = 0;
+
+    PyObject *timeout_params_obj = NULL;
+    static char *kwlist[] = {"buffers", "flags", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(
+        args,
+        kwargs,
+        "O|iO",
+        kwlist,
+        &buffers_obj,
+        &flags,
+        &timeout_params_obj
+    ))) {
+        return NULL;
+    }
+
+    // Start Buff
+    PyObject *seq = PySequence_Fast(buffers_obj, "Buffers must be a sequence");
+    if (!seq) {
+        return NULL;
+    }
+    Py_ssize_t nr_vecs = PySequence_Fast_GET_SIZE(seq);
+    PyObject **items = PySequence_Fast_ITEMS(seq);
+
+    struct iovec *iovecs = PyMem_Malloc(sizeof(struct iovec) * nr_vecs);
+    if (!iovecs) {
+        Py_DECREF(seq);
+        return PyErr_NoMemory();
+    }
+
+    Py_buffer *iovecs_buf = PyMem_Malloc(sizeof(Py_buffer) * nr_vecs);
+
+    for (Py_ssize_t i = 0; i < nr_vecs; i++) {
+        if (PyObject_GetBuffer(items[i], &iovecs_buf[i], PyBUF_SIMPLE) < 0) {
+            for (Py_ssize_t j = 0; j < i; j++) {
+                PyBuffer_Release(&iovecs_buf[j]);
+            }
+            PyMem_Free(iovecs_buf);
+            PyMem_Free(iovecs);
+            Py_DECREF(seq);
+            return NULL;
+        }
+
+        iovecs[i].iov_base = iovecs_buf[i].buf;
+        iovecs[i].iov_len  = iovecs_buf[i].len;
+    }
+
+    PyObject *future = create_future(self->loop);
+    if (!future) {
+        return NULL;
+    }
+    TimeoutParams timeout_params = {0};
+
+    int opcode = IORING_OP_RECV;
+
+    int request_idx = registry_add(
+        self->loop->registry, future, NULL, iovecs_buf, opcode, NULL, self
+    );
+    if (request_idx < 0) {
+        Py_DECREF(future);
+        PyErr_SetString(PyExc_RuntimeError, "Registry is full");
+        return NULL;
+    }
+    
+    int result = uring_recvmsg(
+        self->loop->ring,
+        request_idx,
+        self->sock_fd,
+        iovecs,
+        nr_vecs,
+        flags,
+        &timeout_params
+    );
+
+    if (result < 1) {
+        if (result == -1) {
+            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
+        } else if (result == -2) {
+            PyErr_SetString(PyExc_RuntimeError, "Wrong socket status.\n");
+        } else if (result == 0) {
+            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
+        }
+        Py_DECREF(future);
+        registry_remove(self->loop->registry, request_idx);
+        return NULL;
+    }
+
+    return future;
 }
 
 
@@ -828,4 +1115,14 @@ struct sockaddr* serialize_address(const char *host, int port, int domain) {
     }
     memset(addr, 0, sizeof(*addr));
     return addr;
+}
+
+
+socklen_t get_socket_size(int domain) {
+    switch (domain) {
+        case AF_INET6:
+            return sizeof(struct sockaddr_in6);
+        default:
+            return sizeof(struct sockaddr_in);
+    }
 }
