@@ -28,6 +28,18 @@ typedef enum SOCKET_STATES {
   CLOSED
 } SOCKET_STATES;
 
+typedef struct IovecsResult {
+    struct iovec *iovecs;
+    Py_ssize_t nr_vecs;
+    Py_buffer *iovecs_buf;
+} IovecsResult;
+
+typedef struct BufferResult {
+    void *buffer;
+    size_t buffer_len;
+    Py_buffer *view;
+    int buffer_flag;
+} BufferResult;
 
 typedef struct UringSocket {
     PyObject_HEAD
@@ -129,34 +141,7 @@ UringSocket_recvmsg(
     PyObject *kwargs
 );
 
-PyObject* 
-UringSocket_gesockname(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-);
-
-PyObject* 
-UringSocket_getpeername(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-);
-
-PyObject* 
-UringSocket_setsockopt(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-);
-
-PyObject* 
-UringSocket_getsockopt(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-);
-
-
 struct sockaddr* serialize_address(const char *host, int port, int domain);
 socklen_t get_socket_size(int domain);
+IovecsResult* serialize_iovecs_buffer(PyObject *buffers_obj);
+BufferResult* get_buffer(PyObject *buffer_obj, int bufsize);

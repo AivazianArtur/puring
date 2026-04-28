@@ -37,7 +37,6 @@ int uring_bind(
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen,
-    const void *buf,
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params

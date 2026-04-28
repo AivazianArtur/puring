@@ -56,6 +56,9 @@
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
 
+## v0.6.0 - Additional functionality
+- [ ] Ancillary data support for sockets scatter-gather.
+- [ ] Support io_uring_prep_cmd_sock.
 
 ### Note
 This roadmap is expected to evolve as our understanding deepens and the project matures.
