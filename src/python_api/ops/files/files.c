@@ -71,13 +71,7 @@ UringLoop_open(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->registry,
-        future,
-        buffer,
-        NULL,
-        opcode,
-        file,
-        NULL
+        self->registry, future, buffer, NULL, opcode, file, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(file);
@@ -165,13 +159,7 @@ UringFile_read(
     }
 
     int request_idx = registry_add(
-        self->loop->registry,
-        future,
-        buffer,
-        NULL,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -197,7 +185,7 @@ UringFile_read(
         &timeout_params
     );
 
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -224,35 +212,9 @@ UringFile_readv(
         return NULL;
     }
     
-    // Start Buff
-    PyObject *seq = PySequence_Fast(buffers_obj, "Buffers must be a sequence");
-    if (!seq) {
+    IovecsResult *iovecs_result = _serialize_iovecs_buffer(buffers_obj);
+    if (iovecs_result) {
         return NULL;
-    }
-    Py_ssize_t nr_vecs = PySequence_Fast_GET_SIZE(seq);
-    PyObject **items = PySequence_Fast_ITEMS(seq);
-
-    struct iovec *iovecs = PyMem_Malloc(sizeof(struct iovec) * nr_vecs);
-    if (!iovecs) {
-        Py_DECREF(seq);
-        return PyErr_NoMemory();
-    }
-
-    Py_buffer *iovecs_buf = PyMem_Malloc(sizeof(Py_buffer) * nr_vecs);
-
-    for (Py_ssize_t i = 0; i < nr_vecs; i++) {
-        if (PyObject_GetBuffer(items[i], &iovecs_buf[i], PyBUF_SIMPLE) < 0) {
-            for (Py_ssize_t j = 0; j < i; j++) {
-                PyBuffer_Release(&iovecs_buf[j]);
-            }
-            PyMem_Free(iovecs_buf);
-            PyMem_Free(iovecs);
-            Py_DECREF(seq);
-            return NULL;
-        }
-
-        iovecs[i].iov_base = iovecs_buf[i].buf;
-        iovecs[i].iov_len  = iovecs_buf[i].len;
     }
 
     TimeoutParams timeout_params = {0};
@@ -265,13 +227,7 @@ UringFile_readv(
     int opcode = IORING_OP_READV;
 
     int request_idx = registry_add(
-        self->loop->registry,
-        future,
-        NULL,
-        iovecs_buf,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -283,14 +239,14 @@ UringFile_readv(
         self->loop->ring,
         request_idx,
         self->fd,
-        iovecs,
-        (unsigned) nr_vecs,
+        iovecs_result->iovecs,
+        iovecs_result->nr_vecs,
         offset,
         flags,
         &timeout_params
     );
 
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -341,13 +297,7 @@ UringFile_readv_raw(
     int opcode = IORING_OP_READV;
 
     int request_idx = registry_add(
-        self->loop->registry,
-        future,
-        NULL,
-        &iovecs_buf,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -366,7 +316,7 @@ UringFile_readv_raw(
         &timeout_params
     );
 
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -402,13 +352,7 @@ UringFile_write(
 
     int opcode = IORING_OP_WRITE;
     int request_idx = registry_add(
-        self->loop->registry, 
-        future,
-        data,
-        NULL,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, data, NULL, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -435,7 +379,7 @@ UringFile_write(
         &timeout_params
     );
 
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -464,35 +408,9 @@ UringFile_writev(
         return NULL;
     }
 
-    // Start Buff
-    PyObject *seq = PySequence_Fast(buffers_obj, "Buffers must be a sequence");
-    if (!seq) {
+    IovecsResult *iovecs_result = _serialize_iovecs_buffer(buffers_obj);
+    if (iovecs_result) {
         return NULL;
-    }
-    Py_ssize_t nr_vecs = PySequence_Fast_GET_SIZE(seq);
-    PyObject **items = PySequence_Fast_ITEMS(seq);
-
-    struct iovec *iovecs = PyMem_Malloc(sizeof(struct iovec) * nr_vecs);
-    if (!iovecs) {
-        Py_DECREF(seq);
-        return PyErr_NoMemory();
-    }
-
-    Py_buffer *iovecs_buf = PyMem_Malloc(sizeof(Py_buffer) * nr_vecs);
-
-    for (Py_ssize_t i = 0; i < nr_vecs; i++) {
-        if (PyObject_GetBuffer(items[i], &iovecs_buf[i], PyBUF_SIMPLE) < 0) {
-            for (Py_ssize_t j = 0; j < i; j++) {
-                PyBuffer_Release(&iovecs_buf[j]);
-            }
-            PyMem_Free(iovecs_buf);
-            PyMem_Free(iovecs);
-            Py_DECREF(seq);
-            return NULL;
-        }
-
-        iovecs[i].iov_base = iovecs_buf[i].buf;
-        iovecs[i].iov_len  = iovecs_buf[i].len;
     }
 
     TimeoutParams timeout_params = {0};
@@ -505,13 +423,7 @@ UringFile_writev(
 
     int opcode = IORING_OP_WRITEV;
     int request_idx = registry_add(
-        self->loop->registry, 
-        future,
-        NULL,
-        iovecs_buf,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -523,14 +435,14 @@ UringFile_writev(
         self->loop->ring,
         request_idx,
         self->fd,
-        iovecs,
-        (unsigned) nr_vecs,
+        iovecs_result->iovecs,
+        iovecs_result->nr_vecs,
         offset,
         flags,
         &timeout_params
     );
 
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -584,13 +496,7 @@ UringFile_writev_raw(
 
     int opcode = IORING_OP_WRITEV;
     int request_idx = registry_add(
-        self->loop->registry, 
-        future,
-        NULL,
-        &iovecs_buf,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -609,7 +515,7 @@ UringFile_writev_raw(
         &timeout_params
     );
 
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -650,13 +556,7 @@ UringFile_close(
         return PyErr_NoMemory();
     }
     int request_idx = registry_add(
-        self->loop->registry,
-        future,
-        buffer,
-        NULL,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -673,7 +573,7 @@ UringFile_close(
     }
     int result = uring_close_file(self->loop->ring, request_idx, self->fd, buf, &timeout_params);
 
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -708,13 +608,7 @@ UringFile_fsync(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->loop->registry,
-        future,
-        buffer,
-        NULL,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -723,7 +617,7 @@ UringFile_fsync(
     }
 
     int result = uring_fsync(self->loop->ring, request_idx, self->fd, &timeout_params);
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -758,13 +652,7 @@ UringFile_fdatasync(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->loop->registry,
-        future,
-        buffer,
-        NULL,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -773,7 +661,7 @@ UringFile_fdatasync(
     }
 
     int result = uring_fdatasync(self->loop->ring, request_idx, self->fd, &timeout_params);
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
 
@@ -827,13 +715,7 @@ UringFile_splice(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->loop->registry,
-        future,
-        buffer,
-        NULL,
-        opcode,
-        self,
-        NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -852,19 +734,19 @@ UringFile_splice(
         flag,
         &timeout_params
     );
-    return _check_result(result, self, request_idx, future);
+    return _check_file_result(result, self, request_idx, future);
 }
 
-static PyObject* _check_result(int result, UringFile *file, int request_idx, PyObject *future){
-    if (result < 0) {
+
+static PyObject* _check_file_result(int result, UringFile *file, int request_idx, PyObject *future){
+    if (result < 1) {
+        if (result == -1) {
+            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
+        } else if (result == 0) {
+            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
+        }
         Py_DECREF(future);
         registry_remove(file->loop->registry, request_idx);
-        PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
-        return NULL;
-    } else if (result == 0) {
-        Py_DECREF(future);
-        registry_remove(file->loop->registry, request_idx);
-        PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }
     return future;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <linux/openat2.h>
 #include <sys/socket.h>
@@ -12,53 +13,31 @@
 #include "macroses.h"
 
 
-/* Functions */
-// Init functions - their Future become socket, so next works with socket
-int tcp_socket(
-    struct io_uring *ring,
+typedef enum SOCKET_STATES {
+  NEW,
+  BOUND,
+  LISTENING,
+  CONNECTED,
+  ACCEPTED,
+  CLOSED
+} SOCKET_STATES;
+
+
+int prep_socket(
+    struct io_uring *ring, 
     int request_idx,
+    int domain,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
-
-int udp_socket(
-    struct io_uring *ring,
-    int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-int unix_stream(
-    struct io_uring *ring,
-    int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-int unix_dgram(
-    struct io_uring *ring,
-    int request_idx,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
 
 int uring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
     const struct sockaddr *addr,
-    socklen_t addrlen, 
-    const void *buf,
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-int uring_listen(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    int backlog,
+    socklen_t addrlen,
+    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
@@ -69,6 +48,37 @@ int uring_connect(
     int fd,
     struct sockaddr *addr, 
     socklen_t addrlen,
+    SOCKET_STATES state,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_listen(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    int backlog,
+    SOCKET_STATES state,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_accept(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct sockaddr *addr, 
+    socklen_t *len,
+    int flags,
+    SOCKET_STATES state,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_close_socket(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
@@ -80,6 +90,7 @@ int uring_send(
     const void *buf,
     size_t len,
     int flags,
+    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
@@ -91,25 +102,57 @@ int uring_recv(
 	void *buf,
     size_t len,
     int flags,
+    SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
 
-int uring_accept(
+int uring_sendto(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
-	void *buf,
-    socklen_t *len,
+    const void *buf,
+    size_t len,
+    const struct sockaddr *addr,
+    size_t addrlen,
     int flags,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
 
-int uring_close_socket(
+int uring_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
+	void *buf,
+    size_t len,
+    struct sockaddr *addr, 
+    socklen_t addrlen,
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_sendmsg(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    const struct sockaddr *addr,
+    size_t addrlen,
+    int flags,
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int uring_recvmsg(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int flags,
     // Below are optional
     struct TimeoutParams *timeout_params
 );
