@@ -108,6 +108,11 @@ void on_uring_ready(UringLoop *loop)
                         }
                     }
                     break;
+                case IORING_OP_RECVMSG:
+                    if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
+                        result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                    }
+                    break;
                 case IORING_OP_CLOSE:
                     if (slot->socket) {
                         SOCKET_STATES state = CLOSED;

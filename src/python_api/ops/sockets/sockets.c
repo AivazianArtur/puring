@@ -98,11 +98,11 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    struct sockaddr *addr = serialize_address(host, port, self->domain);
+    struct sockaddr *addr = _serialize_address(host, port, self->domain);
     if (!addr) {
         return NULL;
     }
-    socklen_t addrlen = get_socket_size(self->domain);
+    socklen_t addrlen = _get_socket_size(self->domain);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -135,21 +135,9 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
         self->state,
         &timeout_params
     );
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == -2) {
-            PyErr_SetString(PyExc_RuntimeError, "Wrong socket status.\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        free(addr);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
+
     free(addr);
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -175,11 +163,11 @@ UringSocket_connect(
         return NULL;
     }
 
-    struct sockaddr *addr = serialize_address(host, port, self->domain);
+    struct sockaddr *addr = _serialize_address(host, port, self->domain);
     if (!addr) {
         return NULL;
     }
-    socklen_t addrlen = get_socket_size(self->domain);
+    socklen_t addrlen = _get_socket_size(self->domain);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -210,19 +198,8 @@ UringSocket_connect(
         self->state,
         &timeout_params
     );
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == -2) {
-            PyErr_SetString(PyExc_RuntimeError, "Wrong socket status.\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-    return future;
+
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -272,19 +249,7 @@ UringSocket_listen(
     int result = uring_listen(
         self->loop->ring, request_idx, self->sock_fd, backlog, self->state, &timeout_params
     ); 
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == -2) {
-            PyErr_SetString(PyExc_RuntimeError, "Wrong socket status.\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -325,8 +290,8 @@ UringSocket_accept(
     }
 
     struct sockaddr *addr = NULL;
-    addr = serialize_address(host, port, domain);
-    socklen_t addrlen = get_socket_size(domain);
+    addr = _serialize_address(host, port, domain);
+    socklen_t addrlen = _get_socket_size(domain);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -357,19 +322,7 @@ UringSocket_accept(
         self->state,
         &timeout_params
     );
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == -2) {
-            PyErr_SetString(PyExc_RuntimeError, "Wrong socket status.\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -415,17 +368,7 @@ UringSocket_close(
     }
 
     int result = uring_close_socket(self->loop->ring, request_idx, self->sock_fd, &timeout_params);
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -487,20 +430,7 @@ UringSocket_send(
         self->state,
         &timeout_params
     );
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == -2) {
-            PyErr_SetString(PyExc_RuntimeError, "Wrong socket status.\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 PyObject*
@@ -528,7 +458,7 @@ UringSocket_recv(
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    BufferResult *buffer_result = get_buffer(buffer_obj, bufsize);
+    BufferResult *buffer_result = _get_buffer(buffer_obj, bufsize);
     if (buffer_result) {
         return NULL;
     }
@@ -567,19 +497,7 @@ UringSocket_recv(
         PyMem_Free(buffer_result->buffer);
     }
 
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == -2) {
-            PyErr_SetString(PyExc_RuntimeError, "Wrong socket status.\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -619,8 +537,8 @@ UringSocket_sendto(
     }
 
     struct sockaddr *addr = NULL;
-    addr = serialize_address(host, port, domain);
-    socklen_t addrlen = get_socket_size(domain);
+    addr = _serialize_address(host, port, domain);
+    socklen_t addrlen = _get_socket_size(domain);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -660,18 +578,7 @@ UringSocket_sendto(
         flags,
         &timeout_params
     );
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -714,10 +621,10 @@ UringSocket_recvfrom(
     }
 
     struct sockaddr *addr = NULL;
-    addr = serialize_address(host, port, domain);
-    socklen_t addrlen = get_socket_size(domain);
+    addr = _serialize_address(host, port, domain);
+    socklen_t addrlen = _get_socket_size(domain);
 
-    BufferResult *buffer_result = get_buffer(buffer_obj, bufsize);
+    BufferResult *buffer_result = _get_buffer(buffer_obj, bufsize);
     if (buffer_result) {
         return NULL;
     }
@@ -728,7 +635,7 @@ UringSocket_recvfrom(
     }
     TimeoutParams timeout_params = {0};
 
-    int opcode = IORING_OP_RECV;
+    int opcode = IORING_OP_RECVMSG;
 
     int request_idx = registry_add(
         self->loop->registry, future, (PyObject*)buffer_result->buffer, NULL, opcode, NULL, self
@@ -762,18 +669,7 @@ UringSocket_recvfrom(
         PyMem_Free(buffer_result->buffer);
     }
 
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -813,10 +709,10 @@ UringSocket_sendmsg(
     }
 
     struct sockaddr *addr = NULL;
-    addr = serialize_address(host, port, domain);
-    socklen_t addrlen = get_socket_size(domain);
+    addr = _serialize_address(host, port, domain);
+    socklen_t addrlen = _get_socket_size(domain);
 
-    IovecsResult *iovecs_result = serialize_iovecs_buffer(buffers_obj);
+    IovecsResult *iovecs_result = _serialize_iovecs_buffer(buffers_obj);
     if (iovecs_result) {
         return NULL;
     }
@@ -852,19 +748,7 @@ UringSocket_sendmsg(
     );
 
     free(iovecs_result);
-
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-
-    return future;
+    return _check_sockets_result(result, self, request_idx, future);
 }
 
 
@@ -898,7 +782,7 @@ UringSocket_recvmsg(
         return NULL;
     }
 
-    IovecsResult *iovecs_result = serialize_iovecs_buffer(buffers_obj);
+    IovecsResult *iovecs_result = _serialize_iovecs_buffer(buffers_obj);
     if (iovecs_result) {
         return NULL;
     }
@@ -909,7 +793,7 @@ UringSocket_recvmsg(
     }
     TimeoutParams timeout_params = {0};
 
-    int opcode = IORING_OP_RECV;
+    int opcode = IORING_OP_RECVMSG;
 
     int request_idx = registry_add(
         self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, NULL, self
@@ -931,140 +815,5 @@ UringSocket_recvmsg(
     );
 
     free(iovecs_result);
-
-    if (result < 1) {
-        if (result == -1) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
-        } else if (result == 0) {
-            PyErr_SetString(PyExc_RuntimeError, "SQE submission failed\n");
-        }
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-
-    return future;
-}
-
-
-struct sockaddr* serialize_address(const char *host, int port, int domain) {
-    struct sockaddr *addr;
-    if (domain == AF_INET) {
-        struct sockaddr_in *temp_addr = malloc(sizeof(*temp_addr));
-        if (!temp_addr) {
-            PyErr_NoMemory();
-            return NULL;
-        }
-    
-        temp_addr->sin_family=AF_INET;
-        temp_addr->sin_port = htons(port);
-        if (inet_pton(AF_INET, host, &temp_addr->sin_addr) != 1) {
-            free(temp_addr);
-            PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IP address");
-            return NULL;
-        }
-        addr = (struct sockaddr*)temp_addr;
-        free(temp_addr);
-    } else if (domain == AF_INET6) {
-        struct sockaddr_in6 *temp_addr = malloc(sizeof(*temp_addr));
-        if (!addr) {
-            PyErr_NoMemory();
-            return NULL;
-        }
-    
-        temp_addr->sin6_family=AF_INET;
-        temp_addr->sin6_port = htons(port);
-        if (inet_pton(AF_INET, host, &temp_addr->sin6_addr) != 1) {
-            free(temp_addr);
-            PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IP address");
-            return NULL;
-        }
-        addr = (struct sockaddr*)temp_addr;
-        free(temp_addr);
-    } else {
-        return NULL;
-    }
-    memset(addr, 0, sizeof(*addr));
-    return addr;
-}
-
-
-socklen_t get_socket_size(int domain) {
-    switch (domain) {
-        case AF_INET6:
-            return sizeof(struct sockaddr_in6);
-        default:
-            return sizeof(struct sockaddr_in);
-    }
-}
-
-IovecsResult* serialize_iovecs_buffer(PyObject *buffers_obj) {
-    PyObject *seq = PySequence_Fast(buffers_obj, "Buffers must be a sequence");
-    if (!seq) {
-        return NULL;
-    }
-    Py_ssize_t nr_vecs = PySequence_Fast_GET_SIZE(seq);
-    PyObject **items = PySequence_Fast_ITEMS(seq);
-
-    struct iovec *iovecs = PyMem_Malloc(sizeof(struct iovec) * nr_vecs);
-    if (!iovecs) {
-        Py_DECREF(seq);
-        PyErr_NoMemory();
-        return NULL;
-    }
-
-    Py_buffer *iovecs_buf = PyMem_Malloc(sizeof(Py_buffer) * nr_vecs);
-
-    for (Py_ssize_t i = 0; i < nr_vecs; i++) {
-        if (PyObject_GetBuffer(items[i], &iovecs_buf[i], PyBUF_SIMPLE) < 0) {
-            for (Py_ssize_t j = 0; j < i; j++) {
-                PyBuffer_Release(&iovecs_buf[j]);
-            }
-            PyMem_Free(iovecs_buf);
-            PyMem_Free(iovecs);
-            Py_DECREF(seq);
-            
-            return NULL;
-        }
-
-        iovecs[i].iov_base = iovecs_buf[i].buf;
-        iovecs[i].iov_len  = iovecs_buf[i].len;
-    }
-
-    IovecsResult *result = malloc(sizeof(IovecsResult));
-    result->nr_vecs = nr_vecs;
-    result->iovecs = iovecs;
-    result->iovecs_buf = iovecs_buf;
-    return result;
-}
-
-BufferResult* get_buffer(PyObject *buffer_obj, int bufsize) {
-    void *buffer = NULL;
-    size_t buffer_len;
-
-    Py_buffer view;
-    int buffer_flag;
-    if (buffer_obj && buffer_obj != Py_None) {
-        if (PyObject_GetBuffer(buffer_obj, &view, PyBUF_WRITABLE) < 0) {
-            return NULL;
-        }
-        buffer_flag = 0;
-        buffer = view.buf;
-        buffer_len = view.len;
-    } else {
-        buffer = PyMem_Malloc(bufsize);
-        if (!buffer) {
-            PyErr_NoMemory();
-            return NULL;
-        }
-        buffer_len = (size_t)bufsize;
-        buffer_flag = 1;
-    }
-
-    BufferResult *result = malloc(sizeof(BufferResult));
-    result->buffer = buffer;
-    result->buffer_len = buffer_len;
-    result->view = &view;
-    result->buffer_flag = buffer_flag;
-    return result;
+    return _check_sockets_result(result, self, request_idx, future);
 }
