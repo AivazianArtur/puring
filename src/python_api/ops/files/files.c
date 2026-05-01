@@ -71,7 +71,7 @@ UringLoop_open(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->registry, future, buffer, NULL, opcode, file, NULL
+        self->registry, future, buffer, NULL, opcode, file, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(file);
@@ -159,7 +159,7 @@ UringFile_read(
     }
 
     int request_idx = registry_add(
-        self->loop->registry, future, buffer, NULL, opcode, self, NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -227,7 +227,7 @@ UringFile_readv(
     int opcode = IORING_OP_READV;
 
     int request_idx = registry_add(
-        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, self, NULL
+        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -297,7 +297,7 @@ UringFile_readv_raw(
     int opcode = IORING_OP_READV;
 
     int request_idx = registry_add(
-        self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL
+        self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -352,7 +352,7 @@ UringFile_write(
 
     int opcode = IORING_OP_WRITE;
     int request_idx = registry_add(
-        self->loop->registry, future, data, NULL, opcode, self, NULL
+        self->loop->registry, future, data, NULL, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -423,7 +423,7 @@ UringFile_writev(
 
     int opcode = IORING_OP_WRITEV;
     int request_idx = registry_add(
-        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, self, NULL
+        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -496,7 +496,7 @@ UringFile_writev_raw(
 
     int opcode = IORING_OP_WRITEV;
     int request_idx = registry_add(
-        self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL
+        self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -556,7 +556,7 @@ UringFile_close(
         return PyErr_NoMemory();
     }
     int request_idx = registry_add(
-        self->loop->registry, future, buffer, NULL, opcode, self, NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -608,7 +608,7 @@ UringFile_fsync(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->loop->registry, future, buffer, NULL, opcode, self, NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -652,7 +652,7 @@ UringFile_fdatasync(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->loop->registry, future, buffer, NULL, opcode, self, NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -715,7 +715,7 @@ UringFile_splice(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->loop->registry, future, buffer, NULL, opcode, self, NULL
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);

@@ -37,6 +37,7 @@ typedef struct UringSocket {
     UringLoop *loop;
     int domain;
     SOCKET_STATES state;
+    struct sockaddr *addr;
     bool closed;
 } UringSocket;
 

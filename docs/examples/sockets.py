@@ -1,4 +1,5 @@
 import sys
+import socket
 
 sys.path.insert(0, '')
 
@@ -15,17 +16,17 @@ async def main():
     loop.add_reader()
     print('Reader added')
 
-    server_sock = await loop.tcp_socket()
+    server_sock = await loop.prep_socket()
     print(f'{server_sock = }')
     await server_sock.bind(HOST, PORT)
     await server_sock.listen(1)
     print(f'Server listening on {HOST}:{PORT}')
 
-    accept_future = server_sock.accept(1024, 0)
-
+    accept_future = server_sock.accept('127.0.0.1', 8686, socket.AF_INET, 1024, 0)
     client_loop = puring.uring(registry_size=8)
     client_loop.add_reader()
-    client_sock = await client_loop.tcp_socket()
+    client_sock = await client_loop.prep_socket()
+
     await client_sock.connect(HOST, PORT)
     print('Client connected')
 

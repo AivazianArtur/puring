@@ -11,7 +11,7 @@
 typedef struct UringSocket UringSocket;
 typedef struct UringFile UringFile;
 
-typedef struct {
+typedef struct RequestSlot {
     uint64_t user_data;
     PyObject *future;
     PyObject *buffer;
@@ -19,10 +19,11 @@ typedef struct {
     int opcode;
     UringFile *file;
     UringSocket *socket;
+    struct sockaddr *addr;
 } RequestSlot;
 
 
-typedef struct {
+typedef struct RequestRegistry {
     RequestSlot *slots;
     int *available_indices;
     int top;
@@ -40,8 +41,9 @@ int registry_add(
     Py_buffer *iovecs_buffer,
     int opcode,
     UringFile *file,
-    UringSocket *socket
-);
+    UringSocket *socket,
+    struct sockaddr *sockaddr
+); 
 
 RequestSlot* registry_get(RequestRegistry *reg, int index);
 

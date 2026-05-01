@@ -83,6 +83,8 @@ void on_uring_ready(UringLoop *loop)
                     break; 
                 case IORING_OP_ACCEPT:
                     if (slot->socket) {
+                        struct sockaddr_storage *peer_addr = (struct sockaddr_storage *)slot->addr;
+
                         UringSocket *conn = PyObject_New(UringSocket, &UringSocketType);
                         if (!conn) {
                             PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
@@ -93,9 +95,13 @@ void on_uring_ready(UringLoop *loop)
                         conn->sock_fd = cqe->res;
                         conn->closed = false;
                         conn->loop = slot->socket->loop;
-                        Py_INCREF(conn->loop);
-                        SOCKET_STATES state = ACCEPTED;
-                        slot->socket->state = state; 
+                        conn->state = ACCEPTED;
+
+                        memcpy(&conn->addr, peer_addr, sizeof(struct sockaddr_storage));
+
+                        free(peer_addr);
+                        slot->buffer = NULL;
+
                         result = (PyObject *)conn;
                     }
                     break;
@@ -116,7 +122,9 @@ void on_uring_ready(UringLoop *loop)
                 case IORING_OP_CLOSE:
                     if (slot->socket) {
                         SOCKET_STATES state = CLOSED;
-                        slot->socket->state = state; 
+                        slot->socket->state = state;
+                        result = PyLong_FromLong(cqe->res);
+                    } else if (slot->file) {
                         result = PyLong_FromLong(cqe->res);
                     }
                     break; 
@@ -134,5 +142,4 @@ void on_uring_ready(UringLoop *loop)
         registry_remove(loop->registry, index);
         io_uring_cqe_seen(loop->ring, cqe);
     }
-
 }

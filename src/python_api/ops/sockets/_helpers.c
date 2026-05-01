@@ -37,27 +37,24 @@ struct sockaddr* _serialize_address(const char *host, int port, int domain) {
             return NULL;
         }
         addr = (struct sockaddr*)temp_addr;
-        free(temp_addr);
     } else if (domain == AF_INET6) {
         struct sockaddr_in6 *temp_addr = malloc(sizeof(*temp_addr));
-        if (!addr) {
+        if (!temp_addr) {
             PyErr_NoMemory();
             return NULL;
         }
     
-        temp_addr->sin6_family=AF_INET;
+        temp_addr->sin6_family=AF_INET6;
         temp_addr->sin6_port = htons(port);
-        if (inet_pton(AF_INET, host, &temp_addr->sin6_addr) != 1) {
+        if (inet_pton(AF_INET6, host, &temp_addr->sin6_addr) != 1) {
             free(temp_addr);
             PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IP address");
             return NULL;
         }
         addr = (struct sockaddr*)temp_addr;
-        free(temp_addr);
     } else {
         return NULL;
     }
-    memset(addr, 0, sizeof(*addr));
     return addr;
 }
 

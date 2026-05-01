@@ -67,7 +67,8 @@ int registry_add(
     Py_buffer *iovecs_buffer,
     int opcode,
     UringFile *file,
-    UringSocket *socket
+    UringSocket *socket,
+    struct sockaddr *sockaddr
 ) 
 {
     if (reg->top < 0) {
@@ -95,6 +96,8 @@ int registry_add(
     slot->file = file;
     if (socket != NULL) Py_INCREF(socket);
     if (file != NULL) Py_INCREF(file);
+
+    slot->addr = sockaddr;
 
     return index;
 }
