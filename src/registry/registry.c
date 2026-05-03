@@ -68,7 +68,7 @@ int registry_add(
     int opcode,
     UringFile *file,
     UringSocket *socket,
-    struct sockaddr *sockaddr
+    struct sockaddr_storage *sockaddr
 ) 
 {
     if (reg->top < 0) {

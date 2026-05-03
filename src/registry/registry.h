@@ -19,7 +19,7 @@ typedef struct RequestSlot {
     int opcode;
     UringFile *file;
     UringSocket *socket;
-    struct sockaddr *addr;
+    struct sockaddr_storage *addr;
 } RequestSlot;
 
 
@@ -42,7 +42,7 @@ int registry_add(
     int opcode,
     UringFile *file,
     UringSocket *socket,
-    struct sockaddr *sockaddr
+    struct sockaddr_storage *sockaddr
 ); 
 
 RequestSlot* registry_get(RequestRegistry *reg, int index);

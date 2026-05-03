@@ -22,7 +22,7 @@ async def main():
     await server_sock.listen(1)
     print(f'Server listening on {HOST}:{PORT}')
 
-    accept_future = server_sock.accept('127.0.0.1', 8686, socket.AF_INET, 1024, 0)
+    accept_future = server_sock.accept()
     client_loop = puring.uring(registry_size=8)
     client_loop.add_reader()
     client_sock = await client_loop.prep_socket()

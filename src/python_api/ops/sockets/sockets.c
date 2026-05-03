@@ -275,7 +275,7 @@ UringSocket_accept(
     if (!(PyArg_ParseTupleAndKeywords(
         args,
         kwargs,
-        "|iiO",
+        "|iO",
         kwlist,
         &flags,
         &timeout_params_obj
@@ -291,8 +291,9 @@ UringSocket_accept(
         return NULL;
     }
 
-    socklen_t addrlen = sizeof(struct sockaddr_storage);
-    struct sockaddr_storage *peer_addr = calloc(1, addrlen);
+    socklen_t *addrlen = malloc(sizeof(socklen_t));
+    *addrlen = sizeof(struct sockaddr_storage);
+    struct sockaddr_storage *peer_addr = calloc(1, sizeof(struct sockaddr_storage));
 
     int opcode = IORING_OP_ACCEPT;
     // TEMP: no buffer
@@ -311,7 +312,7 @@ UringSocket_accept(
         request_idx,
         self->sock_fd,
         (struct sockaddr *)peer_addr,
-        &addrlen,
+        addrlen,
         flags,
         self->state,
         &timeout_params
@@ -452,11 +453,13 @@ UringSocket_recv(
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
+    PySys_WriteStdout("Hello from C: %d\n", 00);
     BufferResult *buffer_result = _get_buffer(buffer_obj, bufsize);
     if (buffer_result) {
         return NULL;
     }
     
+    PySys_WriteStdout("Hello from C: %d\n", 05);
     PyObject *future = create_future(self->loop);
     if (!future) {
         return NULL;
@@ -484,12 +487,13 @@ UringSocket_recv(
         self->state,
         &timeout_params
     );
-
+    PySys_WriteStdout("Hello from C: %d\n", 42);
     if (buffer_result->buffer_flag == 0) {
         PyBuffer_Release(buffer_result->view);
     } else {
         PyMem_Free(buffer_result->buffer);
     }
+    PySys_WriteStdout("Hello from C: %d\n", 44);
 
     return _check_sockets_result(result, self, request_idx, future);
 }

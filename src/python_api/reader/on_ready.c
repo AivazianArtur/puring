@@ -97,7 +97,7 @@ void on_uring_ready(UringLoop *loop)
                         conn->loop = slot->socket->loop;
                         conn->state = ACCEPTED;
 
-                        memcpy(&conn->addr, peer_addr, sizeof(struct sockaddr_storage));
+                        memcpy(&conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage));
 
                         free(peer_addr);
                         slot->buffer = NULL;
