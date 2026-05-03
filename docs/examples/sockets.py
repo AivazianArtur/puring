@@ -7,7 +7,7 @@ import asyncio
 import puring
 
 HOST = '127.0.0.1'
-PORT = 12345
+PORT = 12878
 
 async def main():
     loop = puring.uring(registry_size=8)

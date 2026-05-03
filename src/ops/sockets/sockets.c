@@ -224,7 +224,7 @@ int uring_recv(
 )
 {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
-    if (!(state == CONNECTED)) {
+    if (!(state == CONNECTED || state == ACCEPTING)) {
         fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
         return -2;
     }

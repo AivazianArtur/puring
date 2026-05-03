@@ -453,13 +453,12 @@ UringSocket_recv(
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    PySys_WriteStdout("Hello from C: %d\n", 00);
     BufferResult *buffer_result = _get_buffer(buffer_obj, bufsize);
-    if (buffer_result) {
+    if (!buffer_result) {
+        PyErr_SetString(PyExc_RuntimeError, "Error while getting buffer");
         return NULL;
     }
     
-    PySys_WriteStdout("Hello from C: %d\n", 05);
     PyObject *future = create_future(self->loop);
     if (!future) {
         return NULL;
@@ -487,13 +486,6 @@ UringSocket_recv(
         self->state,
         &timeout_params
     );
-    PySys_WriteStdout("Hello from C: %d\n", 42);
-    if (buffer_result->buffer_flag == 0) {
-        PyBuffer_Release(buffer_result->view);
-    } else {
-        PyMem_Free(buffer_result->buffer);
-    }
-    PySys_WriteStdout("Hello from C: %d\n", 44);
 
     return _check_sockets_result(result, self, request_idx, future);
 }
@@ -627,7 +619,8 @@ UringSocket_recvfrom(
     socklen_t addrlen = _get_socket_size(domain);
 
     BufferResult *buffer_result = _get_buffer(buffer_obj, bufsize);
-    if (buffer_result) {
+    if (!buffer_result) {
+        PyErr_SetString(PyExc_RuntimeError, "Error while getting buffer");
         return NULL;
     }
 
@@ -645,11 +638,6 @@ UringSocket_recvfrom(
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        if (buffer_result->buffer_flag == 0) {
-            PyBuffer_Release(buffer_result->view);
-        } else {
-            PyMem_Free(buffer_result->buffer);
-        }
         free(addr);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
@@ -667,11 +655,6 @@ UringSocket_recvfrom(
         &timeout_params
     );
 
-    if (buffer_result->buffer_flag == 0) {
-        PyBuffer_Release(buffer_result->view);
-    } else {
-        PyMem_Free(buffer_result->buffer);
-    }
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);
 }

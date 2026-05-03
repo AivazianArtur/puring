@@ -95,7 +95,7 @@ void on_uring_ready(UringLoop *loop)
                         conn->sock_fd = cqe->res;
                         conn->closed = false;
                         conn->loop = slot->socket->loop;
-                        conn->state = ACCEPTED;
+                        conn->state = ACCEPTING;
 
                         memcpy(&conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage));
 
@@ -112,12 +112,18 @@ void on_uring_ready(UringLoop *loop)
                         } else if (cqe->res > 0) {
                             result = PyBytes_FromStringAndSize((char *)slot->buffer, cqe->res);
                         }
+                        PyMem_Free(slot->buffer);
                     }
                     break;
                 case IORING_OP_RECVMSG:
                     if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
                         result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
                     }
+                    PyBuffer_Release(slot->iovecs_buffer); 
+                    PyMem_Free(slot->buffer);
+                    break;
+                case IORING_OP_SENDMSG:
+                    PyMem_Free(slot->iovecs_buffer);
                     break;
                 case IORING_OP_CLOSE:
                     if (slot->socket) {

@@ -17,7 +17,6 @@ typedef struct BufferResult {
     void *buffer;
     size_t buffer_len;
     Py_buffer *view;
-    int buffer_flag;
 } BufferResult;
 
 
