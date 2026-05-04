@@ -16,7 +16,8 @@
 - [X] Add not implemented `file` methods.
 - [ ] Add not implemented `socket` methods.
 - [ ] Finish AbstractEventLoop Protocol.
-- [ ] Publish library on PyPI (`pip` installable).
+- [ ] Add tests.
+- [ ] Implement GitHub CI.
 
 ## v0.3.5 - Buffer features
 - [ ] Implement fixed buffers (`io_uring_register_buffers`).
@@ -24,6 +25,7 @@
 - [ ] Use Python application buffers as `UringLoop` buffers.
 - [ ] Implement a puring-based memory pool for buffers.
 - [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
+- [ ] Publish library on PyPI (`pip` installable).
 
 ## v0.4.0 - Async Runtime & Architecture
 - [ ] Run reader in separate thread.
@@ -48,8 +50,6 @@
 
 
 ## v0.5.1 - Community & Contribution
-- [ ] Add tests.
-- [ ] Implement GitHub CI.
 - [ ] Document everything.
 - [ ] Add contribution support:
     - [ ] Write contribution guidelines.
