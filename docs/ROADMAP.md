@@ -14,7 +14,7 @@
 - [X] Add timer support (`IORING_OP_TIMEOUT`).
 - [X] Add signal handling (`SIGINT`, `SIGTERM`, `SIGQUIT`) via `IORING_OP_POLL_ADD`.
 - [X] Add not implemented `file` methods.
-- [ ] Add not implemented `socket` methods.
+- [X] Add not implemented `socket` methods.
 - [ ] Finish AbstractEventLoop Protocol.
 - [ ] Add tests.
 - [ ] Implement GitHub CI.
