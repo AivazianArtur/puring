@@ -18,6 +18,7 @@
 #include "python_api/loop/loop.h"
 #include "python_api/future/future.h"
 #include "python_api/timer/timer.h"
+#include "python_api/buffers/buffers.h"
 #include "python_macroses.h"
 
 
@@ -112,7 +113,7 @@ UringFile_splice(
     PyObject *kwargs
 );
 
-static PyObject* _check_result(int result, UringFile *file, int request_idx, PyObject *future);
+static PyObject* _check_file_result(int result, UringFile *file, int request_idx, PyObject *future);
 
 PyObject* create_resolve_enum(void);
 PyObject* create_statx_flags_enum(void);

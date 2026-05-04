@@ -39,13 +39,7 @@ UringLoop_timer(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        loop->registry,
-        future,
-        buffer,
-        NULL,
-        opcode,
-        NULL,
-        NULL
+        loop->registry, future, buffer, NULL, opcode, NULL, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
