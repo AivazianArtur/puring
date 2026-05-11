@@ -2,8 +2,8 @@
 
 
 PyObject*
-UringLoop_prep_socket(
-    UringLoop *self,
+PuringLoop_prep_socket(
+    PuringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -11,7 +11,7 @@ UringLoop_prep_socket(
     ASSERT_LOOP_THREAD(self->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
-    UringSocket *sock = PyObject_New(UringSocket, &UringSocketType);
+    PuringSocket *sock = PyObject_New(PuringSocket, &PuringSocketType);
     if (!sock) {
         return PyErr_NoMemory();
     }
@@ -70,7 +70,7 @@ UringLoop_prep_socket(
 
 
 void 
-UringSocket_dealloc(UringSocket *self)
+PuringSocket_dealloc(PuringSocket *self)
 {
     self->closed = true;
     if (self->loop) {
@@ -81,7 +81,7 @@ UringSocket_dealloc(UringSocket *self)
 
 
 PyObject*
-UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
+PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -142,11 +142,7 @@ UringSocket_bind(UringSocket *self, PyObject *args, PyObject *kwargs)
 
 
 PyObject*
-UringSocket_connect(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -206,11 +202,7 @@ UringSocket_connect(
 
 
 PyObject*
-UringSocket_listen(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -256,11 +248,7 @@ UringSocket_listen(
 
 
 PyObject*
-UringSocket_accept(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -322,10 +310,7 @@ UringSocket_accept(
 
 
 PyObject*
-UringSocket_close(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
+PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs
 )
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
@@ -368,11 +353,7 @@ UringSocket_close(
 
 
 PyObject*
-UringSocket_send(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -429,11 +410,7 @@ UringSocket_send(
 }
 
 PyObject*
-UringSocket_recv(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -492,11 +469,7 @@ UringSocket_recv(
 
 
 PyObject* 
-UringSocket_sendto(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-) {
+PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -577,11 +550,7 @@ UringSocket_sendto(
 
 
 PyObject* 
-UringSocket_recvfrom(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-) {
+PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -661,11 +630,7 @@ UringSocket_recvfrom(
 
 
 PyObject* 
-UringSocket_sendmsg(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-) {
+PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -744,11 +709,7 @@ UringSocket_sendmsg(
 
 
 PyObject* 
-UringSocket_recvmsg(
-    UringSocket *self,
-    PyObject *args,
-    PyObject *kwargs
-) {
+PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {

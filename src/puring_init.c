@@ -11,36 +11,36 @@
 
 
 static PyMethodDef puring_module_methods[] = {
-    {"timer", (PyCFunction)UringLoop_timer, METH_VARARGS | METH_KEYWORDS, "Sets a timer"},
+    {"timer", (PyCFunction)PuringLoop_timer, METH_VARARGS | METH_KEYWORDS, "Sets a timer"},
     {NULL, NULL, 0, NULL}
 };
 
 
 static PyMethodDef puring_loop_methods[] = {
-    {"add_reader", (PyCFunction)UringLoop_add_reader, METH_NOARGS,"Register FD with UringLoop"},
-    {"close_loop", (PyCFunction)UringLoop_close_loop, METH_VARARGS, "Close loop"},
+    {"add_reader", (PyCFunction)PuringLoop_add_reader, METH_NOARGS,"Register FD with PuringLoop"},
+    {"close_loop", (PyCFunction)PuringLoop_close_loop, METH_VARARGS, "Close loop"},
 
     // Create File
-    {"open", (PyCFunction)UringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file"},
+    {"open", (PyCFunction)PuringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file"},
 
     // Create Socket
-    {"prep_socket", (PyCFunction)UringLoop_prep_socket, METH_VARARGS | METH_KEYWORDS, "Opens socket"},
+    {"prep_socket", (PyCFunction)PuringLoop_prep_socket, METH_VARARGS | METH_KEYWORDS, "Opens socket"},
     {NULL, NULL, 0, NULL}
 };
 
 
 static PyMethodDef puring_socket_methods[] = {
-    {"bind", (PyCFunction)UringSocket_bind, METH_VARARGS | METH_KEYWORDS, "Bind socket"},
-    {"connect", (PyCFunction)UringSocket_connect, METH_VARARGS | METH_KEYWORDS, "Connect"},
-    {"listen", (PyCFunction)UringSocket_listen, METH_VARARGS | METH_KEYWORDS, "Listen socket"},
-    {"accept", (PyCFunction)UringSocket_accept, METH_VARARGS | METH_KEYWORDS, "Accept"},
-    {"close", (PyCFunction)UringSocket_close, METH_VARARGS | METH_KEYWORDS, "Close"},
-    {"send", (PyCFunction)UringSocket_send, METH_VARARGS | METH_KEYWORDS, "Send"},
-    {"recv", (PyCFunction)UringSocket_recv, METH_VARARGS | METH_KEYWORDS, "Recv"},
-    {"sendto", (PyCFunction)UringSocket_sendto, METH_VARARGS | METH_KEYWORDS, "Sendto"},
-    {"recvfrom", (PyCFunction)UringSocket_recvfrom, METH_VARARGS | METH_KEYWORDS, "Recvfrom"},
-    {"sendmsg", (PyCFunction)UringSocket_sendmsg, METH_VARARGS | METH_KEYWORDS, "Sendmsg"},
-    {"recvmsg", (PyCFunction)UringSocket_recvmsg, METH_VARARGS | METH_KEYWORDS, "Recvmsg"},
+    {"bind", (PyCFunction)PuringSocket_bind, METH_VARARGS | METH_KEYWORDS, "Bind socket"},
+    {"connect", (PyCFunction)PuringSocket_connect, METH_VARARGS | METH_KEYWORDS, "Connect"},
+    {"listen", (PyCFunction)PuringSocket_listen, METH_VARARGS | METH_KEYWORDS, "Listen socket"},
+    {"accept", (PyCFunction)PuringSocket_accept, METH_VARARGS | METH_KEYWORDS, "Accept"},
+    {"close", (PyCFunction)PuringSocket_close, METH_VARARGS | METH_KEYWORDS, "Close"},
+    {"send", (PyCFunction)PuringSocket_send, METH_VARARGS | METH_KEYWORDS, "Send"},
+    {"recv", (PyCFunction)PuringSocket_recv, METH_VARARGS | METH_KEYWORDS, "Recv"},
+    {"sendto", (PyCFunction)PuringSocket_sendto, METH_VARARGS | METH_KEYWORDS, "Sendto"},
+    {"recvfrom", (PyCFunction)PuringSocket_recvfrom, METH_VARARGS | METH_KEYWORDS, "Recvfrom"},
+    {"sendmsg", (PyCFunction)PuringSocket_sendmsg, METH_VARARGS | METH_KEYWORDS, "Sendmsg"},
+    {"recvmsg", (PyCFunction)PuringSocket_recvmsg, METH_VARARGS | METH_KEYWORDS, "Recvmsg"},
 
     {NULL, NULL, 0, NULL}
 };
@@ -49,61 +49,61 @@ static PyMethodDef puring_file_methods[] = {
     // TODO: DOCS: Describe that short read/write handling is responsibility of client
     // TODO: DOCS: Describe that because of async nature, we should explicitly send offsets
 
-    {"read", (PyCFunction)UringFile_read, METH_VARARGS | METH_KEYWORDS, "Read file"},
-    {"readv", (PyCFunction)UringFile_readv, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized"},
-    {"readv_raw", (PyCFunction)UringFile_readv_raw, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized with custom iovecs"},
-    {"write", (PyCFunction)UringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
-    {"writev", (PyCFunction)UringFile_writev, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized"},
-    {"writev_raw", (PyCFunction)UringFile_writev_raw, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized with custom iovecs"},
-    {"close", (PyCFunction)UringFile_close, METH_VARARGS | METH_KEYWORDS, "Close file"},
-    {"fsync", (PyCFunction)UringFile_fsync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file"},
-    {"fdatasync", (PyCFunction)UringFile_fdatasync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file with in fdatasync mode"},
-    {"splice", (PyCFunction)UringFile_splice, METH_VARARGS | METH_KEYWORDS, "Splicing two file pipes"},
+    {"read", (PyCFunction)PuringFile_read, METH_VARARGS | METH_KEYWORDS, "Read file"},
+    {"readv", (PyCFunction)PuringFile_readv, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized"},
+    {"readv_raw", (PyCFunction)PuringFile_readv_raw, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized with custom iovecs"},
+    {"write", (PyCFunction)PuringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
+    {"writev", (PyCFunction)PuringFile_writev, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized"},
+    {"writev_raw", (PyCFunction)PuringFile_writev_raw, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized with custom iovecs"},
+    {"close", (PyCFunction)PuringFile_close, METH_VARARGS | METH_KEYWORDS, "Close file"},
+    {"fsync", (PyCFunction)PuringFile_fsync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file"},
+    {"fdatasync", (PyCFunction)PuringFile_fdatasync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file with in fdatasync mode"},
+    {"splice", (PyCFunction)PuringFile_splice, METH_VARARGS | METH_KEYWORDS, "Splicing two file pipes"},
     {NULL, NULL, 0, NULL}
 };
 
 static PyMethodDef puring_dir_methods[] = {
-    {"stat", (PyCFunction)UringDir_stat, METH_VARARGS | METH_KEYWORDS, "Directory info"},
+    {"stat", (PyCFunction)PuringDir_stat, METH_VARARGS | METH_KEYWORDS, "Directory info"},
     {NULL, NULL, 0, NULL}
 };
 
 
-PyTypeObject UringLoopType = {
+PyTypeObject PuringLoopType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "puring.src.python_api.loop.UringLoop",
+    .tp_name = "puring.src.python_api.loop.PuringLoop",
     .tp_doc = PyDoc_STR("Rings with python loop"),
-    .tp_basicsize = sizeof(UringLoop),
+    .tp_basicsize = sizeof(PuringLoop),
     .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_new = UringLoop_new,
-    .tp_init = (initproc)UringLoop_init,
-    .tp_dealloc = (destructor)UringLoop_dealloc,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_new = PuringLoop_new,
+    .tp_init = (initproc)PuringLoop_init,
+    .tp_dealloc = (destructor)PuringLoop_dealloc,
     .tp_methods = puring_loop_methods,
 };
 
-PyTypeObject UringFileType = {
+PyTypeObject PuringFileType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "puring.src.python_api.ops.files.UringFile",
+    .tp_name = "puring.src.python_api.ops.files.PuringFile",
     .tp_doc = PyDoc_STR("Puring file adapter"),
-    .tp_basicsize = sizeof(UringFile),
+    .tp_basicsize = sizeof(PuringFile),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = PyType_GenericNew,
     .tp_init = NULL,
-    .tp_dealloc = (destructor)UringFile_dealloc,
+    .tp_dealloc = (destructor)PuringFile_dealloc,
     .tp_methods = puring_file_methods,
 };
 
-PyTypeObject UringSocketType = {
+PyTypeObject PuringSocketType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "puring.src.python_api.ops.sockets.UringSocket",
+    .tp_name = "puring.src.python_api.ops.sockets.PuringSocket",
     .tp_doc = PyDoc_STR("Puring socket adapter"),
-    .tp_basicsize = sizeof(UringSocket),
+    .tp_basicsize = sizeof(PuringSocket),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_new = PyType_GenericNew,
     .tp_init = NULL,
-    .tp_dealloc = (destructor)UringSocket_dealloc,
+    .tp_dealloc = (destructor)PuringSocket_dealloc,
     .tp_methods = puring_socket_methods,
 };
 
@@ -111,22 +111,22 @@ PyTypeObject UringSocketType = {
 static int
 puring_module_exec(PyObject *m)
 {
-    if (PyType_Ready(&UringLoopType) < 0) {
+    if (PyType_Ready(&PuringLoopType) < 0) {
         return -1;
     }
-    if (PyType_Ready(&UringSocketType) < 0) {
+    if (PyType_Ready(&PuringSocketType) < 0) {
         return -1;
     }
-    if (PyType_Ready(&UringFileType) < 0) {
+    if (PyType_Ready(&PuringFileType) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "uring", (PyObject *) &UringLoopType) < 0) {
+    if (PyModule_AddObjectRef(m, "uring", (PyObject *) &PuringLoopType) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "file", (PyObject *) &UringFileType) < 0) {
+    if (PyModule_AddObjectRef(m, "file", (PyObject *) &PuringFileType) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "socket", (PyObject *) &UringSocketType) < 0) {
+    if (PyModule_AddObjectRef(m, "socket", (PyObject *) &PuringSocketType) < 0) {
         return -1;
     }
 

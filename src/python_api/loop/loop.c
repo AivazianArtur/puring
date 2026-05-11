@@ -2,7 +2,7 @@
 
 
 PyObject*
-UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     int registry_size = 0;
 
@@ -13,7 +13,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     RequestRegistry* registry = registry_new(registry_size);
     if (!registry) return PyErr_NoMemory();
 
-    UringLoop *self = (UringLoop *)type->tp_alloc(type, 0);
+    PuringLoop *self = (PuringLoop *)type->tp_alloc(type, 0);
     if (!self) {
         registry_destroy(registry);
         return PyErr_NoMemory();
@@ -39,7 +39,7 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 
 
 int
-UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
+PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs)
 {
     PyObject* python_loop = _get_loop();
     if (!python_loop)
@@ -65,7 +65,7 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 
 
 void 
-UringLoop_dealloc(UringLoop *self) {
+PuringLoop_dealloc(PuringLoop *self) {
     if (self->reader_callback) {
         Py_DECREF(self->reader_callback);
         self->reader_callback = NULL;
@@ -89,7 +89,7 @@ UringLoop_dealloc(UringLoop *self) {
 
 
 PyObject*
-UringLoop_close_loop(UringLoop *self, PyObject *args)
+PuringLoop_close_loop(PuringLoop *self, PyObject *args)
 {
     ASSERT_LOOP_THREAD(self->py_loop);
 
@@ -122,7 +122,7 @@ UringLoop_close_loop(UringLoop *self, PyObject *args)
 
 
 PyObject*
-UringLoop_add_reader(UringLoop *self, PyObject *args)
+PuringLoop_add_reader(PuringLoop *self, PyObject *args)
 {
     if (!self->is_reader_installed) {
         int res = uring_loop_register_fd(self);
@@ -132,11 +132,3 @@ UringLoop_add_reader(UringLoop *self, PyObject *args)
     }
     Py_RETURN_NONE;
 }
-
-
-// In next versions
-
-// UringLoop_run_forever(UringLoop *self, PyObject *args)
-// UringLoop_stop(UringLoop *self, PyObject *args)
-// UringLoop_call_soon(UringLoop *self, PyObject *args)
-// UringLoop_call_later(UringLoop *self, PyObject *args)

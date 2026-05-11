@@ -2,8 +2,8 @@
 
 
 PyObject*
-UringLoop_open(
-    UringLoop *self,
+PuringLoop_open(
+    PuringLoop *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -11,7 +11,7 @@ UringLoop_open(
     ASSERT_LOOP_THREAD(self->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
-    UringFile *file = PyObject_New(UringFile, &UringFileType);
+    PuringFile *file = PyObject_New(PuringFile, &PuringFileType);
     if (!file) {
         return PyErr_NoMemory();
     }
@@ -109,7 +109,7 @@ UringLoop_open(
 
 
 void 
-UringFile_dealloc(UringFile *self)
+PuringFile_dealloc(PuringFile *self)
 {
     self->closed = true;
     if (self->loop) {
@@ -120,8 +120,8 @@ UringFile_dealloc(UringFile *self)
 
 
 PyObject*
-UringFile_read(
-    UringFile *self,
+PuringFile_read(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -190,8 +190,8 @@ UringFile_read(
 
 
 PyObject*
-UringFile_readv(
-    UringFile *self,
+PuringFile_readv(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -251,8 +251,8 @@ UringFile_readv(
 
 
 PyObject*
-UringFile_readv_raw(
-    UringFile *self,
+PuringFile_readv_raw(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -321,8 +321,8 @@ UringFile_readv_raw(
 
 
 PyObject*
-UringFile_write(
-    UringFile *self,
+PuringFile_write(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -384,8 +384,8 @@ UringFile_write(
 
 
 PyObject*
-UringFile_writev(
-    UringFile *self,
+PuringFile_writev(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -447,8 +447,8 @@ UringFile_writev(
 
 
 PyObject*
-UringFile_writev_raw(
-    UringFile *self,
+PuringFile_writev_raw(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -520,8 +520,8 @@ UringFile_writev_raw(
 
 
 PyObject*
-UringFile_close(
-    UringFile *self,
+PuringFile_close(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -578,8 +578,8 @@ UringFile_close(
 
 
 PyObject*
-UringFile_fsync(
-    UringFile *self,
+PuringFile_fsync(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -622,8 +622,8 @@ UringFile_fsync(
 
 
 PyObject*
-UringFile_fdatasync(
-    UringFile *self,
+PuringFile_fdatasync(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -666,8 +666,8 @@ UringFile_fdatasync(
 
 
 PyObject*
-UringFile_splice(
-    UringFile *self,
+PuringFile_splice(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 )
@@ -738,7 +738,7 @@ UringFile_splice(
 }
 
 
-static PyObject* _check_file_result(int result, UringFile *file, int request_idx, PyObject *future){
+static PyObject* _check_file_result(int result, PuringFile *file, int request_idx, PyObject *future){
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");

@@ -4,7 +4,7 @@
 static PyObject *
 py_on_uring_ready(PyObject *capsule)
 {
-    UringLoop *loop = PyCapsule_GetPointer(capsule, "uring_loop");
+    PuringLoop *loop = PyCapsule_GetPointer(capsule, "uring_loop");
     if (!loop) {
         PyErr_SetString(PyExc_RuntimeError, "Failed to get loop from capsule");
         return NULL;
@@ -23,7 +23,7 @@ static PyMethodDef py_uring_reader_cb_def = {
 };
 
 
-int uring_loop_register_fd(UringLoop *loop)
+int uring_loop_register_fd(PuringLoop *loop)
 {
     loop->reader_capsule = PyCapsule_New(loop, "uring_loop", NULL);
     if (!loop->reader_capsule) {

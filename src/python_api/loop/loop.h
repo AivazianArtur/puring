@@ -14,9 +14,9 @@
 #include "python_macroses.h"
 
 
-extern PyTypeObject UringLoopType;
+extern PyTypeObject PuringLoopType;
 
-typedef struct UringLoop {
+typedef struct PuringLoop {
     PyObject_HEAD
 
     struct io_uring *ring;
@@ -31,39 +31,23 @@ typedef struct UringLoop {
 
     bool initialized;
     bool is_closing;
-} UringLoop;
+} PuringLoop;
 
 
 PyObject*
-UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 int
-UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs);
+PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
 void 
-UringLoop_dealloc(UringLoop *self);
+PuringLoop_dealloc(PuringLoop *self);
 
 PyObject*
-UringLoop_close_loop(UringLoop *self, PyObject *args);
+PuringLoop_close_loop(PuringLoop *self, PyObject *args);
 
 PyObject*
-UringLoop_add_reader(UringLoop *self, PyObject *args);
-
-// TODO in next versions
-// static PyObject*
-// UringLoop_get_loop(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_run_forever(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_stop(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_call_soon(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_call_later(UringLoop *self, PyObject *args);
+PuringLoop_add_reader(PuringLoop *self, PyObject *args);
 
 
 // Helpers

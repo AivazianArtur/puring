@@ -17,7 +17,7 @@
 #include "python_macroses.h"
 
 
-extern PyTypeObject UringSocketType;
+extern PyTypeObject PuringSocketType;
 
 
 typedef enum SOCKET_STATES {
@@ -30,107 +30,107 @@ typedef enum SOCKET_STATES {
 } SOCKET_STATES;
 
 
-typedef struct UringSocket {
+typedef struct PuringSocket {
     PyObject_HEAD
 
     int sock_fd;
-    UringLoop *loop;
+    PuringLoop *loop;
     int domain;
     SOCKET_STATES state;
     struct sockaddr *addr;
     bool closed;
-} UringSocket;
+} PuringSocket;
 
 
 PyObject* 
-UringLoop_prep_socket(
-    UringLoop *self,
+PuringLoop_prep_socket(
+    PuringLoop *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 
 void
-UringSocket_dealloc(UringSocket *self);
+PuringSocket_dealloc(PuringSocket *self);
 
 
 PyObject* 
-UringSocket_bind(
-    UringSocket *self,
+PuringSocket_bind(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_connect(
-    UringSocket *self,
+PuringSocket_connect(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_listen(
-    UringSocket *self,
+PuringSocket_listen(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_accept(
-    UringSocket *self,
+PuringSocket_accept(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_close(
-    UringSocket *self,
+PuringSocket_close(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_send(
-    UringSocket *self,
+PuringSocket_send(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_recv(
-    UringSocket *self,
+PuringSocket_recv(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_sendto(
-    UringSocket *self,
+PuringSocket_sendto(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_recvfrom(
-    UringSocket *self,
+PuringSocket_recvfrom(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_sendmsg(
-    UringSocket *self,
+PuringSocket_sendmsg(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject* 
-UringSocket_recvmsg(
-    UringSocket *self,
+PuringSocket_recvmsg(
+    PuringSocket *self,
     PyObject *args,
     PyObject *kwargs
 );
 
-PyObject* _check_sockets_result(int result, UringSocket *socket, int request_idx, PyObject *future);
+PyObject* _check_sockets_result(int result, PuringSocket *socket, int request_idx, PyObject *future);
 struct sockaddr* _serialize_address(const char *host, int port, int domain);
 socklen_t _get_socket_size(int domain);

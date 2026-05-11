@@ -2,7 +2,7 @@
 #include "python_api/loop/loop.h"
 
 // DRAFT
-PyObject* create_future(UringLoop *self) 
+PyObject* create_future(PuringLoop *self) 
 {
     if (!self->py_loop) {
         PyErr_SetString(PyExc_RuntimeError, "Ring Event Loop not attached");

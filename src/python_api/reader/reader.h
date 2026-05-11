@@ -12,8 +12,8 @@
 #include "signals/signals.h"
 
 
-void on_uring_ready(UringLoop *self);
+void on_uring_ready(PuringLoop *self);
 
 static PyObject *py_on_uring_ready(PyObject *capsule);
 
-int uring_loop_register_fd(UringLoop *self);
+int uring_loop_register_fd(PuringLoop *self);

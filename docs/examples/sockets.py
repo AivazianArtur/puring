@@ -11,7 +11,7 @@ PORT = 12878
 
 async def main():
     loop = puring.uring(registry_size=8)
-    print('UringLoop created:', loop)
+    print('PuringLoop created:', loop)
 
     loop.add_reader()
     print('Reader added')
@@ -47,7 +47,7 @@ async def main():
 
     loop.close_loop()
     client_loop.close_loop()
-    print('Uring loops closed')
+    print('Puring loops closed')
 
 
 asyncio.run(main())
