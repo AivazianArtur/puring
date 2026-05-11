@@ -2,12 +2,7 @@
 
 
 PyObject*
-PuringLoop_prep_socket(
-    PuringLoop *self,
-    PyObject *args,
-    PyObject *kwargs
-)
-{
+PuringLoop_prep_socket(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 

@@ -17,14 +17,25 @@ static PyMethodDef puring_module_methods[] = {
 
 
 static PyMethodDef puring_loop_methods[] = {
-    {"add_reader", (PyCFunction)PuringLoop_add_reader, METH_NOARGS,"Register FD with PuringLoop"},
+    {"add_reader", (PyCFunction)PuringLoop_add_reader, METH_NOARGS, "Start monitoring the fd file descriptor for read availability and invoke callback with the specified arguments once fd is available for reading"},
+    {"remove_reader", (PyCFunction)PuringLoop_remove_reader, METH_NOARGS, "Stop monitoring the fd file descriptor for read availability. Returns True if fd was previously being monitored for reads"},
+
+    {"add_writer", (PyCFunction)PuringLoop_add_writer, METH_NOARGS, "Start monitoring the fd file descriptor for write availability and invoke callback with the specified arguments args once fd is available for writing"},
+    {"remove_writer", (PyCFunction)PuringLoop_remove_writer, METH_NOARGS, "Stop monitoring the fd file descriptor for write availability. Returns True if fd was previously being monitored for writes"},
+
     {"close_loop", (PyCFunction)PuringLoop_close_loop, METH_VARARGS, "Close loop"},
 
     // Create File
-    {"open", (PyCFunction)PuringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file"},
-
+    {"open", (PyCFunction)PuringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file and instantiate File object"},
     // Create Socket
-    {"prep_socket", (PyCFunction)PuringLoop_prep_socket, METH_VARARGS | METH_KEYWORDS, "Opens socket"},
+    {"prep_socket", (PyCFunction)PuringLoop_prep_socket, METH_VARARGS | METH_KEYWORDS, "Opens socket and instantiate Socket object"},
+
+    {"_run_once", (PyCFunction)PuringLoop_run_once, METH_NOARGS, "Run one full iteration of the event loop"},
+    {"_write_to_self", (PyCFunction)PuringLoop_write_to_self, METH_NOARGS, "Write a byte to self-pipe, to wake up the event loop"},
+    {"_process_events", (PyCFunction)PuringLoop_process_events, METH_O, "Do nothing. BaseEventLoop requirement"},
+    {"_make_socket_transport", (PyCFunction)PuringLoop_make_socket_transport, METH_VARARGS | METH_KEYWORDS, "Create socket transport"},
+    {"_make_read_pipe_transport", (PyCFunction)PuringLoop_make_read_pipe_transport, METH_VARARGS | METH_KEYWORDS, "Create read pipe transport"},
+    {"_make_write_pipe_transport",(PyCFunction)PuringLoop_make_write_pipe_transport, METH_VARARGS | METH_KEYWORDS, "Create write pipe transport"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -183,3 +194,29 @@ PyInit_puring(void)
 {
     return PyModuleDef_Init(&puring_module);
 }
+
+
+// PyObject *m = PyModule_Create(&puring_module);
+// if (!m) return NULL;
+
+// // ── patch tp_bases BEFORE PyType_Ready ──────────────────
+// PyObject *asyncio = PyImport_ImportModule("asyncio");
+// if (!asyncio) return NULL;
+
+// PyObject *base = PyObject_GetAttrString(asyncio, "BaseEventLoop");
+// Py_DECREF(asyncio);
+// if (!base) return NULL;
+
+// UringLoopType.tp_bases = PyTuple_Pack(1, base);
+// Py_DECREF(base);
+// if (!UringLoopType.tp_bases) return NULL;
+
+// // ── now freeze the type ──────────────────────────────────
+// if (PyType_Ready(&UringLoopType) < 0) return NULL;
+
+// if (PyModule_AddObjectRef(m, "UringLoop",
+//                             (PyObject *)&UringLoopType) < 0) return NULL;
+
+// // ... rest of your module init (socket, file, dir types) ...
+
+// return m;

@@ -49,6 +49,34 @@ PuringLoop_close_loop(PuringLoop *self, PyObject *args);
 PyObject*
 PuringLoop_add_reader(PuringLoop *self, PyObject *args);
 
+PyObject*
+PuringLoop_remove_reader(PuringLoop *self, PyObject *args);
+
+PyObject*
+PuringLoop_add_writer(PuringLoop *self, PyObject *args);
+
+PyObject*
+PuringLoop_remove_writer(PuringLoop *self, PyObject *args);
+
+
+PyObject*
+PuringLoop_run_once(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_write_to_self(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_process_events(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_make_socket_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_make_read_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_make_write_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
 
 // Helpers
 PyObject* _get_loop(void);

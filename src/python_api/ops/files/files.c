@@ -2,11 +2,7 @@
 
 
 PyObject*
-PuringLoop_open(
-    PuringLoop *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringLoop_open(PuringLoop *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self);
@@ -120,11 +116,7 @@ PuringFile_dealloc(PuringFile *self)
 
 
 PyObject*
-PuringFile_read(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -190,11 +182,7 @@ PuringFile_read(
 
 
 PyObject*
-PuringFile_readv(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -251,11 +239,7 @@ PuringFile_readv(
 
 
 PyObject*
-PuringFile_readv_raw(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -321,11 +305,7 @@ PuringFile_readv_raw(
 
 
 PyObject*
-PuringFile_write(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -384,11 +364,7 @@ PuringFile_write(
 
 
 PyObject*
-PuringFile_writev(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -447,11 +423,7 @@ PuringFile_writev(
 
 
 PyObject*
-PuringFile_writev_raw(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -520,11 +492,7 @@ PuringFile_writev_raw(
 
 
 PyObject*
-PuringFile_close(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -578,11 +546,7 @@ PuringFile_close(
 
 
 PyObject*
-PuringFile_fsync(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -622,11 +586,7 @@ PuringFile_fsync(
 
 
 PyObject*
-PuringFile_fdatasync(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
@@ -666,11 +626,7 @@ PuringFile_fdatasync(
 
 
 PyObject*
-PuringFile_splice(
-    PuringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_THREAD(self->loop->py_loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
