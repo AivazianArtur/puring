@@ -122,6 +122,16 @@ PyTypeObject PuringSocketType = {
 static int
 puring_module_exec(PyObject *m)
 {
+    PyObject *asyncio = PyImport_ImportModule("asyncio");
+    if (!asyncio) return -1;
+
+    PyObject *base = PyObject_GetAttrString(asyncio, "BaseEventLoop");
+    Py_DECREF(asyncio);
+    if (!base) return -1;
+
+    PuringLoopType.tp_base = (PyTypeObject *)base;
+    Py_DECREF(base);
+
     if (PyType_Ready(&PuringLoopType) < 0) {
         return -1;
     }
@@ -131,7 +141,7 @@ puring_module_exec(PyObject *m)
     if (PyType_Ready(&PuringFileType) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "uring", (PyObject *) &PuringLoopType) < 0) {
+    if (PyModule_AddObjectRef(m, "puring", (PyObject *) &PuringLoopType) < 0) {
         return -1;
     }
     if (PyModule_AddObjectRef(m, "file", (PyObject *) &PuringFileType) < 0) {
@@ -194,29 +204,3 @@ PyInit_puring(void)
 {
     return PyModuleDef_Init(&puring_module);
 }
-
-
-// PyObject *m = PyModule_Create(&puring_module);
-// if (!m) return NULL;
-
-// // ── patch tp_bases BEFORE PyType_Ready ──────────────────
-// PyObject *asyncio = PyImport_ImportModule("asyncio");
-// if (!asyncio) return NULL;
-
-// PyObject *base = PyObject_GetAttrString(asyncio, "BaseEventLoop");
-// Py_DECREF(asyncio);
-// if (!base) return NULL;
-
-// UringLoopType.tp_bases = PyTuple_Pack(1, base);
-// Py_DECREF(base);
-// if (!UringLoopType.tp_bases) return NULL;
-
-// // ── now freeze the type ──────────────────────────────────
-// if (PyType_Ready(&UringLoopType) < 0) return NULL;
-
-// if (PyModule_AddObjectRef(m, "UringLoop",
-//                             (PyObject *)&UringLoopType) < 0) return NULL;
-
-// // ... rest of your module init (socket, file, dir types) ...
-
-// return m;

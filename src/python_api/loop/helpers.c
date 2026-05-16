@@ -17,7 +17,7 @@ _get_loop(void)
         Py_DECREF(module_name);
         return NULL;
     }
-    PyObject *get_loop_fn = PyObject_GetAttrString(asyncio, "get_event_loop");
+    PyObject *get_loop_fn = PyObject_GetAttrString(asyncio, "get_running_loop");
     PyObject *loop = PyObject_CallNoArgs(get_loop_fn);
 
     Py_DECREF(get_loop_fn);
