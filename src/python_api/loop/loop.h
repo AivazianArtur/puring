@@ -20,7 +20,6 @@ typedef struct PuringLoop {
     PyObject_HEAD
 
     struct io_uring *ring;
-    PyObject *py_loop;
     pid_t loop_tid;
     RequestRegistry *registry;
     unsigned int entries;
@@ -79,7 +78,6 @@ PuringLoop_make_write_pipe_transport(PyTypeObject *type, PyObject *args, PyObjec
 
 
 // Helpers
-PyObject* _get_loop(void);
 int _parse_memory_params(PyObject *obj, memory_params *out);
 void fast_shutdown(struct io_uring* ring, RequestRegistry *reg); 
 void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg);

@@ -44,7 +44,7 @@ int uring_loop_register_fd(PuringLoop *loop)
     int uring_fd = loop->ring->ring_fd;
 
     PyObject *res = PyObject_CallMethod(
-        loop->py_loop,
+        (PyObject *)loop,
         "add_reader",
         "iOO",
         uring_fd,

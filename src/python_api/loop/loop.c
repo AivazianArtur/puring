@@ -27,7 +27,6 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     }
 
     self->registry = registry;
-    self->py_loop = NULL;
     self->initialized = false;
     self->is_closing = false;
     self->is_reader_installed = false;
@@ -41,12 +40,19 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 int
 PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs)
 {
-    PyObject* python_loop = _get_loop();
-    if (!python_loop)
-        return -1;
 
-    Py_INCREF(python_loop);
-    self->py_loop = python_loop;
+    PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
+    PyObject *init = PyObject_GetAttrString(base, "__init__");
+    if (!init) {
+        return -1;
+    }
+
+    PyObject *res = PyObject_CallOneArg(init, (PyObject *)self);
+    Py_DECREF(init);
+    if (!res) {
+        return -1;
+    }
+    Py_DECREF(res);
 
     memory_params mem_par = {0};
     ring_init_params params = {0};
@@ -58,7 +64,7 @@ PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs)
     }
 
     set_signals_handler(self->ring);
-
+    self->loop_tid = gettid();
     self->initialized = true;
     return 0;
 }
@@ -76,10 +82,6 @@ PuringLoop_dealloc(PuringLoop *self) {
         self->reader_capsule = NULL;
     }
 
-    if (self->py_loop) {
-        Py_XDECREF(self->py_loop);
-    }
-
     if (self->registry) {
         registry_destroy(self->registry);
     }
@@ -91,32 +93,28 @@ PuringLoop_dealloc(PuringLoop *self) {
 PyObject*
 PuringLoop_close_loop(PuringLoop *self, PyObject *args)
 {
-    ASSERT_LOOP_THREAD(self->py_loop);
+    PyObject *py_loop = (PyObject *)self;
+    ASSERT_LOOP_THREAD(py_loop);
 
     if (self->is_closing)
         Py_RETURN_NONE;
 
     self->is_closing = true;
 
-    PyObject_CallMethod(self->py_loop, "remove_reader", "i", self->ring->ring_fd);
-
-    struct io_uring_cqe *cqe;
-    struct __kernel_timespec ts;
-    ts.tv_nsec = 0;
-    ts.tv_sec = 3;
-
-     while (io_uring_wait_cqe_timeout(self->ring, &cqe, &ts) == 0) {
-        int index = (int)(uintptr_t)cqe->user_data;
-        registry_remove(self->registry, index);  // TODO: set future exception
-        io_uring_cqe_seen(self->ring, cqe);
+    PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
+    PyObject *res = PyObject_CallMethod(base, "close", "O", py_loop);
+    if (!res) {
+        return NULL;
     }
+    Py_DECREF(res);
 
-    ring_destroy(self->ring);
+    PyObject_CallMethod(py_loop, "remove_reader", "i", self->ring->ring_fd);
+
+    graceful_shutdown(self->ring, self->registry);
     self->ring = NULL;
-
-    registry_destroy(self->registry);
     self->registry = NULL;
-
+    
+    self->is_closing = false;
     Py_RETURN_NONE;
 }
 

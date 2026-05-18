@@ -3,7 +3,7 @@
 
 PyObject*
 PuringLoop_prep_socket(PuringLoop *self, PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_THREAD(self->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
     PuringSocket *sock = PyObject_New(PuringSocket, &PuringSocketType);
@@ -78,7 +78,7 @@ PuringSocket_dealloc(PuringSocket *self)
 PyObject*
 PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -139,7 +139,7 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -199,7 +199,7 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -245,7 +245,7 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -308,7 +308,7 @@ PyObject*
 PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs
 )
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -350,7 +350,7 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs
 PyObject*
 PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -407,7 +407,7 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -465,7 +465,7 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs)
 
 PyObject* 
 PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -546,7 +546,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
 PyObject* 
 PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -626,7 +626,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
 PyObject* 
 PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");
@@ -705,7 +705,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
 PyObject* 
 PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "Socket is closed");

@@ -15,13 +15,13 @@ PuringLoop_timer(
         return NULL;
     }
     PuringLoop *loop = (PuringLoop *)loop_obj;
-
-    ASSERT_LOOP_THREAD(loop->py_loop);
+    PyObject *py_loop = (PyObject *)loop;
+    ASSERT_LOOP_THREAD(py_loop);
     if (loop->is_closing) {
         PyErr_Format(
             PyExc_RuntimeError,
             "Ring Event Loop is closing - %S",
-            loop->py_loop
+            py_loop
         );
         return NULL;
     }

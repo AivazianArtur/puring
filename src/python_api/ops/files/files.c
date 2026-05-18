@@ -4,7 +4,7 @@
 PyObject*
 PuringLoop_open(PuringLoop *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
     PuringFile *file = PyObject_New(PuringFile, &PuringFileType);
@@ -118,7 +118,7 @@ PuringFile_dealloc(PuringFile *self)
 PyObject*
 PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -184,7 +184,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -241,7 +241,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -307,7 +307,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -366,7 +366,7 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -425,7 +425,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -494,7 +494,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -548,7 +548,7 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -588,7 +588,7 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -628,7 +628,7 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs)
 PyObject*
 PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD((PyObject *)self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
