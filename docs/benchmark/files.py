@@ -80,8 +80,7 @@ async def uvloop_write():
 async def puring_write_sequential():
     print('Running io_uring sequential write')
 
-    loop = puring.uring()
-    loop.add_reader()
+    loop = puring.PuringLoop()
 
     uring_file = await loop.open(path=FILE_PURING_SEQ)
 
@@ -101,8 +100,7 @@ async def puring_write_sequential__include_init():
 
     start = time.perf_counter()
 
-    loop = puring.uring()
-    loop.add_reader()
+    loop = puring.PuringLoop()
 
     uring_file = await loop.open(path=FILE_PURING_SEQ__INIT)
 

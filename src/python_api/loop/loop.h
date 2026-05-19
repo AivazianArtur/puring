@@ -14,7 +14,7 @@
 #include "python_macroses.h"
 
 
-extern PyTypeObject PuringLoopType;
+extern PyTypeObject *PuringLoopType;
 
 typedef struct PuringLoop {
     PyObject_HEAD
@@ -24,9 +24,8 @@ typedef struct PuringLoop {
     RequestRegistry *registry;
     unsigned int entries;
 
-    PyObject *reader_capsule;
-    PyObject *reader_callback;
-    bool is_reader_installed;
+    PyObject *readers;
+    PyObject *writers; 
 
     bool initialized;
     bool is_closing;
@@ -46,7 +45,7 @@ PyObject*
 PuringLoop_close_loop(PuringLoop *self, PyObject *args);
 
 PyObject*
-PuringLoop_add_reader(PuringLoop *self, PyObject *args);
+PuringLoop_add_reader(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
 PyObject*
 PuringLoop_remove_reader(PuringLoop *self, PyObject *args);

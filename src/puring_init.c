@@ -79,17 +79,23 @@ static PyMethodDef puring_dir_methods[] = {
 };
 
 
-PyTypeObject PuringLoopType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "puring.src.python_api.loop.PuringLoop",
-    .tp_doc = PyDoc_STR("Rings with python loop"),
-    .tp_basicsize = sizeof(PuringLoop),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = PuringLoop_new,
-    .tp_init = (initproc)PuringLoop_init,
-    .tp_dealloc = (destructor)PuringLoop_dealloc,
-    .tp_methods = puring_loop_methods,
+PyTypeObject *PuringLoopType = NULL;
+
+static PyType_Slot PuringLoop_slots[] = {
+    {Py_tp_doc,      (void *)PyDoc_STR("Rings with python loop")},
+    {Py_tp_new,      PuringLoop_new},
+    {Py_tp_init,     PuringLoop_init},
+    {Py_tp_dealloc,  PuringLoop_dealloc},
+    {Py_tp_methods,  puring_loop_methods},
+    {0, NULL}
+};
+
+static PyType_Spec PuringLoop_spec = {
+    .name      = "puring.src.python_api.loop.UringLoop",
+    .basicsize = sizeof(PuringLoop),
+    .itemsize  = 0,
+    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .slots     = PuringLoop_slots,
 };
 
 PyTypeObject PuringFileType = {
@@ -123,31 +129,42 @@ static int
 puring_module_exec(PyObject *m)
 {
     PyObject *asyncio = PyImport_ImportModule("asyncio");
-    if (!asyncio) return -1;
+    if (!asyncio) {
+        return -1;
+    }
+
 
     PyObject *base = PyObject_GetAttrString(asyncio, "BaseEventLoop");
     Py_DECREF(asyncio);
-    if (!base) return -1;
-
-    PuringLoopType.tp_base = (PyTypeObject *)base;
-    Py_DECREF(base);
-
-    if (PyType_Ready(&PuringLoopType) < 0) {
+    if (!base) {
         return -1;
     }
+
+    PyObject *bases = PyTuple_Pack(1, base);
+    Py_DECREF(base);
+    if (!bases) {
+        return -1;
+    }
+
+    PyObject *type = PyType_FromSpecWithBases(&PuringLoop_spec, bases);
+    Py_DECREF(bases);
+    if (!type) {
+        return -1;
+    }
+
     if (PyType_Ready(&PuringSocketType) < 0) {
         return -1;
     }
     if (PyType_Ready(&PuringFileType) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "puring", (PyObject *) &PuringLoopType) < 0) {
+    if (PyModule_AddObjectRef(m, "PuringLoop", type) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "file", (PyObject *) &PuringFileType) < 0) {
+    if (PyModule_AddObjectRef(m, "File", (PyObject *)&PuringFileType) < 0) {
         return -1;
     }
-    if (PyModule_AddObjectRef(m, "socket", (PyObject *) &PuringSocketType) < 0) {
+    if (PyModule_AddObjectRef(m, "Socket", (PyObject *)&PuringSocketType) < 0) {
         return -1;
     }
 

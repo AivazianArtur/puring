@@ -11,13 +11,10 @@ TEMPFILE = 'docs/assets/tempfile.txt'
 
 
 async def main():
-    loop = puring.uring(registry_size=8)
+    loop = puring.PuringLoop(registry_size=8)
     print('PuringLoop created:', loop)
 
-    loop.add_reader()
-    print('Reader added')
     uring_file = await loop.open(path=TEMPFILE)
-
     print('File opened, fd:', uring_file)
 
     data = b'Hello, puring!\n'
