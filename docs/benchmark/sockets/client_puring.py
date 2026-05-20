@@ -23,7 +23,7 @@ async def worker(loop):
     await sock.close()
 
 async def run_benchmark():
-    loop = puring.uring(registry_size=8192)
+    loop = puring.PuringLoop(registry_size=8192)
     loop.add_reader()
     await asyncio.sleep(WARMUP)
 

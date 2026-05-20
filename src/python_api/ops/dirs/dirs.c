@@ -1,7 +1,7 @@
 #include "python_api/ops/dirs/dirs.h"
 
 PyObject*
-UringDir_stat(
+PuringDir_stat(
     // UringDir *self,
     PyObject *args,
     PyObject *kwargs

@@ -22,98 +22,98 @@
 #include "python_macroses.h"
 
 
-extern PyTypeObject UringFileType;
+extern PyTypeObject PuringFileType;
 
-typedef struct UringFile {
+typedef struct PuringFile {
     PyObject_HEAD
 
     int fd;
-    UringLoop *loop;
+    PuringLoop *loop;
     bool closed;
-} UringFile;
+} PuringFile;
 
 
 PyObject* 
-UringLoop_open(
-    UringLoop *self,
+PuringLoop_open(
+    PuringLoop *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 void 
-UringFile_dealloc(UringFile *self);
+PuringFile_dealloc(PuringFile *self);
 
 PyObject*
-UringFile_read(
-    UringFile *self,
+PuringFile_read(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_readv(
-    UringFile *self,
+PuringFile_readv(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_readv_raw(
-    UringFile *self,
+PuringFile_readv_raw(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_write(
-    UringFile *self,
+PuringFile_write(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_writev(
-    UringFile *self,
+PuringFile_writev(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_writev_raw(
-    UringFile *self,
+PuringFile_writev_raw(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_close(
-    UringFile *self,
+PuringFile_close(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_fsync(
-    UringFile *self,
+PuringFile_fsync(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_fdatasync(
-    UringFile *self,
+PuringFile_fdatasync(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
 PyObject*
-UringFile_splice(
-    UringFile *self,
+PuringFile_splice(
+    PuringFile *self,
     PyObject *args,
     PyObject *kwargs
 );
 
-static PyObject* _check_file_result(int result, UringFile *file, int request_idx, PyObject *future);
+static PyObject* _check_file_result(int result, PuringFile *file, int request_idx, PyObject *future);
 
 PyObject* create_resolve_enum(void);
 PyObject* create_statx_flags_enum(void);

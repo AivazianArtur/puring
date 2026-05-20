@@ -14,60 +14,69 @@
 #include "python_macroses.h"
 
 
-extern PyTypeObject UringLoopType;
+extern PyTypeObject *PuringLoopType;
 
-typedef struct UringLoop {
+typedef struct PuringLoop {
     PyObject_HEAD
 
     struct io_uring *ring;
-    PyObject *py_loop;
     pid_t loop_tid;
     RequestRegistry *registry;
     unsigned int entries;
 
-    PyObject *reader_capsule;
-    PyObject *reader_callback;
-    bool is_reader_installed;
+    PyObject *readers;
+    PyObject *writers; 
 
     bool initialized;
     bool is_closing;
-} UringLoop;
+} PuringLoop;
 
 
 PyObject*
-UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 int
-UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs);
+PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
 void 
-UringLoop_dealloc(UringLoop *self);
+PuringLoop_dealloc(PuringLoop *self);
 
 PyObject*
-UringLoop_close_loop(UringLoop *self, PyObject *args);
+PuringLoop_close_loop(PuringLoop *self, PyObject *args);
 
 PyObject*
-UringLoop_add_reader(UringLoop *self, PyObject *args);
+PuringLoop_add_reader(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
-// TODO in next versions
-// static PyObject*
-// UringLoop_get_loop(UringLoop *self, PyObject *args);
+PyObject*
+PuringLoop_remove_reader(PuringLoop *self, PyObject *args);
 
-// static PyObject*
-// UringLoop_run_forever(UringLoop *self, PyObject *args);
+PyObject*
+PuringLoop_add_writer(PuringLoop *self, PyObject *args);
 
-// static PyObject*
-// UringLoop_stop(UringLoop *self, PyObject *args);
+PyObject*
+PuringLoop_remove_writer(PuringLoop *self, PyObject *args);
 
-// static PyObject*
-// UringLoop_call_soon(UringLoop *self, PyObject *args);
 
-// static PyObject*
-// UringLoop_call_later(UringLoop *self, PyObject *args);
+PyObject*
+PuringLoop_run_once(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_write_to_self(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_process_events(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_make_socket_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_make_read_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+
+PyObject*
+PuringLoop_make_write_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 
 // Helpers
-PyObject* _get_loop(void);
 int _parse_memory_params(PyObject *obj, memory_params *out);
 void fast_shutdown(struct io_uring* ring, RequestRegistry *reg); 
 void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg);

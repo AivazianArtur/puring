@@ -10,11 +10,8 @@ HOST = '127.0.0.1'
 PORT = 12878
 
 async def main():
-    loop = puring.uring(registry_size=8)
-    print('UringLoop created:', loop)
-
-    loop.add_reader()
-    print('Reader added')
+    loop = puring.PuringLoop(registry_size=8)
+    print('PuringLoop created:', loop)
 
     server_sock = await loop.prep_socket()
     print(f'{server_sock = }')
@@ -23,8 +20,7 @@ async def main():
     print(f'Server listening on {HOST}:{PORT}')
 
     accept_future = server_sock.accept()
-    client_loop = puring.uring(registry_size=8)
-    client_loop.add_reader()
+    client_loop = puring.PuringLoop(registry_size=8)
     client_sock = await client_loop.prep_socket()
 
     await client_sock.connect(HOST, PORT)
@@ -47,7 +43,7 @@ async def main():
 
     loop.close_loop()
     client_loop.close_loop()
-    print('Uring loops closed')
+    print('Puring loops closed')
 
 
 asyncio.run(main())

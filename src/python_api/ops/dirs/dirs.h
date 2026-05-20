@@ -5,7 +5,7 @@
 
 
 PyObject*
-UringDir_stat(
+PuringDir_stat(
     // UringDir *self,
     PyObject *args,
     PyObject *kwargs

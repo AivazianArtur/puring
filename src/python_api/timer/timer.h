@@ -10,7 +10,7 @@
 
 
 PyObject*
-UringLoop_timer(
+PuringLoop_timer(
     PyObject *self,
     PyObject *args,
     PyObject *kwargs

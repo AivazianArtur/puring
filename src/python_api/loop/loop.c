@@ -2,18 +2,19 @@
 
 
 PyObject*
-UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     int registry_size = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char*[]){"registry_size", NULL}, &registry_size)) {
+    static char *kwlist[] = {"registry_size", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &registry_size)) {
         return NULL;
     }
 
     RequestRegistry* registry = registry_new(registry_size);
     if (!registry) return PyErr_NoMemory();
 
-    UringLoop *self = (UringLoop *)type->tp_alloc(type, 0);
+    PuringLoop *self = (PuringLoop *)type->tp_alloc(type, 0);
     if (!self) {
         registry_destroy(registry);
         return PyErr_NoMemory();
@@ -27,26 +28,28 @@ UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     }
 
     self->registry = registry;
-    self->py_loop = NULL;
     self->initialized = false;
     self->is_closing = false;
-    self->is_reader_installed = false;
-    self->reader_callback = NULL;
-    self->reader_capsule = NULL;
 
     return (PyObject*)self;
 }
 
 
 int
-UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
+PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs)
 {
-    PyObject* python_loop = _get_loop();
-    if (!python_loop)
+    PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
+    PyObject *init = PyObject_GetAttrString(base, "__init__");
+    if (!init) {
         return -1;
+    }
 
-    Py_INCREF(python_loop);
-    self->py_loop = python_loop;
+    PyObject *res = PyObject_CallOneArg(init, (PyObject *)self);
+    Py_DECREF(init);
+    if (!res) {
+        return -1;
+    }
+    Py_DECREF(res);
 
     memory_params mem_par = {0};
     ring_init_params params = {0};
@@ -59,26 +62,19 @@ UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs)
 
     set_signals_handler(self->ring);
 
+    self->readers = PyDict_New();
+    self->writers = PyDict_New();
+
+    self->loop_tid = gettid();
     self->initialized = true;
     return 0;
 }
 
 
 void 
-UringLoop_dealloc(UringLoop *self) {
-    if (self->reader_callback) {
-        Py_DECREF(self->reader_callback);
-        self->reader_callback = NULL;
-    }
-
-    if (self->reader_capsule) {
-        Py_DECREF(self->reader_capsule);
-        self->reader_capsule = NULL;
-    }
-
-    if (self->py_loop) {
-        Py_XDECREF(self->py_loop);
-    }
+PuringLoop_dealloc(PuringLoop *self) {
+    Py_CLEAR(self->readers);
+    Py_CLEAR(self->writers);
 
     if (self->registry) {
         registry_destroy(self->registry);
@@ -89,54 +85,101 @@ UringLoop_dealloc(UringLoop *self) {
 
 
 PyObject*
-UringLoop_close_loop(UringLoop *self, PyObject *args)
+PuringLoop_close_loop(PuringLoop *self, PyObject *args)
 {
-    ASSERT_LOOP_THREAD(self->py_loop);
+    PyObject *py_loop = (PyObject *)self;
+    ASSERT_LOOP_THREAD(py_loop);
 
     if (self->is_closing)
         Py_RETURN_NONE;
 
     self->is_closing = true;
 
-    PyObject_CallMethod(self->py_loop, "remove_reader", "i", self->ring->ring_fd);
-
-    struct io_uring_cqe *cqe;
-    struct __kernel_timespec ts;
-    ts.tv_nsec = 0;
-    ts.tv_sec = 3;
-
-     while (io_uring_wait_cqe_timeout(self->ring, &cqe, &ts) == 0) {
-        int index = (int)(uintptr_t)cqe->user_data;
-        registry_remove(self->registry, index);  // TODO: set future exception
-        io_uring_cqe_seen(self->ring, cqe);
+    PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
+    PyObject *res = PyObject_CallMethod(base, "close", "O", py_loop);
+    if (!res) {
+        return NULL;
     }
+    Py_DECREF(res);
 
-    ring_destroy(self->ring);
+    PyObject_CallMethod(base, "remove_reader", "i", self->ring->ring_fd);
+
+    graceful_shutdown(self->ring, self->registry);
     self->ring = NULL;
-
-    registry_destroy(self->registry);
     self->registry = NULL;
-
+    
+    self->is_closing = false;
     Py_RETURN_NONE;
 }
 
 
 PyObject*
-UringLoop_add_reader(UringLoop *self, PyObject *args)
+PuringLoop_add_reader(PuringLoop *self, PyObject *args, PyObject *kwargs)
 {
-    if (!self->is_reader_installed) {
-        int res = uring_loop_register_fd(self);
-        if (res == 1) {
-            self->is_reader_installed = true;
-        }
-    }
     Py_RETURN_NONE;
 }
 
 
-// In next versions
+PyObject*
+PuringLoop_remove_reader(PuringLoop *self, PyObject *args)
+{;}
 
-// UringLoop_run_forever(UringLoop *self, PyObject *args)
-// UringLoop_stop(UringLoop *self, PyObject *args)
-// UringLoop_call_soon(UringLoop *self, PyObject *args)
-// UringLoop_call_later(UringLoop *self, PyObject *args)
+
+PyObject*
+PuringLoop_add_writer(PuringLoop *self, PyObject *args)
+{;}
+
+
+PyObject*
+PuringLoop_remove_writer(PuringLoop *self, PyObject *args)
+{;}
+
+
+PyObject*
+PuringLoop_run_once(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+{
+    ;
+    // static PyObject *
+    // py_on_uring_ready(PyObject *capsule)
+    // {
+    //     PuringLoop *loop = PyCapsule_GetPointer(capsule, "uring_loop");
+    //     if (!loop) {
+    //         PyErr_SetString(PyExc_RuntimeError, "Failed to get loop from capsule");
+    //         return NULL;
+    //     }
+
+    //     on_uring_ready(loop);
+
+    //     Py_RETURN_NONE;
+    // }
+    // on_uring_ready(self);
+
+    // AND
+
+    // if (!self->is_reader_installed) {
+    //     int res = uring_loop_register_fd(self);
+    //     if (res == 1) {
+    //         self->is_reader_installed = true;
+    //     }
+    // }
+}
+
+PyObject*
+PuringLoop_write_to_self(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+{;}
+
+PyObject*
+PuringLoop_process_events(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+{;}
+
+PyObject*
+PuringLoop_make_socket_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+{;}
+
+PyObject*
+PuringLoop_make_read_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+{;}
+
+PyObject*
+PuringLoop_make_write_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+{;}
