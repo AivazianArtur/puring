@@ -17,12 +17,6 @@ static PyMethodDef puring_module_methods[] = {
 
 
 static PyMethodDef puring_loop_methods[] = {
-    {"add_reader", (PyCFunction)PuringLoop_add_reader, METH_NOARGS, "Start monitoring the fd file descriptor for read availability and invoke callback with the specified arguments once fd is available for reading"},
-    {"remove_reader", (PyCFunction)PuringLoop_remove_reader, METH_NOARGS, "Stop monitoring the fd file descriptor for read availability. Returns True if fd was previously being monitored for reads"},
-
-    {"add_writer", (PyCFunction)PuringLoop_add_writer, METH_NOARGS, "Start monitoring the fd file descriptor for write availability and invoke callback with the specified arguments args once fd is available for writing"},
-    {"remove_writer", (PyCFunction)PuringLoop_remove_writer, METH_NOARGS, "Stop monitoring the fd file descriptor for write availability. Returns True if fd was previously being monitored for writes"},
-
     {"close_loop", (PyCFunction)PuringLoop_close_loop, METH_VARARGS, "Close loop"},
 
     // Create File

@@ -113,56 +113,23 @@ PuringLoop_close_loop(PuringLoop *self, PyObject *args)
 }
 
 
-PyObject*
-PuringLoop_add_reader(PuringLoop *self, PyObject *args, PyObject *kwargs)
+PyObject *
+PuringLoop_run_once(PuringLoop *self)
 {
+    struct __kernel_timespec ts = compute_timeout(self);
+
+    struct io_uring_cqe *cqe;
+    io_uring_submit_and_wait_timeout(self->ring, &cqe, 1, &ts, NULL);
+
+    on_uring_ready(self);
+
+    promote_scheduled(self);
+
+    drain_ready(self);
+
     Py_RETURN_NONE;
 }
 
-
-PyObject*
-PuringLoop_remove_reader(PuringLoop *self, PyObject *args)
-{;}
-
-
-PyObject*
-PuringLoop_add_writer(PuringLoop *self, PyObject *args)
-{;}
-
-
-PyObject*
-PuringLoop_remove_writer(PuringLoop *self, PyObject *args)
-{;}
-
-
-PyObject*
-PuringLoop_run_once(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
-    ;
-    // static PyObject *
-    // py_on_uring_ready(PyObject *capsule)
-    // {
-    //     PuringLoop *loop = PyCapsule_GetPointer(capsule, "uring_loop");
-    //     if (!loop) {
-    //         PyErr_SetString(PyExc_RuntimeError, "Failed to get loop from capsule");
-    //         return NULL;
-    //     }
-
-    //     on_uring_ready(loop);
-
-    //     Py_RETURN_NONE;
-    // }
-    // on_uring_ready(self);
-
-    // AND
-
-    // if (!self->is_reader_installed) {
-    //     int res = uring_loop_register_fd(self);
-    //     if (res == 1) {
-    //         self->is_reader_installed = true;
-    //     }
-    // }
-}
 
 PyObject*
 PuringLoop_write_to_self(PyTypeObject *type, PyObject *args, PyObject *kwargs)

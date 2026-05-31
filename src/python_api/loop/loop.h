@@ -45,20 +45,7 @@ PyObject*
 PuringLoop_close_loop(PuringLoop *self, PyObject *args);
 
 PyObject*
-PuringLoop_add_reader(PuringLoop *self, PyObject *args, PyObject *kwargs);
-
-PyObject*
-PuringLoop_remove_reader(PuringLoop *self, PyObject *args);
-
-PyObject*
-PuringLoop_add_writer(PuringLoop *self, PyObject *args);
-
-PyObject*
-PuringLoop_remove_writer(PuringLoop *self, PyObject *args);
-
-
-PyObject*
-PuringLoop_run_once(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+PuringLoop_run_once(PuringLoop *self);
 
 PyObject*
 PuringLoop_write_to_self(PyTypeObject *type, PyObject *args, PyObject *kwargs);
@@ -77,6 +64,9 @@ PuringLoop_make_write_pipe_transport(PyTypeObject *type, PyObject *args, PyObjec
 
 
 // Helpers
-int _parse_memory_params(PyObject *obj, memory_params *out);
 void fast_shutdown(struct io_uring* ring, RequestRegistry *reg); 
 void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg);
+
+struct __kernel_timespec compute_timeout(PuringLoop *self);
+static void promote_scheduled(PuringLoop *self);
+static void drain_ready(PuringLoop *self);
