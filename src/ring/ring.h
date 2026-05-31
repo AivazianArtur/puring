@@ -8,6 +8,9 @@
 #include "liburing.h"
 
 
+#define WAKEUP_FD_TAG UINT64_MAX
+
+
 typedef struct 
 {
     uint32_t flags;
@@ -38,3 +41,4 @@ int ring_init(
     struct io_uring *ring
 );
 void ring_destroy(struct io_uring* ring);
+int ring_prep_wakeup_read(struct io_uring *ring, int wakeup_fd, uint64_t *wakeup_buf);

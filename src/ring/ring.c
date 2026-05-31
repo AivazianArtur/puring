@@ -50,3 +50,16 @@ void ring_destroy(struct io_uring* ring) {
     }
     io_uring_queue_exit(ring);
 }
+
+
+int ring_prep_wakeup_read(struct io_uring *ring, int wakeup_fd, uint64_t *wakeup_buf)
+{
+    struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
+    if (!sqe) 
+        return -1;
+
+    io_uring_prep_read(sqe, wakeup_fd, wakeup_buf, sizeof(uint64_t), 0);
+    io_uring_sqe_set_data64(sqe, WAKEUP_FD_TAG);
+    io_uring_submit(ring);
+    return 0;
+}

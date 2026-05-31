@@ -79,7 +79,7 @@ struct __kernel_timespec compute_timeout(PuringLoop *self)
 }
 
 
-static void promote_scheduled(PuringLoop *self)
+void promote_scheduled(PuringLoop *self)
 {
     PyObject *heapq = PyImport_ImportModule("heapq");
     if (!heapq) {
@@ -134,7 +134,7 @@ static void promote_scheduled(PuringLoop *self)
 }
 
 
-static void drain_ready(PuringLoop *self)
+void drain_ready(PuringLoop *self)
 {
     PyObject *ready = PyObject_GetAttrString((PyObject *)self, "_ready");
     if (!ready) 

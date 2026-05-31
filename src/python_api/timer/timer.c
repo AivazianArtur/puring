@@ -15,16 +15,8 @@ PuringLoop_timer(
         return NULL;
     }
     PuringLoop *loop = (PuringLoop *)loop_obj;
-    PyObject *py_loop = (PyObject *)loop;
-    ASSERT_LOOP_THREAD(py_loop);
-    if (loop->is_closing) {
-        PyErr_Format(
-            PyExc_RuntimeError,
-            "Ring Event Loop is closing - %S",
-            py_loop
-        );
-        return NULL;
-    }
+    ASSERT_LOOP_THREAD(loop);
+    ASSERT_RING_LOOP_IS_CLOSING(loop);
 
     TimerParams timer_params = {0};
     parse_timer_params(timer_params_obj, &timer_params);

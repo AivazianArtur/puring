@@ -5,6 +5,7 @@
 #include <liburing.h>
 #include <sys/types.h>
 #include <stdbool.h>
+#include <sys/eventfd.h>
 #include "python_api/ops/files/files.h"
 #include "python_api/ops/sockets/sockets.h"
 #include "ring/ring.h"
@@ -21,6 +22,9 @@ typedef struct PuringLoop {
 
     struct io_uring *ring;
     pid_t loop_tid;
+    int wakeup_fd;
+    uint64_t wakeup_buf;
+
     RequestRegistry *registry;
     unsigned int entries;
 
@@ -28,7 +32,6 @@ typedef struct PuringLoop {
     PyObject *writers; 
 
     bool initialized;
-    bool is_closing;
 } PuringLoop;
 
 
@@ -47,8 +50,8 @@ PuringLoop_close_loop(PuringLoop *self, PyObject *args);
 PyObject*
 PuringLoop_run_once(PuringLoop *self);
 
-PyObject*
-PuringLoop_write_to_self(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+PyObject *
+PuringLoop_write_to_self(PuringLoop *self);
 
 PyObject*
 PuringLoop_process_events(PyTypeObject *type, PyObject *args, PyObject *kwargs);
@@ -68,5 +71,5 @@ void fast_shutdown(struct io_uring* ring, RequestRegistry *reg);
 void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg);
 
 struct __kernel_timespec compute_timeout(PuringLoop *self);
-static void promote_scheduled(PuringLoop *self);
-static void drain_ready(PuringLoop *self);
+void promote_scheduled(PuringLoop *self);
+void drain_ready(PuringLoop *self);

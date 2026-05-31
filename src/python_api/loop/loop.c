@@ -29,7 +29,6 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 
     self->registry = registry;
     self->initialized = false;
-    self->is_closing = false;
 
     return (PyObject*)self;
 }
@@ -65,6 +64,19 @@ PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs)
     self->readers = PyDict_New();
     self->writers = PyDict_New();
 
+    self->wakeup_fd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if (self->wakeup_fd < 0) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+    self->wakeup_buf = 0;
+
+    if (ring_prep_wakeup_read(self->ring, self->wakeup_fd, &self->wakeup_buf) < 0) {
+        PyErr_SetString(PyExc_RuntimeError, "Failed to register wakeup fd");
+        return -1;
+    }
+
     self->loop_tid = gettid();
     self->initialized = true;
     return 0;
@@ -80,6 +92,11 @@ PuringLoop_dealloc(PuringLoop *self) {
         registry_destroy(self->registry);
     }
 
+    if (self->wakeup_fd >= 0) {
+        close(self->wakeup_fd);
+        self->wakeup_fd = -1;
+    }
+
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -87,16 +104,11 @@ PuringLoop_dealloc(PuringLoop *self) {
 PyObject*
 PuringLoop_close_loop(PuringLoop *self, PyObject *args)
 {
-    PyObject *py_loop = (PyObject *)self;
-    ASSERT_LOOP_THREAD(py_loop);
-
-    if (self->is_closing)
-        Py_RETURN_NONE;
-
-    self->is_closing = true;
+    ASSERT_LOOP_THREAD(self);
+    ASSERT_PYTHON_THREAD(self);
 
     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
-    PyObject *res = PyObject_CallMethod(base, "close", "O", py_loop);
+    PyObject *res = PyObject_CallMethod(base, "close", "O", (PyObject *)self);
     if (!res) {
         return NULL;
     }
@@ -108,7 +120,6 @@ PuringLoop_close_loop(PuringLoop *self, PyObject *args)
     self->ring = NULL;
     self->registry = NULL;
     
-    self->is_closing = false;
     Py_RETURN_NONE;
 }
 
@@ -116,6 +127,7 @@ PuringLoop_close_loop(PuringLoop *self, PyObject *args)
 PyObject *
 PuringLoop_run_once(PuringLoop *self)
 {
+    ASSERT_PYTHON_THREAD(self);
     struct __kernel_timespec ts = compute_timeout(self);
 
     struct io_uring_cqe *cqe;
@@ -124,16 +136,28 @@ PuringLoop_run_once(PuringLoop *self)
     on_uring_ready(self);
 
     promote_scheduled(self);
-
     drain_ready(self);
-
     Py_RETURN_NONE;
 }
 
 
-PyObject*
-PuringLoop_write_to_self(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{;}
+PyObject *
+PuringLoop_write_to_self(PuringLoop *self)
+{
+    if (self->wakeup_fd < 0) {
+        PyErr_SetString(PyExc_RuntimeError, "wakeup_fd is not initialized");
+        return NULL;
+    }
+
+    uint64_t val = 1;
+    ssize_t ret = write(self->wakeup_fd, &val, sizeof(val));
+    if (ret < 0 && errno != EAGAIN) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
 
 PyObject*
 PuringLoop_process_events(PyTypeObject *type, PyObject *args, PyObject *kwargs)

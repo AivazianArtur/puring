@@ -1,7 +1,6 @@
 #include "future.h"
 #include "python_api/loop/loop.h"
 
-// DRAFT
 PyObject* create_future(PuringLoop *self) 
 {
     PyObject *py_loop = (PyObject *)self;

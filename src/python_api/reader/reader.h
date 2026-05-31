@@ -10,6 +10,7 @@
 #include "python_api/ops/files/files.h"
 #include "registry/registry.h"
 #include "signals/signals.h"
+#include "ring/ring.h"
 
 
 void on_uring_ready(PuringLoop *self);
