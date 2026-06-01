@@ -61,7 +61,7 @@ BufferResult* _get_buffer(PyObject *buffer_obj, int bufsize) {
             PyErr_NoMemory();
             return NULL;
         }
-        buffer_len = (size_t)1024;
+        buffer_len = (size_t)bufsize;
     }
 
     BufferResult *result = malloc(sizeof(BufferResult));

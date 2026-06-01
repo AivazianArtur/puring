@@ -5,7 +5,6 @@
 
 #include "python_api/loop/loop.h"
 #include "python_api/ops/files/files.h"
-#include "python_api/ops/dirs/dirs.h"
 #include "python_api/ops/sockets/sockets.h"
 #include "python_api/timer/timer.h"
 
@@ -19,7 +18,7 @@ static PyMethodDef puring_module_methods[] = {
 
 
 static PyMethodDef puring_loop_methods[] = {
-    {"close_loop", (PyCFunction)PuringLoop_close_loop, METH_VARARGS, "Close loop"},
+    {"close", (PyCFunction)PuringLoop_close, METH_VARARGS, "Close loop"},
 
     {"_run_once", (PyCFunction)PuringLoop_run_once, METH_NOARGS, "Run one full iteration of the event loop"},
     {"_write_to_self", (PyCFunction)PuringLoop_write_to_self, METH_NOARGS, "Write a byte to self-pipe, to wake up the event loop"},
@@ -57,11 +56,6 @@ static PyMethodDef puring_file_methods[] = {
     {"fsync", (PyCFunction)PuringFile_fsync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file"},
     {"fdatasync", (PyCFunction)PuringFile_fdatasync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file with in fdatasync mode"},
     {"splice", (PyCFunction)PuringFile_splice, METH_VARARGS | METH_KEYWORDS, "Splicing two file pipes"},
-    {NULL, NULL, 0, NULL}
-};
-
-static PyMethodDef puring_dir_methods[] = {
-    {"stat", (PyCFunction)PuringDir_stat, METH_VARARGS | METH_KEYWORDS, "Directory info"},
     {NULL, NULL, 0, NULL}
 };
 

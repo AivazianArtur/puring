@@ -7,9 +7,8 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     int registry_size = 0;
 
     static char *kwlist[] = {"registry_size", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &registry_size)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &registry_size))
         return NULL;
-    }
 
     RequestRegistry* registry = registry_new(registry_size);
     if (!registry) return PyErr_NoMemory();
@@ -39,15 +38,14 @@ PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs)
 {
     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
     PyObject *init = PyObject_GetAttrString(base, "__init__");
-    if (!init) {
+    if (!init)
         return -1;
-    }
 
     PyObject *res = PyObject_CallOneArg(init, (PyObject *)self);
     Py_DECREF(init);
-    if (!res) {
+    if (!res)
         return -1;
-    }
+
     Py_DECREF(res);
 
     memory_params mem_par = {0};
@@ -102,24 +100,26 @@ PuringLoop_dealloc(PuringLoop *self) {
 
 
 PyObject*
-PuringLoop_close_loop(PuringLoop *self, PyObject *args)
+PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored))
 {
     ASSERT_LOOP_THREAD(self);
-    ASSERT_PYTHON_THREAD(self);
+    if (self->ring == NULL)
+        Py_RETURN_NONE;
 
     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
-    PyObject *res = PyObject_CallMethod(base, "close", "O", (PyObject *)self);
-    if (!res) {
-        return NULL;
-    }
-    Py_DECREF(res);
 
-    PyObject_CallMethod(base, "remove_reader", "i", self->ring->ring_fd);
+    PyObject *res =
+        PyObject_CallMethod(base, "close", "O", (PyObject *)self);
+
+    if (!res)
+        return NULL;
+
+    Py_DECREF(res);
 
     graceful_shutdown(self->ring, self->registry);
     self->ring = NULL;
     self->registry = NULL;
-    
+
     Py_RETURN_NONE;
 }
 

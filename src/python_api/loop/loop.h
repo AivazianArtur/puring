@@ -44,8 +44,11 @@ PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs);
 void 
 PuringLoop_dealloc(PuringLoop *self);
 
+// PyObject*
+// PuringLoop_close_loop(PuringLoop *self, PyObject *args);
+
 PyObject*
-PuringLoop_close_loop(PuringLoop *self, PyObject *args);
+PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored));
 
 PyObject*
 PuringLoop_run_once(PuringLoop *self);

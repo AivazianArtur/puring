@@ -10,19 +10,20 @@ void fast_shutdown(struct io_uring* ring, RequestRegistry *reg)
 
 void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg)
 {
-    ring_destroy(ring);
-    registry_destroy(reg);
-
-    struct io_uring_cqe *cqe;  // TEMP
+    struct io_uring_cqe *cqe;
     struct __kernel_timespec ts;
-    ts.tv_nsec = 0;
-    ts.tv_sec = 3;
+
+    ts.tv_sec = 0;
+    ts.tv_nsec = 100 * 1000 * 1000; // 100ms
 
     while (io_uring_wait_cqe_timeout(ring, &cqe, &ts) == 0) {
         int index = (int)(uintptr_t)cqe->user_data;
         registry_remove(reg, index);  // TODO: set future exception
         io_uring_cqe_seen(ring, cqe);
     }
+
+    registry_destroy(reg);
+    ring_destroy(ring);
 }
 
 
