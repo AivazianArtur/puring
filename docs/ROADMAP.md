@@ -15,16 +15,17 @@
 - [X] Add signal handling (`SIGINT`, `SIGTERM`, `SIGQUIT`) via `IORING_OP_POLL_ADD`.
 - [X] Add not implemented `file` methods.
 - [X] Add not implemented `socket` methods.
-- [ ] Finish AbstractEventLoop Protocol.
+- [X] Finish AbstractEventLoop Protocol.
 - [ ] Add tests.
 - [ ] Implement GitHub CI.
 
 ## v0.3.5 - Buffer features
 - [ ] Implement fixed buffers (`io_uring_register_buffers`).
 - [ ] Implement zero-copy send (`send_zc`).
-- [ ] Use Python application buffers as `UringLoop` buffers.
+- [ ] Use Python application buffers as `PuringLoop` buffers.
 - [ ] Implement a puring-based memory pool for buffers.
 - [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
+- [ ] Implement `ContextManager` protocol for Files and Sockets.
 - [ ] Publish library on PyPI (`pip` installable).
 
 ## v0.4.0 - Async Runtime & Architecture

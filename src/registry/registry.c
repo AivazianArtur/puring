@@ -66,8 +66,8 @@ int registry_add(
     PyObject *buffer,
     Py_buffer *iovecs_buffer,
     int opcode,
-    UringFile *file,
-    UringSocket *socket,
+    PuringFile *file,
+    PuringSocket *socket,
     struct sockaddr_storage *sockaddr
 ) 
 {

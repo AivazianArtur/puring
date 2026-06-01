@@ -28,9 +28,8 @@ Looking for contributors and feedback \
 ### Files:
 ```python
 async def main():
-    loop = puring.uring(registry_size=8)
+    loop = puring.PuringLoop(registry_size=8)
 
-    loop.add_reader()
     file = await loop.open(path='testfile.txt')
 
     data = b'Hello, puring!\n'
@@ -51,7 +50,7 @@ PORT = 9000
 PAYLOAD = b"hello"
 
 async def main():
-    loop = puring.uring()
+    loop = puring.PuringLoop()
     sock = await loop.tcp_socket()
 
     await sock.connect(HOST, PORT)

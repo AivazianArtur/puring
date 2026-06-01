@@ -5,6 +5,7 @@
 #include <liburing.h>
 #include <sys/types.h>
 #include <stdbool.h>
+#include <sys/eventfd.h>
 #include "python_api/ops/files/files.h"
 #include "python_api/ops/sockets/sockets.h"
 #include "ring/ring.h"
@@ -14,60 +15,51 @@
 #include "python_macroses.h"
 
 
-extern PyTypeObject UringLoopType;
+extern PyTypeObject *PuringLoopType;
 
-typedef struct UringLoop {
+typedef struct PuringLoop {
     PyObject_HEAD
 
     struct io_uring *ring;
-    PyObject *py_loop;
     pid_t loop_tid;
+    int wakeup_fd;
+    uint64_t wakeup_buf;
+
     RequestRegistry *registry;
     unsigned int entries;
 
-    PyObject *reader_capsule;
-    PyObject *reader_callback;
-    bool is_reader_installed;
+    PyObject *readers;
+    PyObject *writers; 
 
     bool initialized;
-    bool is_closing;
-} UringLoop;
+} PuringLoop;
 
 
 PyObject*
-UringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 int
-UringLoop_init(UringLoop *self, PyObject *args, PyObject *kwargs);
+PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
 void 
-UringLoop_dealloc(UringLoop *self);
+PuringLoop_dealloc(PuringLoop *self);
+
+// PyObject*
+// PuringLoop_close_loop(PuringLoop *self, PyObject *args);
 
 PyObject*
-UringLoop_close_loop(UringLoop *self, PyObject *args);
+PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored));
 
 PyObject*
-UringLoop_add_reader(UringLoop *self, PyObject *args);
+PuringLoop_run_once(PuringLoop *self);
 
-// TODO in next versions
-// static PyObject*
-// UringLoop_get_loop(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_run_forever(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_stop(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_call_soon(UringLoop *self, PyObject *args);
-
-// static PyObject*
-// UringLoop_call_later(UringLoop *self, PyObject *args);
-
+PyObject*
+PuringLoop_write_to_self(PuringLoop *self);
 
 // Helpers
-PyObject* _get_loop(void);
-int _parse_memory_params(PyObject *obj, memory_params *out);
 void fast_shutdown(struct io_uring* ring, RequestRegistry *reg); 
 void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg);
+
+struct __kernel_timespec compute_timeout(PuringLoop *self);
+void promote_scheduled(PuringLoop *self);
+void drain_ready(PuringLoop *self);

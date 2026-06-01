@@ -3,6 +3,6 @@
 #include <Python.h>
 
 
-typedef struct UringLoop UringLoop;
+typedef struct PuringLoop PuringLoop;
 
-PyObject* create_future(UringLoop *self);
+PyObject* create_future(PuringLoop *self);

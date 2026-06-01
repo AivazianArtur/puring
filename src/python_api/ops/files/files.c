@@ -2,23 +2,20 @@
 
 
 PyObject*
-UringLoop_open(
-    UringLoop *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringLoop_open(PyObject *module, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->py_loop);
-    ASSERT_RING_LOOP_IS_CLOSING(self);
+    ASSERT_LOOP_IS_PURING();
+    ASSERT_LOOP_THREAD(running_loop);
+    ASSERT_RING_LOOP_IS_CLOSING(running_loop);
 
-    UringFile *file = PyObject_New(UringFile, &UringFileType);
+    PuringFile *file = PyObject_New(PuringFile, &PuringFileType);
     if (!file) {
         return PyErr_NoMemory();
     }
 
-    file->loop = self;
+    file->loop = running_loop;
     file->closed = false;
-    Py_INCREF(self);
+    Py_INCREF(running_loop);
 
     const char *path = NULL;
     int dfd = AT_FDCWD;
@@ -61,7 +58,7 @@ UringLoop_open(
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(running_loop);
     if (!future) {
         Py_DECREF(file);
         return NULL;
@@ -71,7 +68,7 @@ UringLoop_open(
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->registry, future, buffer, NULL, opcode, file, NULL, NULL
+        running_loop->registry, future, buffer, NULL, opcode, file, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(file);
@@ -81,7 +78,7 @@ UringLoop_open(
     }
 
     int result = open_file(
-        self->ring,
+        running_loop->ring,
         request_idx,
         dfd,
         path,
@@ -93,13 +90,13 @@ UringLoop_open(
     if (result == -1) {
         Py_DECREF(file);
         Py_DECREF(future);
-        registry_remove(self->registry, request_idx);
+        registry_remove(running_loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(file);
         Py_DECREF(future);
-        registry_remove(self->registry, request_idx);
+        registry_remove(running_loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }
@@ -109,7 +106,7 @@ UringLoop_open(
 
 
 void 
-UringFile_dealloc(UringFile *self)
+PuringFile_dealloc(PuringFile *self)
 {
     self->closed = true;
     if (self->loop) {
@@ -120,13 +117,9 @@ UringFile_dealloc(UringFile *self)
 
 
 PyObject*
-UringFile_read(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -190,13 +183,9 @@ UringFile_read(
 
 
 PyObject*
-UringFile_readv(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -251,13 +240,9 @@ UringFile_readv(
 
 
 PyObject*
-UringFile_readv_raw(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -321,13 +306,9 @@ UringFile_readv_raw(
 
 
 PyObject*
-UringFile_write(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -384,13 +365,9 @@ UringFile_write(
 
 
 PyObject*
-UringFile_writev(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -447,13 +424,9 @@ UringFile_writev(
 
 
 PyObject*
-UringFile_writev_raw(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -520,13 +493,9 @@ UringFile_writev_raw(
 
 
 PyObject*
-UringFile_close(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -578,13 +547,9 @@ UringFile_close(
 
 
 PyObject*
-UringFile_fsync(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -622,13 +587,9 @@ UringFile_fsync(
 
 
 PyObject*
-UringFile_fdatasync(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -666,13 +627,9 @@ UringFile_fdatasync(
 
 
 PyObject*
-UringFile_splice(
-    UringFile *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self->loop->py_loop);
+    ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
         PyErr_SetString(PyExc_BrokenPipeError, "File is closed");
@@ -738,7 +695,7 @@ UringFile_splice(
 }
 
 
-static PyObject* _check_file_result(int result, UringFile *file, int request_idx, PyObject *future){
+static PyObject* _check_file_result(int result, PuringFile *file, int request_idx, PyObject *future){
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");

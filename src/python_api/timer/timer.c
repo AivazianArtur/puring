@@ -2,11 +2,7 @@
 
 
 PyObject*
-UringLoop_timer(
-    PyObject *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringLoop_timer(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *loop_obj;
     PyObject *timer_params_obj = NULL;
@@ -14,17 +10,9 @@ UringLoop_timer(
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", kwlist, &loop_obj, &timer_params_obj))) {
         return NULL;
     }
-    UringLoop *loop = (UringLoop *)loop_obj;
-
-    ASSERT_LOOP_THREAD(loop->py_loop);
-    if (loop->is_closing) {
-        PyErr_Format(
-            PyExc_RuntimeError,
-            "Ring Event Loop is closing - %S",
-            loop->py_loop
-        );
-        return NULL;
-    }
+    PuringLoop *loop = (PuringLoop *)loop_obj;
+    ASSERT_LOOP_THREAD(loop);
+    ASSERT_RING_LOOP_IS_CLOSING(loop);
 
     TimerParams timer_params = {0};
     parse_timer_params(timer_params_obj, &timer_params);

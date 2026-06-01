@@ -2,7 +2,7 @@
 
 
 PyObject* _check_sockets_result(
-    int result, UringSocket *socket, int request_idx, PyObject *future 
+    int result, PuringSocket *socket, int request_idx, PyObject *future 
 ) {
     if (result < 1) {
         if (result == -1) {

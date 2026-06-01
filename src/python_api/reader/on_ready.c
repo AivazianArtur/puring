@@ -1,6 +1,6 @@
 #include "reader.h"
 
-void on_uring_ready(UringLoop *loop)
+void on_uring_ready(PuringLoop *loop)
 {
     struct io_uring_cqe *cqe;
 
@@ -32,6 +32,19 @@ void on_uring_ready(UringLoop *loop)
                 PyErr_CheckSignals();
             }
 
+            if (cqe->user_data == WAKEUP_FD_TAG) {
+                uint64_t val;
+                read(loop->wakeup_fd, &val, sizeof(val));
+                
+                struct io_uring_sqe *sqe = io_uring_get_sqe(loop->ring);
+                if (sqe) {
+                    io_uring_prep_read(sqe, loop->wakeup_fd, &loop->wakeup_buf, sizeof(uint64_t), 0);
+                    io_uring_sqe_set_data64(sqe, WAKEUP_FD_TAG);
+                }
+                io_uring_cqe_seen(loop->ring, cqe);
+                continue;
+            }
+
             switch (slot->opcode) {
                 case IORING_OP_READ:
                     if (slot->buffer && PyBytes_Check(slot->buffer)) {
@@ -45,7 +58,7 @@ void on_uring_ready(UringLoop *loop)
                     break;
                 case IORING_OP_OPENAT2:
                     if (slot->file) {
-                        UringFile *file = (UringFile *)slot->file;
+                        PuringFile *file = (PuringFile *)slot->file;
                         file->fd = cqe->res;
                         // TODO: maybe should try to fix return types to return file and socket here and below?
                         result = (PyObject *)slot->file;
@@ -53,7 +66,7 @@ void on_uring_ready(UringLoop *loop)
                     break;
                 case IORING_OP_SOCKET:
                     if (slot->socket) {
-                        UringSocket *sock = (UringSocket *)slot->socket;
+                        PuringSocket *sock = (PuringSocket *)slot->socket;
                         sock->sock_fd = cqe->res;
                         SOCKET_STATES state = NEW;
                         sock->state = state; 
@@ -85,7 +98,7 @@ void on_uring_ready(UringLoop *loop)
                     if (slot->socket) {
                         struct sockaddr_storage *peer_addr = (struct sockaddr_storage *)slot->addr;
 
-                        UringSocket *conn = PyObject_New(UringSocket, &UringSocketType);
+                        PuringSocket *conn = PyObject_New(PuringSocket, &PuringSocketType);
                         if (!conn) {
                             PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
                             PyErr_Print();

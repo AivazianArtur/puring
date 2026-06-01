@@ -1,3 +1,5 @@
+# Warning, not working now
+
 import sys
 import asyncio
 import time
@@ -9,10 +11,9 @@ from config import *
 from metrics import record, report
 
 connections = []
-# Warning, not working now
 
-async def worker(loop):
-    sock = await loop.prep_socket()
+async def worker():
+    sock = await puring.prep_socket()
     connections.append(sock)
     await sock.connect(HOST, PORT)
     for _ in range(MESSAGES):
@@ -22,17 +23,17 @@ async def worker(loop):
         record(t0)
     await sock.close()
 
+
 async def run_benchmark():
-    loop = puring.uring(registry_size=8192)
-    loop.add_reader()
     await asyncio.sleep(WARMUP)
 
     start = time.perf_counter()
-    await asyncio.gather(*(worker(loop) for _ in range(CONNECTIONS)))
+    await asyncio.gather(*(worker() for _ in range(CONNECTIONS)))
     elapsed = time.perf_counter() - start
 
     report("puring io_uring", CONNECTIONS * MESSAGES, elapsed)
 
     await asyncio.sleep(0.5)
-    loop.close_loop()
-asyncio.run(run_benchmark())
+
+
+asyncio.run(run_benchmark(), loop_factory=puring.PuringLoop)
