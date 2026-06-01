@@ -50,21 +50,8 @@ PuringLoop_close_loop(PuringLoop *self, PyObject *args);
 PyObject*
 PuringLoop_run_once(PuringLoop *self);
 
-PyObject *
+PyObject*
 PuringLoop_write_to_self(PuringLoop *self);
-
-PyObject*
-PuringLoop_process_events(PyTypeObject *type, PyObject *args, PyObject *kwargs);
-
-PyObject*
-PuringLoop_make_socket_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
-
-PyObject*
-PuringLoop_make_read_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
-
-PyObject*
-PuringLoop_make_write_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs);
-
 
 // Helpers
 void fast_shutdown(struct io_uring* ring, RequestRegistry *reg); 

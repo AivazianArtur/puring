@@ -2,17 +2,18 @@
 
 
 PyObject*
-PuringLoop_prep_socket(PuringLoop *self, PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_THREAD(self);
-    ASSERT_RING_LOOP_IS_CLOSING(self);
+PuringLoop_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs) {
+    ASSERT_LOOP_IS_PURING();
+    ASSERT_LOOP_THREAD(running_loop);
+    ASSERT_RING_LOOP_IS_CLOSING(running_loop);
 
     PuringSocket *sock = PyObject_New(PuringSocket, &PuringSocketType);
     if (!sock) {
         return PyErr_NoMemory();
     }
     sock->closed = false;
-    sock->loop = self;
-    Py_INCREF(self);
+    sock->loop = running_loop;
+    Py_INCREF(running_loop);
 
     int domain = AF_INET;
     PyObject *timeout_params_obj = NULL;
@@ -24,7 +25,7 @@ PuringLoop_prep_socket(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(running_loop);
     if (!future) {
         Py_DECREF(sock);
         return NULL;
@@ -36,7 +37,7 @@ PuringLoop_prep_socket(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     sock->domain=domain;
 
     int request_idx = registry_add(
-        self->registry, future, buffer, NULL, opcode, NULL, sock, NULL
+        running_loop->registry, future, buffer, NULL, opcode, NULL, sock, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(sock);
@@ -45,7 +46,7 @@ PuringLoop_prep_socket(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = prep_socket(self->ring, request_idx, domain, &timeout_params);
+    int result = prep_socket(running_loop->ring, request_idx, domain, &timeout_params);
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -56,7 +57,7 @@ PuringLoop_prep_socket(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         }
         Py_DECREF(sock);
         Py_DECREF(future);
-        registry_remove(self->registry, request_idx);
+        registry_remove(running_loop->registry, request_idx);
         return NULL;
     }
 

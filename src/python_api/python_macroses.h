@@ -54,3 +54,19 @@
         );  \
         return NULL;  \
     }
+
+
+#define ASSERT_LOOP_IS_PURING() \
+    PyObject *asyncio = PyImport_ImportModule("asyncio");  \
+    PyObject *loop_obj = PyObject_CallMethod(asyncio, "get_running_loop", NULL);  \
+    Py_DECREF(asyncio);  \
+    \
+    if (!loop_obj)  \
+        return NULL;  \
+    \
+    if (!PyObject_IsInstance(loop_obj, (PyObject *)PuringLoopType)) {  \
+        Py_DECREF(loop_obj);  \
+        PyErr_SetString(PyExc_RuntimeError, "Uring-based methods requires uring-based loop");  \
+        return NULL;  \
+    }  \ 
+    PuringLoop *running_loop = (PuringLoop *)loop_obj;

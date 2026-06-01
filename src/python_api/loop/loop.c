@@ -124,7 +124,7 @@ PuringLoop_close_loop(PuringLoop *self, PyObject *args)
 }
 
 
-PyObject *
+PyObject*
 PuringLoop_run_once(PuringLoop *self)
 {
     ASSERT_PYTHON_THREAD(self);
@@ -141,7 +141,7 @@ PuringLoop_run_once(PuringLoop *self)
 }
 
 
-PyObject *
+PyObject*
 PuringLoop_write_to_self(PuringLoop *self)
 {
     if (self->wakeup_fd < 0) {
@@ -158,19 +158,3 @@ PuringLoop_write_to_self(PuringLoop *self)
 
     Py_RETURN_NONE;
 }
-
-PyObject*
-PuringLoop_process_events(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{;}
-
-PyObject*
-PuringLoop_make_socket_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{;}
-
-PyObject*
-PuringLoop_make_read_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{;}
-
-PyObject*
-PuringLoop_make_write_pipe_transport(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{;}

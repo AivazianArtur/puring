@@ -15,7 +15,7 @@
 - [X] Add signal handling (`SIGINT`, `SIGTERM`, `SIGQUIT`) via `IORING_OP_POLL_ADD`.
 - [X] Add not implemented `file` methods.
 - [X] Add not implemented `socket` methods.
-- [ ] Finish AbstractEventLoop Protocol.
+- [X] Finish AbstractEventLoop Protocol.
 - [ ] Add tests.
 - [ ] Implement GitHub CI.
 

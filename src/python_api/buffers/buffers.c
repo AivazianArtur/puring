@@ -67,8 +67,6 @@ BufferResult* _get_buffer(PyObject *buffer_obj, int bufsize) {
     BufferResult *result = malloc(sizeof(BufferResult));
     result->buffer = buffer;
     result->buffer_len = buffer_len;
-    result->view = &view;
 
-    PyBuffer_Release(&view);
     return result;
 }

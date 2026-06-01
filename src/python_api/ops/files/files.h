@@ -22,6 +22,7 @@
 #include "python_macroses.h"
 
 
+extern PyTypeObject *PuringLoopType;
 extern PyTypeObject PuringFileType;
 
 typedef struct PuringFile {
@@ -33,12 +34,13 @@ typedef struct PuringFile {
 } PuringFile;
 
 
-PyObject* 
+PyObject*
 PuringLoop_open(
-    PuringLoop *self,
+    PyObject *module,
     PyObject *args,
     PyObject *kwargs
 );
+
 
 void 
 PuringFile_dealloc(PuringFile *self);

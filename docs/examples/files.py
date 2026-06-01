@@ -11,10 +11,7 @@ TEMPFILE = 'docs/assets/tempfile.txt'
 
 
 async def main():
-    loop = puring.PuringLoop(registry_size=8)
-    print('PuringLoop created:', loop)
-
-    uring_file = await loop.open(path=TEMPFILE)
+    uring_file = await puring.open_file(path=TEMPFILE)
     print('File opened, fd:', uring_file)
 
     data = b'Hello, puring!\n'
@@ -27,8 +24,6 @@ async def main():
     await uring_file.close()
     print('File closed')
 
-    loop.close_loop()
-    print('Puring loop closed')
 
-asyncio.run(main())
+asyncio.run(main(), loop_factory=puring.PuringLoop)
 os.remove(TEMPFILE)

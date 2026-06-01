@@ -2,11 +2,7 @@
 
 
 PyObject*
-PuringLoop_timer(
-    PyObject *self,
-    PyObject *args,
-    PyObject *kwargs
-)
+PuringLoop_timer(PyObject *module, PyObject *args, PyObject *kwargs)
 {
     PyObject *loop_obj;
     PyObject *timer_params_obj = NULL;

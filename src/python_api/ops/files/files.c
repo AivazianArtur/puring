@@ -2,19 +2,20 @@
 
 
 PyObject*
-PuringLoop_open(PuringLoop *self, PyObject *args, PyObject *kwargs)
+PuringLoop_open(PyObject *module, PyObject *args, PyObject *kwargs)
 {
-    ASSERT_LOOP_THREAD(self);
-    ASSERT_RING_LOOP_IS_CLOSING(self);
+    ASSERT_LOOP_IS_PURING();
+    ASSERT_LOOP_THREAD(running_loop);
+    ASSERT_RING_LOOP_IS_CLOSING(running_loop);
 
     PuringFile *file = PyObject_New(PuringFile, &PuringFileType);
     if (!file) {
         return PyErr_NoMemory();
     }
 
-    file->loop = self;
+    file->loop = running_loop;
     file->closed = false;
-    Py_INCREF(self);
+    Py_INCREF(running_loop);
 
     const char *path = NULL;
     int dfd = AT_FDCWD;
@@ -57,7 +58,7 @@ PuringLoop_open(PuringLoop *self, PyObject *args, PyObject *kwargs)
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    PyObject *future = create_future(self);
+    PyObject *future = create_future(running_loop);
     if (!future) {
         Py_DECREF(file);
         return NULL;
@@ -67,7 +68,7 @@ PuringLoop_open(PuringLoop *self, PyObject *args, PyObject *kwargs)
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
     int request_idx = registry_add(
-        self->registry, future, buffer, NULL, opcode, file, NULL, NULL
+        running_loop->registry, future, buffer, NULL, opcode, file, NULL, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(file);
@@ -77,7 +78,7 @@ PuringLoop_open(PuringLoop *self, PyObject *args, PyObject *kwargs)
     }
 
     int result = open_file(
-        self->ring,
+        running_loop->ring,
         request_idx,
         dfd,
         path,
@@ -89,13 +90,13 @@ PuringLoop_open(PuringLoop *self, PyObject *args, PyObject *kwargs)
     if (result == -1) {
         Py_DECREF(file);
         Py_DECREF(future);
-        registry_remove(self->registry, request_idx);
+        registry_remove(running_loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable");
         return NULL;
     } else if (result == 0) {
         Py_DECREF(file);
         Py_DECREF(future);
-        registry_remove(self->registry, request_idx);
+        registry_remove(running_loop->registry, request_idx);
         PyErr_SetString(PyExc_RuntimeError, "SQE submission failed");
         return NULL;
     }

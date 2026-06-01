@@ -76,10 +76,11 @@ async def uvloop_write():
     await asyncio.to_thread(worker)
     return time.perf_counter() - start
 
+
 async def puring_write_sequential():
     print('Running io_uring sequential write')
     loop = asyncio.get_running_loop()
-    uring_file = await loop.open(path=FILE_PURING_SEQ)
+    uring_file = await puring.open_file(path=FILE_PURING_SEQ)
     start = time.perf_counter()
     for _ in range(ITERATIONS):
         await uring_file.write(DATA)
@@ -88,45 +89,25 @@ async def puring_write_sequential():
     return time.perf_counter() - start
 
 
-async def puring_write_sequential__include_init():
-    print('Running io_uring sequential write, including init')
-
-    start = time.perf_counter()
-
-    loop = puring.PuringLoop()
-
-    uring_file = await loop.open(path=FILE_PURING_SEQ__INIT)
-
-    for _ in range(ITERATIONS):
-        await uring_file.write(DATA)
-
-    # await uring_file.fsync() // OPTIONAL
-    await uring_file.close()
-
-    return time.perf_counter() - start
-
-
-async def run():
+def run():
     print(f'{CHUNK_SIZE=}, {ITERATIONS=}')
 
     results = []
 
-    # t = await standard_write()
-    # results.append(('standard', t))
+    t = asyncio.run(standard_write())
+    results.append(('standard', t))
 
-    # t = await asyncio_thread_write()
-    # results.append(('asyncio_thread', t))
+    t = asyncio.run(asyncio_thread_write())
+    results.append(('asyncio_thread', t))
 
-    # if is_uvloop_installed:
-    #     uvloop.install()
-    #     t = await uvloop_write()
-    #     results.append(('uvloop_thread', t))
+    if is_uvloop_installed:
+        uvloop.install()
+        t = asyncio.run(uvloop_write())
+        results.append(('uvloop_thread', t))
 
-    t = await puring_write_sequential()
-    results.append(('uring_seq', t))
-
-    # t = await puring_write_sequential__include_init()
-    # results.append(('uring_seq__with_init', t))
+    with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
+        t = runner.run(puring_write_sequential())
+        results.append(('uring_seq', t))
 
     print('\n==== RESULTS ====')
     for name, sec in results:
@@ -138,5 +119,8 @@ if __name__ == '__main__':
         os.mkdir(FILES_FOLDER)
     except FileExistsError:
         pass
-    asyncio.run(run(), loop_factory=puring.PuringLoop)
-    shutil.rmtree(FILES_FOLDER)
+
+    try:
+        run()
+    finally:
+        shutil.rmtree(FILES_FOLDER)

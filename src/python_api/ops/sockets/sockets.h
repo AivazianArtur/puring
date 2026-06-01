@@ -17,6 +17,7 @@
 #include "python_macroses.h"
 
 
+extern PyTypeObject *PuringLoopType;
 extern PyTypeObject PuringSocketType;
 
 
@@ -42,9 +43,9 @@ typedef struct PuringSocket {
 } PuringSocket;
 
 
-PyObject* 
+PyObject*
 PuringLoop_prep_socket(
-    PuringLoop *self,
+    PyObject *module,
     PyObject *args,
     PyObject *kwargs
 );

@@ -12,6 +12,8 @@
 
 static PyMethodDef puring_module_methods[] = {
     {"timer", (PyCFunction)PuringLoop_timer, METH_VARARGS | METH_KEYWORDS, "Sets a timer"},
+    {"open_file", (PyCFunction)PuringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file and instantiate File object"},
+    {"prep_socket", (PyCFunction)PuringLoop_prep_socket, METH_VARARGS | METH_KEYWORDS, "Opens socket and instantiate Socket object"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -19,17 +21,8 @@ static PyMethodDef puring_module_methods[] = {
 static PyMethodDef puring_loop_methods[] = {
     {"close_loop", (PyCFunction)PuringLoop_close_loop, METH_VARARGS, "Close loop"},
 
-    // Create File
-    {"open", (PyCFunction)PuringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file and instantiate File object"},
-    // Create Socket
-    {"prep_socket", (PyCFunction)PuringLoop_prep_socket, METH_VARARGS | METH_KEYWORDS, "Opens socket and instantiate Socket object"},
-
     {"_run_once", (PyCFunction)PuringLoop_run_once, METH_NOARGS, "Run one full iteration of the event loop"},
     {"_write_to_self", (PyCFunction)PuringLoop_write_to_self, METH_NOARGS, "Write a byte to self-pipe, to wake up the event loop"},
-    {"_process_events", (PyCFunction)PuringLoop_process_events, METH_O, "Do nothing. BaseEventLoop requirement"},
-    {"_make_socket_transport", (PyCFunction)PuringLoop_make_socket_transport, METH_VARARGS | METH_KEYWORDS, "Create socket transport"},
-    {"_make_read_pipe_transport", (PyCFunction)PuringLoop_make_read_pipe_transport, METH_VARARGS | METH_KEYWORDS, "Create read pipe transport"},
-    {"_make_write_pipe_transport",(PyCFunction)PuringLoop_make_write_pipe_transport, METH_VARARGS | METH_KEYWORDS, "Create write pipe transport"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -76,20 +69,20 @@ static PyMethodDef puring_dir_methods[] = {
 PyTypeObject *PuringLoopType = NULL;
 
 static PyType_Slot PuringLoop_slots[] = {
-    {Py_tp_doc,      (void *)PyDoc_STR("Rings with python loop")},
-    {Py_tp_new,      PuringLoop_new},
-    {Py_tp_init,     PuringLoop_init},
-    {Py_tp_dealloc,  PuringLoop_dealloc},
-    {Py_tp_methods,  puring_loop_methods},
+    {Py_tp_doc, (void *)PyDoc_STR("Rings with python loop")},
+    {Py_tp_new, PuringLoop_new},
+    {Py_tp_init, PuringLoop_init},
+    {Py_tp_dealloc, PuringLoop_dealloc},
+    {Py_tp_methods, puring_loop_methods},
     {0, NULL}
 };
 
 static PyType_Spec PuringLoop_spec = {
-    .name      = "puring.src.python_api.loop.UringLoop",
+    .name = "puring.src.python_api.loop.PuringLoop",
     .basicsize = sizeof(PuringLoop),
-    .itemsize  = 0,
-    .flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .slots     = PuringLoop_slots,
+    .itemsize = 0,
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .slots = PuringLoop_slots,
 };
 
 PyTypeObject PuringFileType = {
@@ -127,7 +120,6 @@ puring_module_exec(PyObject *m)
         return -1;
     }
 
-
     PyObject *base = PyObject_GetAttrString(asyncio, "BaseEventLoop");
     Py_DECREF(asyncio);
     if (!base) {
@@ -145,6 +137,8 @@ puring_module_exec(PyObject *m)
     if (!type) {
         return -1;
     }
+
+    PuringLoopType = (PyTypeObject *)type;
 
     if (PyType_Ready(&PuringSocketType) < 0) {
         return -1;
