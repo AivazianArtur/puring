@@ -1,9 +1,10 @@
 #pragma once
 
+#include "Python.h"
+
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "Python.h"
 #include "liburing.h"
 
 #include "queue_events/sqe/sqe.h"

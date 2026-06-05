@@ -1,13 +1,10 @@
 #pragma once
 
-#define _GNU_SOURCE
+#include "Python.h"
 
 #include <unistd.h>
 #include <signal.h>
 #include <sys/poll.h>
-
-
-#include "Python.h"
 
 #include "liburing.h"
 #include "queue_events/sqe/sqe.h"

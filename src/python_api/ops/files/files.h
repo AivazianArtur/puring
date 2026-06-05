@@ -115,7 +115,7 @@ PuringFile_splice(
     PyObject *kwargs
 );
 
-static PyObject* _check_file_result(int result, PuringFile *file, int request_idx, PyObject *future);
+PyObject* _check_file_result(int result, PuringFile *file, int request_idx, PyObject *future);
 
 PyObject* create_resolve_enum(void);
 PyObject* create_statx_flags_enum(void);

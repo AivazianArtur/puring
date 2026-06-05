@@ -14,21 +14,12 @@
 #include "python_api/future/future.h"
 #include "python_api/buffers/buffers.h"
 #include "registry/registry.h"
+#include "macroses.h"
 #include "python_macroses.h"
 
 
 extern PyTypeObject *PuringLoopType;
 extern PyTypeObject PuringSocketType;
-
-
-typedef enum SOCKET_STATES {
-  NEW,
-  BOUND,
-  LISTENING,
-  CONNECTED,
-  ACCEPTING,
-  CLOSED
-} SOCKET_STATES;
 
 
 typedef struct PuringSocket {

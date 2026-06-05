@@ -258,7 +258,7 @@ int uring_sendto(
 {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
-    io_uring_prep_sendto(sqe, sockfd, buf, len, flags, addr, addrlen);
+    io_uring_prep_sendto(sqe, sockfd, buf, len, flags, addr, (socklen_t)addrlen);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -279,7 +279,7 @@ int uring_recvfrom(
 	void *buf,
     size_t len,
     struct sockaddr *addr, 
-    socklen_t addrlen,
+    // socklen_t addrlen,
     int flags,
     // Below are optional
     struct TimeoutParams *timeout_params
@@ -303,7 +303,7 @@ int uring_recvfrom(
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
 
-    io_uring_prep_recvmsg(sqe, sockfd, &msg, flags);
+    io_uring_prep_recvmsg(sqe, sockfd, &msg, (unsigned int)flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -338,14 +338,14 @@ int uring_sendmsg(
     msg.msg_iovlen = nr_vecs;
 
     msg.msg_name = (void *)addr;
-    msg.msg_namelen = addrlen;
+    msg.msg_namelen = (socklen_t)addrlen;
 
     // TODO: Anc.data in next versions
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
 
 
-    io_uring_prep_sendmsg(sqe, sockfd, &msg, flags);
+    io_uring_prep_sendmsg(sqe, sockfd, &msg, (unsigned int)flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -385,7 +385,7 @@ int uring_recvmsg(
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
 
-    io_uring_prep_recvmsg(sqe, sockfd, &msg, flags);
+    io_uring_prep_recvmsg(sqe, sockfd, &msg, (unsigned int)flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);

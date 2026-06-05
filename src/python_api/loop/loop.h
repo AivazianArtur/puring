@@ -39,7 +39,11 @@ PyObject*
 PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 int
-PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs);
+PuringLoop_init(
+    PuringLoop *self
+    // PyObject *args,
+    // PyObject *kwargs
+);
 
 void 
 PuringLoop_dealloc(PuringLoop *self);

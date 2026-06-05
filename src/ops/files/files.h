@@ -1,7 +1,5 @@
 #pragma once
 
-#define _GNU_SOURCE
-
 #include <linux/openat2.h>
 #include <stdio.h>
 #include <string.h>
@@ -85,7 +83,6 @@ int uring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    char *buf,
     
     // Below are optional
     struct TimeoutParams *timeout_params

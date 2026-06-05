@@ -13,16 +13,6 @@
 #include "macroses.h"
 
 
-typedef enum SOCKET_STATES {
-  NEW,
-  BOUND,
-  LISTENING,
-  CONNECTED,
-  ACCEPTING,
-  CLOSED
-} SOCKET_STATES;
-
-
 int prep_socket(
     struct io_uring *ring, 
     int request_idx,
@@ -127,7 +117,7 @@ int uring_recvfrom(
 	void *buf,
     size_t len,
     struct sockaddr *addr, 
-    socklen_t addrlen,
+    // socklen_t addrlen,
     int flags,
     // Below are optional
     struct TimeoutParams *timeout_params

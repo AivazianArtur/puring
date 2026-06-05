@@ -1,3 +1,6 @@
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
@@ -7,6 +10,9 @@
 #include "python_api/ops/files/files.h"
 #include "python_api/ops/sockets/sockets.h"
 #include "python_api/timer/timer.h"
+
+
+PyMODINIT_FUNC PyInit_puring(void);
 
 
 static PyMethodDef puring_module_methods[] = {

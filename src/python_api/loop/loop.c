@@ -6,11 +6,11 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     int registry_size = 0;
 
-    static char *kwlist[] = {"registry_size", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &registry_size))
+    static const char *kwlist[] = {"registry_size", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char * const *)kwlist, &registry_size))
         return NULL;
 
-    RequestRegistry* registry = registry_new(registry_size);
+    RequestRegistry* registry = registry_new((unsigned int)(registry_size));
     if (!registry) return PyErr_NoMemory();
 
     PuringLoop *self = (PuringLoop *)type->tp_alloc(type, 0);
@@ -34,7 +34,11 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 
 
 int
-PuringLoop_init(PuringLoop *self, PyObject *args, PyObject *kwargs)
+PuringLoop_init(
+    PuringLoop *self
+    // PyObject *args,
+    // PyObject *kwargs
+)
 {
     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
     PyObject *init = PyObject_GetAttrString(base, "__init__");

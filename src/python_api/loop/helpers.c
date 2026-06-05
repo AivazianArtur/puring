@@ -62,7 +62,7 @@ struct __kernel_timespec compute_timeout(PuringLoop *self)
                     delay = 86400;
                 }
                 ts.tv_sec  = (long)delay;
-                ts.tv_nsec = (long)((delay - (long)delay) * 1e9);
+                ts.tv_nsec = (long)((delay - (double)delay) * 1e9);
             }
             Py_XDECREF(when);
             Py_XDECREF(loop_time);

@@ -2,7 +2,7 @@
 
 
 PyObject*
-PuringLoop_open(PyObject *module, PyObject *args, PyObject *kwargs)
+PuringLoop_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs)
 {
     ASSERT_LOOP_IS_PURING();
     ASSERT_LOOP_THREAD(running_loop);
@@ -25,12 +25,12 @@ PuringLoop_open(PyObject *module, PyObject *args, PyObject *kwargs)
     int resolve = 0;
     int mode = 0644;
 
-    static char *kwlist[] = {"path", "dirfd", "flags", "resolve", "mode", "timeout_params", NULL};
+    static const char *kwlist[] = {"path", "dirfd", "flags", "resolve", "mode", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
         args,
         kwargs,
         "O|iKKKO",
-        kwlist,
+        (char * const *)kwlist,
         &py_path_obj,
         &dfd,
         &timeout_params_obj,
@@ -84,7 +84,7 @@ PuringLoop_open(PyObject *module, PyObject *args, PyObject *kwargs)
         path,
         flags,
         resolve,
-        mode,
+        (mode_t)mode,
         &timeout_params
     );
     if (result == -1) {
@@ -129,8 +129,8 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs)
     PyObject *timeout_params_obj = NULL;
     int offset = 0;
     int size_i = 1024;
-    static char *kwlist[] = {"offset", "size", "timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", kwlist, &offset, &size_i, &timeout_params_obj)) {
+    static const char *kwlist[] = {"offset", "size", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", (char * const *)kwlist, &offset, &size_i, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -196,8 +196,8 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs)
     PyObject *timeout_params_obj = NULL;
     int flags = 0;
     int offset = 0;
-    static char *kwlist[] = {"buffers", "offset", "flags", "timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiO", kwlist, &buffers_obj, &offset, &flags, &timeout_params_obj)) {
+    static const char *kwlist[] = {"buffers", "offset", "flags", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|iiO", (char * const *)kwlist, &buffers_obj, &offset, &flags, &timeout_params_obj)) {
         return NULL;
     }
     
@@ -229,7 +229,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs)
         request_idx,
         self->fd,
         iovecs_result->iovecs,
-        iovecs_result->nr_vecs,
+        (unsigned int)(iovecs_result->nr_vecs),
         offset,
         flags,
         &timeout_params
@@ -253,12 +253,12 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
     PyObject *timeout_params_obj = NULL;
     int flags = 0;
     int offset = 0;
-    static char *kwlist[] = {"iovecs", "offset", "flags", "timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "w*|iiO", kwlist, &iovecs_buf, &offset, &flags, &timeout_params_obj)) {
+    static const char *kwlist[] = {"iovecs", "offset", "flags", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "w*|iiO", (char * const *)kwlist, &iovecs_buf, &offset, &flags, &timeout_params_obj)) {
         return NULL;
     }
     
-    if (iovecs_buf.len % sizeof(struct iovec) != 0) {
+    if ((unsigned int)(iovecs_buf.len) % sizeof(struct iovec) != 0) {
         PyBuffer_Release(&iovecs_buf);
         PyErr_SetString(PyExc_ValueError, "iovecs buffer has invalid size");
         return NULL;
@@ -270,7 +270,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
     }
 
     struct iovec *iovecs = (struct iovec *)iovecs_buf.buf;
-    unsigned nr_vecs = iovecs_buf.len / sizeof(struct iovec);
+    unsigned nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -319,8 +319,8 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs)
     int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"data", "offset", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", kwlist, &data, &offset, &timeout_params_obj))) {
+    static const char *kwlist[] = {"data", "offset", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", (char * const *)kwlist, &data, &offset, &timeout_params_obj))) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -380,8 +380,8 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs)
     int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iiO", kwlist, &buffers_obj, &flags, &offset, &timeout_params_obj))) {
+    static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "OO|iiO", (char * const *)kwlist, &buffers_obj, &flags, &offset, &timeout_params_obj))) {
         return NULL;
     }
 
@@ -413,7 +413,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs)
         request_idx,
         self->fd,
         iovecs_result->iovecs,
-        iovecs_result->nr_vecs,
+        (unsigned int)(iovecs_result->nr_vecs),
         offset,
         flags,
         &timeout_params
@@ -439,12 +439,12 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
     int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
-    static char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "Oy|iiO", kwlist, &iovecs_buf, &flags, &offset, &timeout_params_obj))) {
+    static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "Oy|iiO", (char * const *)kwlist, &iovecs_buf, &flags, &offset, &timeout_params_obj))) {
         return NULL;
     }
 
-    if (iovecs_buf.len % sizeof(struct iovec) != 0) {
+    if ((unsigned long)(iovecs_buf.len) % sizeof(struct iovec) != 0) {
         PyBuffer_Release(&iovecs_buf);
         PyErr_SetString(PyExc_ValueError, "iovecs buffer has invalid size");
         return NULL;
@@ -457,7 +457,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs)
     } 
 
     struct iovec *iovecs = (struct iovec *)iovecs_buf.buf;
-    unsigned nr_vecs = iovecs_buf.len / sizeof(struct iovec);
+    unsigned nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -503,8 +503,8 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs)
     }
 
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+    static const char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char * const *)kwlist, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -540,7 +540,7 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs)
         PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
         return NULL;
     }
-    int result = uring_close_file(self->loop->ring, request_idx, self->fd, buf, &timeout_params);
+    int result = uring_close_file(self->loop->ring, request_idx, self->fd, &timeout_params);
 
     return _check_file_result(result, self, request_idx, future);
 }
@@ -557,8 +557,8 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs)
     }
 
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+    static const char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char * const *)kwlist, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -597,8 +597,8 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs)
     }
 
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", kwlist, &timeout_params_obj)) {
+    static const char *kwlist[] = {"timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char * const *)kwlist, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -644,12 +644,12 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs)
     int flag = 0;
 
     PyObject *timeout_params_obj = NULL;
-    static char *kwlist[] = {"src", "dst", "count", "offset_src", "offset_dst", "flag", "timeout_params", NULL};
+    static const char *kwlist[] = {"src", "dst", "count", "offset_src", "offset_dst", "flag", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
         args,
         kwargs,
         "iii|iiiO",
-        kwlist,
+        (char * const *)kwlist,
         &src,
         &dst,
         &count,
@@ -695,7 +695,7 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs)
 }
 
 
-static PyObject* _check_file_result(int result, PuringFile *file, int request_idx, PyObject *future){
+PyObject* _check_file_result(int result, PuringFile *file, int request_idx, PyObject *future){
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");

@@ -1,5 +1,7 @@
 #include "signals.h"
 
+// #define _POSIX_C_SOURCE 200809L  // for ASan to know about pipe2
+
 
 int set_signals_handler(struct io_uring *ring) {
     // TODO: When we'll be doing multishot, have to multishot this
