@@ -25,11 +25,11 @@ RequestRegistry* registry_new(unsigned int size)
         return NULL;
     }
 
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < (int)size; i++) {
         registry->available_indices[i] = i;
     }
     
-    registry->top = size - 1;
+    registry->top = (int)size - 1;
     registry->size = size;
 
     return registry;
@@ -104,7 +104,7 @@ int registry_add(
 
 RequestSlot* registry_get(RequestRegistry *reg, int index) 
 {
-    if (index < 0 || index >= reg->size) {
+    if (index < 0 || index >= (int)(reg->size)) {
         return NULL;
     }
     
@@ -113,7 +113,7 @@ RequestSlot* registry_get(RequestRegistry *reg, int index)
 
 void registry_remove(RequestRegistry *reg, int index) 
 {
-    if (index < 0 || index >= reg->size) return;
+    if (index < 0 || index >= (int)(reg->size)) return;
 
     RequestSlot *slot = &reg->slots[index];
 

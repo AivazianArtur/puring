@@ -24,7 +24,7 @@ int timer(struct io_uring *ring, TimerParams *timer_params) {
         flag = IORING_TIMEOUT_MULTISHOT;
     }
 
-    io_uring_prep_timeout(sqe, &ts, (*timer_params).count, flag);
+    io_uring_prep_timeout(sqe, &ts, (unsigned int)((*timer_params).count), (unsigned int)flag);
 
     int result = io_uring_submit(ring);
     if (result < 0) {

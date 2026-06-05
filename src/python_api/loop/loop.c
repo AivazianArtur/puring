@@ -52,10 +52,14 @@ PuringLoop_init(
 
     Py_DECREF(res);
 
-    memory_params mem_par = {0};
-    ring_init_params params = {0};
+    // memory_params mem_par = {0};
+    // ring_init_params params = {0};
 
-    int ret = ring_init(&mem_par, &params, self->ring);
+    int ret = ring_init(
+        // &mem_par, 
+        // &params, 
+        self->ring
+    );
     if (ret < 0) {
         PyErr_SetFromErrno(PyExc_OSError);
         return -1;

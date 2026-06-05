@@ -26,7 +26,11 @@ void on_uring_ready(PuringLoop *loop)
             }
         } else {
             if (IS_SIGNALS_DATA(cqe->user_data)) {
-                char buf[64];
+                #pragma clang diagnostic push
+                #pragma clang diagnostic ignored "-Wunreachable-code"
+                    char buf[64];
+                #pragma clang diagnostic pop
+
                 struct SignalsData *signals_data = (struct SignalsData *)cqe->user_data;
                 read(signals_data->fd, buf, sizeof(buf));
                 PyErr_CheckSignals();

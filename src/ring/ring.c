@@ -2,8 +2,8 @@
 
 
 int ring_init(
-    memory_params *memory_params,
-    ring_init_params *params,
+    // memory_params *memory_params,
+    // ring_init_params *params,
     struct io_uring *ring
 )
 {
