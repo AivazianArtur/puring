@@ -1,16 +1,14 @@
 #include "loop.h"
 
-
 // cppcheck-suppress unusedFunction
-void fast_shutdown(struct io_uring* ring, RequestRegistry *reg)
-{
+void
+fast_shutdown(struct io_uring *ring, RequestRegistry *reg) {
     ring_destroy(ring);
     registry_destroy(reg);
 }
 
-
-void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg)
-{
+void
+graceful_shutdown(struct io_uring *ring, RequestRegistry *reg) {
     struct io_uring_cqe *cqe;
     struct __kernel_timespec ts;
 
@@ -19,7 +17,7 @@ void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg)
 
     while (io_uring_wait_cqe_timeout(ring, &cqe, &ts) == 0) {
         int index = (int)(uintptr_t)cqe->user_data;
-        registry_remove(reg, index);  // TODO: set future exception
+        registry_remove(reg, index); // TODO: set future exception
         io_uring_cqe_seen(ring, cqe);
     }
 
@@ -27,9 +25,8 @@ void graceful_shutdown(struct io_uring* ring, RequestRegistry *reg)
     ring_destroy(ring);
 }
 
-
-struct __kernel_timespec compute_timeout(PuringLoop *self)
-{
+struct __kernel_timespec
+compute_timeout(PuringLoop *self) {
     struct __kernel_timespec ts = {0, 0};
 
     PyObject *ready = PyObject_GetAttrString((PyObject *)self, "_ready");
@@ -47,7 +44,7 @@ struct __kernel_timespec compute_timeout(PuringLoop *self)
     bool is_stopping = PyObject_IsTrue(stopping);
 
     if (has_ready || is_stopping) {
-        ts.tv_sec  = 0;
+        ts.tv_sec = 0;
         ts.tv_nsec = 0;
     } else if (PySequence_Length(scheduled) > 0) {
         PyObject *first = PySequence_GetItem(scheduled, 0);
@@ -62,7 +59,7 @@ struct __kernel_timespec compute_timeout(PuringLoop *self)
                 if (delay > 86400) {
                     delay = 86400;
                 }
-                ts.tv_sec  = (long)delay;
+                ts.tv_sec = (long)delay;
                 ts.tv_nsec = (long)((delay - (double)delay) * 1e9);
             }
             Py_XDECREF(when);
@@ -70,7 +67,7 @@ struct __kernel_timespec compute_timeout(PuringLoop *self)
             Py_DECREF(first);
         }
     } else {
-        ts.tv_sec  = 86400;
+        ts.tv_sec = 86400;
         ts.tv_nsec = 0;
     }
 
@@ -80,9 +77,8 @@ struct __kernel_timespec compute_timeout(PuringLoop *self)
     return ts;
 }
 
-
-void promote_scheduled(PuringLoop *self)
-{
+void
+promote_scheduled(PuringLoop *self) {
     PyObject *heapq = PyImport_ImportModule("heapq");
     if (!heapq) {
         return;
@@ -104,7 +100,7 @@ void promote_scheduled(PuringLoop *self)
     double end_time = PyFloat_AsDouble(loop_time) + PyFloat_AsDouble(clock_res);
     while (PySequence_Length(scheduled) > 0) {
         PyObject *handle = PySequence_GetItem(scheduled, 0);
-        if (!handle) 
+        if (!handle)
             break;
 
         PyObject *when = PyObject_GetAttrString(handle, "_when");
@@ -135,17 +131,16 @@ void promote_scheduled(PuringLoop *self)
     }
 }
 
-
-void drain_ready(PuringLoop *self)
-{
+void
+drain_ready(PuringLoop *self) {
     PyObject *ready = PyObject_GetAttrString((PyObject *)self, "_ready");
-    if (!ready) 
+    if (!ready)
         return;
 
     Py_ssize_t ntodo = PySequence_Length(ready);
     for (Py_ssize_t i = 0; i < ntodo; i++) {
         PyObject *handle = PyObject_CallMethod(ready, "popleft", NULL);
-        if (!handle) 
+        if (!handle)
             break;
 
         PyObject *cancelled = PyObject_GetAttrString(handle, "_cancelled");

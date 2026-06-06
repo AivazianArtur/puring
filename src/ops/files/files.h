@@ -1,19 +1,18 @@
 #pragma once
 
+#include <fcntl.h>
 #include <linux/openat2.h>
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #include <sys/stat.h>
-
 
 #include "liburing.h"
 
 #include "macroses.h"
 
-
 /* Functions */
-int open_file(
+int
+open_file(
     struct io_uring *ring,
     int request_idx,
     int dfd,
@@ -22,12 +21,12 @@ int open_file(
     // Below are optional
     int flags,
     int resolve,
-	mode_t mode,
+    mode_t mode,
     struct TimeoutParams *timeout_params
 );
 
-
-int uring_read(
+int
+uring_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -39,8 +38,8 @@ int uring_read(
     struct TimeoutParams *timeout_params
 );
 
-
-int uring_readv(
+int
+uring_readv(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -52,8 +51,8 @@ int uring_readv(
     struct TimeoutParams *timeout_params
 );
 
-
-int uring_write(
+int
+uring_write(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -64,8 +63,8 @@ int uring_write(
     struct TimeoutParams *timeout_params
 );
 
-
-int uring_writev(
+int
+uring_writev(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -78,18 +77,8 @@ int uring_writev(
     struct TimeoutParams *timeout_params
 );
 
-
-int uring_close_file(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    
-    // Below are optional
-    struct TimeoutParams *timeout_params
-);
-
-
-int uring_fsync(
+int
+uring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -98,8 +87,8 @@ int uring_fsync(
     struct TimeoutParams *timeout_params
 );
 
-
-int uring_fdatasync(
+int
+uring_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -108,15 +97,26 @@ int uring_fdatasync(
     struct TimeoutParams *timeout_params
 );
 
-int uring_splice(
+int
+uring_fdatasync(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+
+    // Below are optional
+    struct TimeoutParams *timeout_params
+);
+
+int
+uring_splice(
     struct io_uring *ring,
     int request_idx,
     int fd_in,
     int off_in,
-	int fd_out, 
+    int fd_out,
     int off_out,
-	int nbytes,
-	int flag,
+    int nbytes,
+    int flag,
 
     // Below are optional
     struct TimeoutParams *timeout_params

@@ -1,7 +1,7 @@
 #include "files.h"
 
-
-int open_file(
+int
+open_file(
     struct io_uring *ring,
     int request_idx,
     int dfd,
@@ -10,10 +10,9 @@ int open_file(
     // Below are optional
     int flags,
     int resolve,
-	mode_t mode,
+    mode_t mode,
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     if (!flags) {
@@ -39,8 +38,8 @@ int open_file(
     return 1;
 }
 
-
-int uring_read(
+int
+uring_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -50,8 +49,7 @@ int uring_read(
 
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_read(sqe, fd, buf, size, (uint64_t)offset);
@@ -67,8 +65,8 @@ int uring_read(
     return 1;
 }
 
-
-int uring_readv(
+int
+uring_readv(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -94,8 +92,8 @@ int uring_readv(
     return 1;
 }
 
-
-int uring_write(
+int
+uring_write(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -104,8 +102,7 @@ int uring_write(
     int offset,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_write(sqe, fd, buf, size, (uint64_t)offset);
@@ -121,8 +118,8 @@ int uring_write(
     return 1;
 }
 
-
-int uring_writev(
+int
+uring_writev(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -149,15 +146,14 @@ int uring_writev(
     return 1;
 }
 
-
-int uring_close_file(
+int
+uring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_close(sqe, fd);
@@ -173,16 +169,15 @@ int uring_close_file(
     return 1;
 }
 
-
-int uring_fsync(
+int
+uring_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd,
 
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     unsigned fsync_flags = 0;
@@ -200,16 +195,15 @@ int uring_fsync(
     return 1;
 }
 
-
-int uring_fdatasync(
+int
+uring_fdatasync(
     struct io_uring *ring,
     int request_idx,
     int fd,
 
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     unsigned fsync_flags = IORING_FSYNC_DATASYNC;
@@ -227,21 +221,20 @@ int uring_fdatasync(
     return 1;
 }
 
-
-int uring_splice(
+int
+uring_splice(
     struct io_uring *ring,
     int request_idx,
     int fd_in,
     int off_in,
-	int fd_out, 
+    int fd_out,
     int off_out,
-	int nbytes,
-	int flag,
+    int nbytes,
+    int flag,
 
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_splice(
@@ -264,6 +257,5 @@ int uring_splice(
     }
     return 1;
 }
-
 
 // TODO: io_uring_prep_read_fixed + io_uring_prep_write_fixed

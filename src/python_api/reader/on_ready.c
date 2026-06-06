@@ -1,7 +1,7 @@
 #include "reader.h"
 
-void on_uring_ready(PuringLoop *self)
-{
+void
+on_uring_ready(PuringLoop *self) {
     struct io_uring_cqe *cqe;
 
     while (io_uring_peek_cqe(self->ring, &cqe) == 0) {
@@ -26,10 +26,10 @@ void on_uring_ready(PuringLoop *self)
             }
         } else {
             if (IS_SIGNALS_DATA(cqe->user_data)) {
-                #pragma clang diagnostic push
-                #pragma clang diagnostic ignored "-Wunreachable-code"
-                    char buf[64];
-                #pragma clang diagnostic pop
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code"
+                char buf[64];
+#pragma clang diagnostic pop
 
                 struct SignalsData *signals_data = (struct SignalsData *)cqe->user_data;
                 read(signals_data->fd, buf, sizeof(buf));
@@ -39,10 +39,12 @@ void on_uring_ready(PuringLoop *self)
             if (cqe->user_data == WAKEUP_FD_TAG) {
                 uint64_t val;
                 read(self->wakeup_fd, &val, sizeof(val));
-                
+
                 struct io_uring_sqe *sqe = io_uring_get_sqe(self->ring);
                 if (sqe) {
-                    io_uring_prep_read(sqe, self->wakeup_fd, &self->wakeup_buf, sizeof(uint64_t), 0);
+                    io_uring_prep_read(
+                        sqe, self->wakeup_fd, &self->wakeup_buf, sizeof(uint64_t), 0
+                    );
                     io_uring_sqe_set_data64(sqe, WAKEUP_FD_TAG);
                 }
                 io_uring_cqe_seen(self->ring, cqe);
@@ -50,109 +52,114 @@ void on_uring_ready(PuringLoop *self)
             }
 
             switch (slot->opcode) {
-                case IORING_OP_READ:
-                    if (slot->buffer && PyBytes_Check(slot->buffer)) {
-                        result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer), cqe->res);
-                    }
-                    break;
-                case IORING_OP_READV:
-                    if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                        result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
-                    }
-                    break;
-                case IORING_OP_OPENAT2:
-                    if (slot->file) {
-                        PuringFile *file = (PuringFile *)slot->file;
-                        file->fd = cqe->res;
-                        // TODO: maybe should try to fix return types to return file and socket here and below?
-                        result = (PyObject *)slot->file;
-                    }
-                    break;
-                case IORING_OP_SOCKET:
-                    if (slot->socket) {
-                        PuringSocket *sock = (PuringSocket *)slot->socket;
-                        sock->sock_fd = cqe->res;
-                        SOCKET_STATES state = NEW;
-                        sock->state = state; 
-                        result = (PyObject *)slot->socket;
-                    }
-                    break;
-                case IORING_OP_BIND:
-                    if (slot->socket) {
-                        SOCKET_STATES state = BOUND;
-                        slot->socket->state = state; 
-                        result = PyLong_FromLong(cqe->res);
-                    }
-                    break; 
-                case IORING_OP_CONNECT:
-                    if (slot->socket) {
-                        SOCKET_STATES state = CONNECTED;
-                        slot->socket->state = state; 
-                        result = PyLong_FromLong(cqe->res);
-                    }
-                    break; 
-                case IORING_OP_LISTEN:
-                    if (slot->socket) {
-                        SOCKET_STATES state = LISTENING;
-                        slot->socket->state = state; 
-                        result = PyLong_FromLong(cqe->res);
-                    }
-                    break; 
-                case IORING_OP_ACCEPT:
-                    if (slot->socket) {
-                        struct sockaddr_storage *peer_addr = (struct sockaddr_storage *)slot->addr;
-
-                        PuringSocket *conn = PyObject_New(PuringSocket, &PuringSocketType);
-                        if (!conn) {
-                            PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
-                            PyErr_Print();
-                            io_uring_cqe_seen(self->ring, cqe);
-                            continue;
-                        }
-                        conn->sock_fd = cqe->res;
-                        conn->closed = false;
-                        conn->loop = slot->socket->loop;
-                        conn->state = ACCEPTING;
-
-                        memcpy(&conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage));
-
-                        free(peer_addr);
-                        slot->buffer = NULL;
-
-                        result = (PyObject *)conn;
-                    }
-                    break;
-                case IORING_OP_RECV:
-                    if (slot->socket) {
-                        if (cqe->res == 0) {
-                            result = PyBytes_FromStringAndSize(NULL, 0);
-                        } else if (cqe->res > 0) {
-                            result = PyBytes_FromStringAndSize((char *)slot->buffer, cqe->res);
-                        }
-                        PyMem_Free(slot->buffer);
-                    }
-                    break;
-                case IORING_OP_RECVMSG:
-                    if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                        result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
-                    }
-                    PyBuffer_Release(slot->iovecs_buffer); 
-                    PyMem_Free(slot->buffer);
-                    break;
-                case IORING_OP_SENDMSG:
-                    PyMem_Free(slot->iovecs_buffer);
-                    break;
-                case IORING_OP_CLOSE:
-                    if (slot->socket) {
-                        SOCKET_STATES state = CLOSED;
-                        slot->socket->state = state;
-                        result = PyLong_FromLong(cqe->res);
-                    } else if (slot->file) {
-                        result = PyLong_FromLong(cqe->res);
-                    }
-                    break; 
-                default:
+            case IORING_OP_READ:
+                if (slot->buffer && PyBytes_Check(slot->buffer)) {
+                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer), cqe->res);
+                }
+                break;
+            case IORING_OP_READV:
+                if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
+                    result =
+                        PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                }
+                break;
+            case IORING_OP_OPENAT2:
+                if (slot->file) {
+                    PuringFile *file = (PuringFile *)slot->file;
+                    file->fd = cqe->res;
+                    // TODO: maybe should try to fix return types to return file
+                    // and socket here and below?
+                    result = (PyObject *)slot->file;
+                }
+                break;
+            case IORING_OP_SOCKET:
+                if (slot->socket) {
+                    PuringSocket *sock = (PuringSocket *)slot->socket;
+                    sock->sock_fd = cqe->res;
+                    SOCKET_STATES state = NEW;
+                    sock->state = state;
+                    result = (PyObject *)slot->socket;
+                }
+                break;
+            case IORING_OP_BIND:
+                if (slot->socket) {
+                    SOCKET_STATES state = BOUND;
+                    slot->socket->state = state;
                     result = PyLong_FromLong(cqe->res);
+                }
+                break;
+            case IORING_OP_CONNECT:
+                if (slot->socket) {
+                    SOCKET_STATES state = CONNECTED;
+                    slot->socket->state = state;
+                    result = PyLong_FromLong(cqe->res);
+                }
+                break;
+            case IORING_OP_LISTEN:
+                if (slot->socket) {
+                    SOCKET_STATES state = LISTENING;
+                    slot->socket->state = state;
+                    result = PyLong_FromLong(cqe->res);
+                }
+                break;
+            case IORING_OP_ACCEPT:
+                if (slot->socket) {
+                    struct sockaddr_storage *peer_addr = (struct sockaddr_storage *)slot->addr;
+
+                    PuringSocket *conn = PyObject_New(PuringSocket, &PuringSocketType);
+                    if (!conn) {
+                        PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
+                        PyErr_Print();
+                        io_uring_cqe_seen(self->ring, cqe);
+                        continue;
+                    }
+                    conn->sock_fd = cqe->res;
+                    conn->closed = false;
+                    conn->loop = slot->socket->loop;
+                    conn->state = ACCEPTING;
+
+                    memcpy(
+                        &conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage)
+                    );
+
+                    free(peer_addr);
+                    slot->buffer = NULL;
+
+                    result = (PyObject *)conn;
+                }
+                break;
+            case IORING_OP_RECV:
+                if (slot->socket) {
+                    if (cqe->res == 0) {
+                        result = PyBytes_FromStringAndSize(NULL, 0);
+                    } else if (cqe->res > 0) {
+                        result = PyBytes_FromStringAndSize((char *)slot->buffer, cqe->res);
+                    }
+                    PyMem_Free(slot->buffer);
+                }
+                break;
+            case IORING_OP_RECVMSG:
+                if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
+                    result =
+                        PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                }
+                PyBuffer_Release(slot->iovecs_buffer);
+                PyMem_Free(slot->buffer);
+                break;
+            case IORING_OP_SENDMSG:
+                PyMem_Free(slot->iovecs_buffer);
+                break;
+            case IORING_OP_CLOSE:
+                if (slot->socket) {
+                    SOCKET_STATES state = CLOSED;
+                    slot->socket->state = state;
+                    result = PyLong_FromLong(cqe->res);
+                } else if (slot->file) {
+                    result = PyLong_FromLong(cqe->res);
+                }
+                break;
+            default:
+                result = PyLong_FromLong(cqe->res);
             }
         }
 

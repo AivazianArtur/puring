@@ -1,12 +1,11 @@
 #include "ring.h"
 
-
-int ring_init(
+int
+ring_init(
     // memory_params *memory_params,
     // ring_init_params *params,
     struct io_uring *ring
-)
-{
+) {
     // if (memory_params) {
     //     if (!params) {
     //         params = {0}
@@ -29,8 +28,8 @@ int ring_init(
     return 0;
 }
 
-
-void ring_destroy(struct io_uring* ring) {
+void
+ring_destroy(struct io_uring *ring) {
     if (!ring) {
         fprintf(stderr, "Ring desctruction error: io_uring is NULL\n");
         return;
@@ -51,11 +50,10 @@ void ring_destroy(struct io_uring* ring) {
     io_uring_queue_exit(ring);
 }
 
-
-int ring_prep_wakeup_read(struct io_uring *ring, int wakeup_fd, uint64_t *wakeup_buf)
-{
+int
+ring_prep_wakeup_read(struct io_uring *ring, int wakeup_fd, uint64_t *wakeup_buf) {
     struct io_uring_sqe *sqe = io_uring_get_sqe(ring);
-    if (!sqe) 
+    if (!sqe)
         return -1;
 
     io_uring_prep_read(sqe, wakeup_fd, wakeup_buf, sizeof(uint64_t), 0);

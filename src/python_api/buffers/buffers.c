@@ -1,7 +1,7 @@
 #include "buffers.h"
 
-
-IovecsResult* _serialize_iovecs_buffer(PyObject *buffers_obj) {
+IovecsResult *
+_serialize_iovecs_buffer(PyObject *buffers_obj) {
     PyObject *seq = PySequence_Fast(buffers_obj, "Buffers must be a sequence");
     if (!seq) {
         return NULL;
@@ -26,12 +26,12 @@ IovecsResult* _serialize_iovecs_buffer(PyObject *buffers_obj) {
             PyMem_Free(iovecs_buf);
             PyMem_Free(iovecs);
             Py_DECREF(seq);
-            
+
             return NULL;
         }
 
         iovecs[i].iov_base = iovecs_buf[i].buf;
-        iovecs[i].iov_len  = (unsigned long)(iovecs_buf[i].len);
+        iovecs[i].iov_len = (unsigned long)(iovecs_buf[i].len);
     }
 
     IovecsResult *result = malloc(sizeof(IovecsResult));
@@ -45,8 +45,8 @@ IovecsResult* _serialize_iovecs_buffer(PyObject *buffers_obj) {
     return result;
 }
 
-
-BufferResult* _get_buffer(PyObject *buffer_obj, int bufsize) {
+BufferResult *
+_get_buffer(PyObject *buffer_obj, int bufsize) {
     void *buffer = NULL;
     size_t buffer_len;
 

@@ -1,17 +1,16 @@
 #include "loop.h"
 
-
-PyObject*
-PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
+PyObject *
+PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     int registry_size = 0;
 
     static const char *kwlist[] = {"registry_size", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char * const *)kwlist, &registry_size))
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char *const *)kwlist, &registry_size))
         return NULL;
 
-    RequestRegistry* registry = registry_new((unsigned int)(registry_size));
-    if (!registry) return PyErr_NoMemory();
+    RequestRegistry *registry = registry_new((unsigned int)(registry_size));
+    if (!registry)
+        return PyErr_NoMemory();
 
     PuringLoop *self = (PuringLoop *)type->tp_alloc(type, 0);
     if (!self) {
@@ -22,24 +21,22 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
     self->ring = calloc(1, sizeof(struct io_uring));
     if (!self->ring) {
         registry_destroy(registry);
-        Py_TYPE(self)->tp_free((PyObject*)self);
+        Py_TYPE(self)->tp_free((PyObject *)self);
         return PyErr_NoMemory();
     }
 
     self->registry = registry;
     self->initialized = false;
 
-    return (PyObject*)self;
+    return (PyObject *)self;
 }
-
 
 int
 PuringLoop_init(
     PuringLoop *self
     // PyObject *args,
     // PyObject *kwargs
-)
-{
+) {
     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
     PyObject *init = PyObject_GetAttrString(base, "__init__");
     if (!init)
@@ -56,8 +53,8 @@ PuringLoop_init(
     // ring_init_params params = {0};
 
     int ret = ring_init(
-        // &mem_par, 
-        // &params, 
+        // &mem_par,
+        // &params,
         self->ring
     );
     if (ret < 0) {
@@ -88,8 +85,7 @@ PuringLoop_init(
     return 0;
 }
 
-
-void 
+void
 PuringLoop_dealloc(PuringLoop *self) {
     Py_CLEAR(self->readers);
     Py_CLEAR(self->writers);
@@ -106,18 +102,15 @@ PuringLoop_dealloc(PuringLoop *self) {
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-
-PyObject*
-PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored))
-{
+PyObject *
+PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored)) {
     ASSERT_LOOP_THREAD(self);
     if (self->ring == NULL)
         Py_RETURN_NONE;
 
     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
 
-    PyObject *res =
-        PyObject_CallMethod(base, "close", "O", (PyObject *)self);
+    PyObject *res = PyObject_CallMethod(base, "close", "O", (PyObject *)self);
 
     if (!res)
         return NULL;
@@ -131,10 +124,8 @@ PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored))
     Py_RETURN_NONE;
 }
 
-
-PyObject*
-PuringLoop_run_once(PuringLoop *self)
-{
+PyObject *
+PuringLoop_run_once(PuringLoop *self) {
     ASSERT_PYTHON_THREAD(self);
     struct __kernel_timespec ts = compute_timeout(self);
 
@@ -148,10 +139,8 @@ PuringLoop_run_once(PuringLoop *self)
     Py_RETURN_NONE;
 }
 
-
-PyObject*
-PuringLoop_write_to_self(PuringLoop *self)
-{
+PyObject *
+PuringLoop_write_to_self(PuringLoop *self) {
     if (self->wakeup_fd < 0) {
         PyErr_SetString(PyExc_RuntimeError, "wakeup_fd is not initialized");
         return NULL;
@@ -162,7 +151,7 @@ PuringLoop_write_to_self(PuringLoop *self)
     if (ret < 0 && errno != EAGAIN) {
         PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
-    }  // cppcheck-suppress missingReturn
+    } // cppcheck-suppress missingReturn
 
     Py_RETURN_NONE;
 }

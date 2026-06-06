@@ -1,17 +1,16 @@
 #include "sockets.h"
 
-
-int prep_socket(
-    struct io_uring *ring, 
+int
+prep_socket(
+    struct io_uring *ring,
     int request_idx,
     int domain,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
-    if (!(domain == AF_INET || domain == AF_INET6))  {
+    if (!(domain == AF_INET || domain == AF_INET6)) {
         fprintf(stderr, "Domain or type is not supported: %s\n", strerror(-1));
         return -2;
     }
@@ -29,8 +28,8 @@ int prep_socket(
     return 1;
 }
 
-
-int uring_bind(
+int
+uring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -39,8 +38,7 @@ int uring_bind(
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == NEW)) {
         fprintf(stderr, "Wrong socket status - should be `NEW`\n");
@@ -61,18 +59,17 @@ int uring_bind(
     return 1;
 }
 
-
-int uring_connect(
+int
+uring_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    struct sockaddr *addr, 
+    struct sockaddr *addr,
     socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == NEW || state == BOUND)) {
         fprintf(stderr, "Wrong socket status - should be `NEW` or `BOUND`.\n");
@@ -92,8 +89,8 @@ int uring_connect(
     return 1;
 }
 
-
-int uring_listen(
+int
+uring_listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -101,8 +98,7 @@ int uring_listen(
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == BOUND)) {
         fprintf(stderr, "Wrong socket status - should be `BOUND`.\n");
@@ -122,19 +118,18 @@ int uring_listen(
     return 1;
 }
 
-
-int uring_accept(
+int
+uring_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
-	struct sockaddr *addr,
+    struct sockaddr *addr,
     socklen_t *len,
     int flags,
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == LISTENING)) {
         fprintf(stderr, "Wrong socket status - should be `LISTENING`.\n");
@@ -154,15 +149,14 @@ int uring_accept(
     return 1;
 }
 
-
-int uring_close_socket(
+int
+uring_close_socket(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
     // Below are optional
     struct TimeoutParams *timeout_params
-) 
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_close(sqe, sockfd);
@@ -178,8 +172,8 @@ int uring_close_socket(
     return 1;
 }
 
-
-int uring_send(
+int
+uring_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -189,8 +183,7 @@ int uring_send(
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == CONNECTED)) {
         fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
@@ -210,19 +203,18 @@ int uring_send(
     return 1;
 }
 
-
-int uring_recv(
+int
+uring_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
-	void *buf,
+    void *buf,
     size_t len,
     int flags,
     SOCKET_STATES state,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == CONNECTED || state == ACCEPTING)) {
         fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
@@ -242,8 +234,8 @@ int uring_recv(
     return 1;
 }
 
-
-int uring_sendto(
+int
+uring_sendto(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -254,8 +246,7 @@ int uring_sendto(
     int flags,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_sendto(sqe, sockfd, buf, len, flags, addr, (socklen_t)addrlen);
@@ -271,20 +262,19 @@ int uring_sendto(
     return 1;
 }
 
-
-int uring_recvfrom(
+int
+uring_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
-	void *buf,
+    void *buf,
     size_t len,
-    struct sockaddr *addr, 
+    struct sockaddr *addr,
     // socklen_t addrlen,
     int flags,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     struct msghdr msg;
@@ -316,7 +306,8 @@ int uring_recvfrom(
     return 1;
 }
 
-int uring_sendmsg(
+int
+uring_sendmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -327,8 +318,7 @@ int uring_sendmsg(
     int flags,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     struct msghdr msg;
@@ -344,7 +334,6 @@ int uring_sendmsg(
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
 
-
     io_uring_prep_sendmsg(sqe, sockfd, &msg, (unsigned int)flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
@@ -358,8 +347,8 @@ int uring_sendmsg(
     return 1;
 }
 
-
-int uring_recvmsg(
+int
+uring_recvmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -368,8 +357,7 @@ int uring_recvmsg(
     int flags,
     // Below are optional
     struct TimeoutParams *timeout_params
-)
-{
+) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     struct msghdr msg;
 

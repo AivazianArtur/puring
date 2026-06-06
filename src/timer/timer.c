@@ -1,7 +1,7 @@
 #include "timer.h"
 
-
-int timer(struct io_uring *ring, TimerParams *timer_params) {
+int
+timer(struct io_uring *ring, TimerParams *timer_params) {
     if (!timer_params) {
         fprintf(stderr, "To required params\n");
         return -1;
@@ -34,8 +34,8 @@ int timer(struct io_uring *ring, TimerParams *timer_params) {
     return 1;
 }
 
-
-int timeout(struct io_uring *ring, struct io_uring_sqe *sqe, const TimeoutParams *timeout_params) {
+int
+timeout(struct io_uring *ring, struct io_uring_sqe *sqe, const TimeoutParams *timeout_params) {
     if (timeout_params == NULL) {
         return 0;
     }

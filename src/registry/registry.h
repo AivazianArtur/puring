@@ -5,8 +5,7 @@
 
 #include <string.h>
 
-
-#define DEFAULT_REGISTRY_SIZE 128 
+#define DEFAULT_REGISTRY_SIZE 128
 
 typedef struct PuringSocket PuringSocket;
 typedef struct PuringFile PuringFile;
@@ -22,7 +21,6 @@ typedef struct RequestSlot {
     struct sockaddr_storage *addr;
 } RequestSlot;
 
-
 typedef struct RequestRegistry {
     RequestSlot *slots;
     int *available_indices;
@@ -30,11 +28,13 @@ typedef struct RequestRegistry {
     unsigned int size;
 } RequestRegistry;
 
+RequestRegistry *
+registry_new(unsigned int size);
+void
+registry_destroy(RequestRegistry *reg);
 
-RequestRegistry* registry_new(unsigned int size);
-void registry_destroy(RequestRegistry *reg);
-
-int registry_add(
+int
+registry_add(
     RequestRegistry *reg,
     PyObject *future,
     PyObject *buffer,
@@ -43,8 +43,10 @@ int registry_add(
     PuringFile *file,
     PuringSocket *socket,
     struct sockaddr_storage *sockaddr
-); 
+);
 
-RequestSlot* registry_get(RequestRegistry *reg, int index);
+RequestSlot *
+registry_get(RequestRegistry *reg, int index);
 
-void registry_remove(RequestRegistry *reg, int index);
+void
+registry_remove(RequestRegistry *reg, int index);
