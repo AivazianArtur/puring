@@ -276,6 +276,11 @@ PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs)
     }
 
     socklen_t *addrlen = malloc(sizeof(socklen_t));
+    if (!addrlen) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
     *addrlen = sizeof(struct sockaddr_storage);
     struct sockaddr_storage *peer_addr = calloc(1, sizeof(struct sockaddr_storage));
 
@@ -287,6 +292,7 @@ PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs)
     );
     if (request_idx < 0) {
         Py_DECREF(future);
+        free(addrlen);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
@@ -383,7 +389,7 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    char *buffer = PyBytes_AS_STRING(data);
+    const char *buffer = PyBytes_AS_STRING(data);
     if (!buffer) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
@@ -519,7 +525,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    char *buffer = PyBytes_AS_STRING(data);
+    const char *buffer = PyBytes_AS_STRING(data);
     if (!buffer) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);

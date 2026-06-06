@@ -35,6 +35,10 @@ IovecsResult* _serialize_iovecs_buffer(PyObject *buffers_obj) {
     }
 
     IovecsResult *result = malloc(sizeof(IovecsResult));
+    if (!result) {
+        PyErr_NoMemory();
+        return NULL;
+    }
     result->nr_vecs = nr_vecs;
     result->iovecs = iovecs;
     result->iovecs_buf = iovecs_buf;
@@ -65,6 +69,10 @@ BufferResult* _get_buffer(PyObject *buffer_obj, int bufsize) {
     }
 
     BufferResult *result = malloc(sizeof(BufferResult));
+    if (!result) {
+        PyErr_NoMemory();
+        return NULL;
+    }
     result->buffer = buffer;
     result->buffer_len = buffer_len;
 

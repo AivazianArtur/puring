@@ -162,7 +162,7 @@ PuringLoop_write_to_self(PuringLoop *self)
     if (ret < 0 && errno != EAGAIN) {
         PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
-    }
+    }  // cppcheck-suppress missingReturn
 
     Py_RETURN_NONE;
 }

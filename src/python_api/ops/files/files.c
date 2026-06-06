@@ -533,7 +533,7 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    char *buf = PyBytes_AS_STRING(buffer);
+    const char *buf = PyBytes_AS_STRING(buffer);
     if (!buf) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);

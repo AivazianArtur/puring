@@ -11,6 +11,7 @@ __pycache__/
 
 puring.egg-info/
 *.so
+cpp-check-results/
 
 docs/assets/testfiles.txt
 docs/assets/tempfile.txt

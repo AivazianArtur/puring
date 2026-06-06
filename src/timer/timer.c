@@ -8,7 +8,7 @@ int timer(struct io_uring *ring, TimerParams *timer_params) {
     }
 
     struct io_uring_sqe *sqe = create_sqe(ring);
-    if (sqe < 0) {
+    if (sqe == NULL) {
         return -1;
     }
 
@@ -35,13 +35,13 @@ int timer(struct io_uring *ring, TimerParams *timer_params) {
 }
 
 
-int timeout(struct io_uring *ring, struct io_uring_sqe *sqe, TimeoutParams *timeout_params) {
+int timeout(struct io_uring *ring, struct io_uring_sqe *sqe, const TimeoutParams *timeout_params) {
     if (timeout_params == NULL) {
         return 0;
     }
     sqe->flags |= IOSQE_IO_LINK;
 
-    struct io_uring_sqe *timeout_sqe = io_uring_get_sqe(ring);
+    const struct io_uring_sqe *timeout_sqe = io_uring_get_sqe(ring);
     if (!timeout_sqe) {
         fprintf(stderr, "SQE for timeout is not available\n");
 

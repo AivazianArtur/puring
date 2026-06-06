@@ -1,15 +1,15 @@
 #include "reader.h"
 
-void on_uring_ready(PuringLoop *loop)
+void on_uring_ready(PuringLoop *self)
 {
     struct io_uring_cqe *cqe;
 
-    while (io_uring_peek_cqe(loop->ring, &cqe) == 0) {
+    while (io_uring_peek_cqe(self->ring, &cqe) == 0) {
         int index = (int)(uintptr_t)cqe->user_data;
-        RequestSlot *slot = registry_get(loop->registry, index);
+        RequestSlot *slot = registry_get(self->registry, index);
 
         if (!slot || !slot->future) {
-            io_uring_cqe_seen(loop->ring, cqe);
+            io_uring_cqe_seen(self->ring, cqe);
             continue;
         }
 
@@ -38,14 +38,14 @@ void on_uring_ready(PuringLoop *loop)
 
             if (cqe->user_data == WAKEUP_FD_TAG) {
                 uint64_t val;
-                read(loop->wakeup_fd, &val, sizeof(val));
+                read(self->wakeup_fd, &val, sizeof(val));
                 
-                struct io_uring_sqe *sqe = io_uring_get_sqe(loop->ring);
+                struct io_uring_sqe *sqe = io_uring_get_sqe(self->ring);
                 if (sqe) {
-                    io_uring_prep_read(sqe, loop->wakeup_fd, &loop->wakeup_buf, sizeof(uint64_t), 0);
+                    io_uring_prep_read(sqe, self->wakeup_fd, &self->wakeup_buf, sizeof(uint64_t), 0);
                     io_uring_sqe_set_data64(sqe, WAKEUP_FD_TAG);
                 }
-                io_uring_cqe_seen(loop->ring, cqe);
+                io_uring_cqe_seen(self->ring, cqe);
                 continue;
             }
 
@@ -106,7 +106,7 @@ void on_uring_ready(PuringLoop *loop)
                         if (!conn) {
                             PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
                             PyErr_Print();
-                            io_uring_cqe_seen(loop->ring, cqe);
+                            io_uring_cqe_seen(self->ring, cqe);
                             continue;
                         }
                         conn->sock_fd = cqe->res;
@@ -162,7 +162,7 @@ void on_uring_ready(PuringLoop *loop)
             Py_DECREF(result);
         }
 
-        registry_remove(loop->registry, index);
-        io_uring_cqe_seen(loop->ring, cqe);
+        registry_remove(self->registry, index);
+        io_uring_cqe_seen(self->ring, cqe);
     }
 }

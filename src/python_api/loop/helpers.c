@@ -1,7 +1,8 @@
 #include "loop.h"
 
 
-void fast_shutdown(struct io_uring* ring, RequestRegistry *reg) 
+// cppcheck-suppress unusedFunction
+void fast_shutdown(struct io_uring* ring, RequestRegistry *reg)
 {
     ring_destroy(ring);
     registry_destroy(reg);

@@ -205,7 +205,7 @@ static PyModuleDef puring_module = {
 
 
 PyMODINIT_FUNC
-PyInit_puring(void)
+PyInit_puring(void)  // cppcheck-suppress unusedFunction
 {
     return PyModuleDef_Init(&puring_module);
 }

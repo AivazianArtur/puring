@@ -14,6 +14,7 @@ RequestRegistry* registry_new(unsigned int size)
     }
     registry->slots = calloc(size, sizeof(RequestSlot));
     if (!(registry->slots)) {
+        free(registry);
         perror("Cant allocate memory while creating registry");
         return NULL;
     }
@@ -21,6 +22,7 @@ RequestRegistry* registry_new(unsigned int size)
     registry->available_indices = malloc(size * sizeof(int));
     if (!registry->available_indices) {
         free(registry->slots);
+        free(registry);
         perror("Cant allocate memory for `available_indices` while creating registry");
         return NULL;
     }

@@ -2,7 +2,7 @@
 
 
 PyObject*
-PuringLoop_timer(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs)
+PuringLoop_timer(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs)  // cppcheck-suppress funcArgNamesDifferent
 {
     PyObject *loop_obj;
     PyObject *timer_params_obj = NULL;
