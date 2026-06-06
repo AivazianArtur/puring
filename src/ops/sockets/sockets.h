@@ -18,7 +18,7 @@ prep_socket(
     int request_idx,
     int domain,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -30,7 +30,7 @@ uring_bind(
     socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -42,7 +42,7 @@ uring_connect(
     socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -53,7 +53,7 @@ uring_listen(
     int backlog,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -66,7 +66,7 @@ uring_accept(
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -75,7 +75,7 @@ uring_close_socket(
     int request_idx,
     int sockfd,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -88,7 +88,7 @@ uring_send(
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -101,7 +101,7 @@ uring_recv(
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -115,7 +115,7 @@ uring_sendto(
     size_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -129,7 +129,7 @@ uring_recvfrom(
     // socklen_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -143,7 +143,7 @@ uring_sendmsg(
     size_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -155,5 +155,5 @@ uring_recvmsg(
     unsigned nr_vecs,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );

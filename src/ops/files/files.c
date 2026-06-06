@@ -11,7 +11,7 @@ open_file(
     int flags,
     int resolve,
     mode_t mode,
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -48,7 +48,7 @@ uring_read(
     int offset,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -75,7 +75,7 @@ uring_readv(
     int offset,
     int flags,
 
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -101,7 +101,7 @@ uring_write(
     unsigned size,
     int offset,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -129,7 +129,7 @@ uring_writev(
     int flags,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -152,7 +152,7 @@ uring_close_file(
     int request_idx,
     int fd,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -176,7 +176,7 @@ uring_fsync(
     int fd,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -202,7 +202,7 @@ uring_fdatasync(
     int fd,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -233,7 +233,7 @@ uring_splice(
     int flag,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 

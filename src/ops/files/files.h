@@ -22,7 +22,7 @@ open_file(
     int flags,
     int resolve,
     mode_t mode,
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -35,7 +35,7 @@ uring_read(
     int offset,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -48,7 +48,7 @@ uring_readv(
     int offset,
     int flags,
 
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -60,7 +60,7 @@ uring_write(
     unsigned size,
     int offset,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -74,7 +74,7 @@ uring_writev(
     int flags,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -84,7 +84,7 @@ uring_close_file(
     int fd,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -94,7 +94,7 @@ uring_fsync(
     int fd,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -104,7 +104,7 @@ uring_fdatasync(
     int fd,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
 int
@@ -119,5 +119,5 @@ uring_splice(
     int flag,
 
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );

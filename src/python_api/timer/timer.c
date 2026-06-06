@@ -2,11 +2,10 @@
 
 PyObject *
 PuringLoop_timer(
-    PyObject *Py_UNUSED(module),
+    PyObject *Py_UNUSED(module), // cppcheck-suppress funcArgNamesDifferent
     PyObject *args,
     PyObject *kwargs
-) // cppcheck-suppress funcArgNamesDifferent
-{
+) {
     PyObject *loop_obj;
     PyObject *timer_params_obj = NULL;
     static const char *kwlist[] = {"uring_loop", "timer_params", NULL};

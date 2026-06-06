@@ -6,7 +6,7 @@ prep_socket(
     int request_idx,
     int domain,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -37,7 +37,7 @@ uring_bind(
     socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == NEW)) {
@@ -68,7 +68,7 @@ uring_connect(
     socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == NEW || state == BOUND)) {
@@ -97,7 +97,7 @@ uring_listen(
     int backlog,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == BOUND)) {
@@ -128,7 +128,7 @@ uring_accept(
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == LISTENING)) {
@@ -155,7 +155,7 @@ uring_close_socket(
     int request_idx,
     int sockfd,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -182,7 +182,7 @@ uring_send(
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == CONNECTED)) {
@@ -213,7 +213,7 @@ uring_recv(
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     if (!(state == CONNECTED || state == ACCEPTING)) {
@@ -245,7 +245,7 @@ uring_sendto(
     size_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -273,7 +273,7 @@ uring_recvfrom(
     // socklen_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -317,7 +317,7 @@ uring_sendmsg(
     size_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
@@ -356,7 +356,7 @@ uring_recvmsg(
     unsigned nr_vecs,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
     struct msghdr msg;
