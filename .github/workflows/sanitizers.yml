@@ -1,7 +1,10 @@
 name: sanitizers
 
 on:
-  workflow_call:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   sanitizers-asan_ubsan:
@@ -10,10 +13,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y clang python3-dev
       - name: Build liburing
         run: cd requirements/liburing && make
+
       - name: Build with ASan + UBSan
         run: |
           CC=clang \
@@ -29,10 +34,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y clang python3-dev
       - name: Build liburing
         run: cd requirements/liburing && make
+
       - name: Build with TSan
         run: |
           CC=clang \
@@ -48,10 +55,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y clang python3-dev
       - name: Build liburing
         run: cd requirements/liburing && make
+
       - name: Build with MSan
         run: |
           CC=clang \
