@@ -12,13 +12,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Build liburing
-        run: |
-          cd requirements/liburing
-          make
 
       - run: |
           sudo apt update
@@ -53,7 +46,11 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install -y clang python3-dev
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 18
+          sudo apt install -y clang-18 python3-dev
       - name: Build liburing
         run: cd requirements/liburing && make
 
