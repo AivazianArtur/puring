@@ -4,41 +4,18 @@ on:
   workflow_call:
 
 jobs:
-  sanitizers-build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Build liburing
-        run: |
-          cd requirements/liburing
-          make
-      - run: |
-          sudo apt update
-
-      - run: |
-          sudo apt update && sudo apt install -y \
-            clang \
-            llvm \
-            lldb \
-            gcc \
-            g++ \
-            clang-tools \
-            libclang-dev \
-            python3-dev
-
-
   sanitizers-asan_ubsan:
-    needs: sanitizers-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - run: |
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
+      - name: Build with ASan + UBSan
+        run: |
           CC=clang \
           CFLAGS="-O0 -g3 \
           -fsanitize=address,undefined \
@@ -47,13 +24,17 @@ jobs:
           python3 setup.py build_ext --inplace
 
   sanitizers-tsan:
-    needs: sanitizers-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - run: |
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
+      - name: Build with TSan
+        run: |
           CC=clang \
           CFLAGS="-O0 -g3 \
           -fsanitize=thread \
@@ -62,11 +43,17 @@ jobs:
           python3 setup.py build_ext --inplace
 
   sanitizers-msan:
-    needs: sanitizers-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
+      - name: Build with MSan
+        run: |
           CC=clang \
           CFLAGS="-O0 -g3 \
           -fsanitize=memory \
