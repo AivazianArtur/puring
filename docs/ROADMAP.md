@@ -16,8 +16,7 @@
 - [X] Add not implemented `file` methods.
 - [X] Add not implemented `socket` methods.
 - [X] Finish AbstractEventLoop Protocol.
-- [ ] Add tests.
-- [ ] Implement GitHub CI.
+- [X] Implement GitHub CI.
 
 ## v0.3.5 - Buffer features
 - [ ] Implement fixed buffers (`io_uring_register_buffers`).
@@ -26,6 +25,8 @@
 - [ ] Implement a puring-based memory pool for buffers.
 - [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
 - [ ] Implement `ContextManager` protocol for Files and Sockets.
+- [ ] Add tests.
+- [ ] Use `errno` in error handling.
 - [ ] Publish library on PyPI (`pip` installable).
 
 ## v0.4.0 - Async Runtime & Architecture

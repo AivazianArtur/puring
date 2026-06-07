@@ -1,3 +1,9 @@
+## v0.3.0
+### Created
+- ...
+### Changed
+- ...
+
 ## v0.2.0
 ### Created
 - Sockets debugged and simple benchmark added.
