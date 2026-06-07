@@ -1,0 +1,65 @@
+name: sanitizers
+
+on:
+  workflow_call:
+
+jobs:
+  sanitizers-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: |
+          sudo apt update
+
+      - run: |
+          sudo apt update && sudo apt install -y \
+            clang \
+            llvm \
+            lldb \
+            gcc \
+            g++ \
+            clang-tools \
+            libclang-dev \
+            python3-dev
+
+
+  sanitizers-asan_ubsan:
+    needs: sanitizers-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=address,undefined \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=address,undefined" \
+          python3 setup.py build_ext --inplace
+
+  sanitizers-tsan:
+    needs: sanitizers-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=thread \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=thread" \
+          python3 setup.py build_ext --inplace
+
+  sanitizers-msan:
+    needs: sanitizers-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=memory \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=memory" \
+          python3 setup.py build_ext --inplace

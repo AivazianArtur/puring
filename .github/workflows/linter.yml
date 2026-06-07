@@ -1,0 +1,83 @@
+name: linter
+
+on:
+  workflow_call:
+
+jobs:
+  linter-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: |
+          sudo apt update
+
+      - run: |
+          sudo apt update && sudo apt install -y \
+            clang \
+            llvm \
+            lldb \
+            gcc \
+            g++ \
+            cppcheck \
+            clang-tools \
+            libclang-dev \
+            clang-format \
+            python3-dev
+
+  linter-formatter:
+    needs: linter-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          cd src && find . \( -name "*.c" -o -name "*.h" \) -exec clang-format -i {} \;
+
+  linter-aggressive_flags:
+    needs: linter-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          CC=clang CFLAGS="-O0 -g3 \
+          -Wall \
+          -Wextra \
+          -Werror \
+          -Wshadow \
+          -Wconversion \
+          -Wcast-align \
+          -Wstrict-prototypes \
+          -Wmissing-prototypes \
+          -Wpointer-arith \
+          -Wformat=2 \
+          -Wundef \
+          -Wwrite-strings \
+          -Wswitch-enum \
+          -Wunreachable-code \
+          -Wdouble-promotion \
+          -Wfloat-equal \
+          -fstack-protector-strong \
+          -fno-omit-frame-pointer \
+          -isystem requirements/liburing/include \
+          -isystem requirements/liburing/src/include \
+          -isystem requirements/liburing/src \
+          -isystem requirements/liburing" \
+          python3 setup.py build_ext --inplace
+
+  linter-cppcheck:
+    needs: linter-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          cppcheck \
+          --cppcheck-build-dir=cpp-check-results \
+          --enable=all \
+          --inconclusive \
+          --force \
+          --inline-suppr \
+          --check-level=exhaustive \
+          --suppress=missingIncludeSystem \
+          --suppress=missingInclude \
+          -I ./src ./src

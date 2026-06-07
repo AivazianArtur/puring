@@ -52,8 +52,6 @@ install-dev-tools:
 		clang-tools \
 		libclang-dev \
 		clang-format \
-		bear \
-		valgrind \
 		python3-dev
 
 else ifeq ($(PKG_MANAGER),dnf)
@@ -77,8 +75,6 @@ install-dev-tools:
 		clang-analyzer \
 		clang-devel \
 		clang-format \
-		bear \
-		valgrind \
 		python3-devel
 
 else
