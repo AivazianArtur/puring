@@ -12,6 +12,11 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Build liburing
+        run: |
+          cd requirements/liburing
+          make
+
       - run: |
           sudo apt update
 
@@ -74,6 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: sudo apt update && sudo apt install -y cppcheck
       - run: |
           mkdir -p cpp-check-results
           cppcheck \
