@@ -1,5 +1,7 @@
 #pragma clang diagnostic push
+#if defined(__clang__) && (__clang_major__ >= 19)
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+#endif
 
 #define PY_SSIZE_T_CLEAN
 
