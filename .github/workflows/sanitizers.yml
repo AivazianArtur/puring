@@ -9,6 +9,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - run: |
           sudo apt update
@@ -30,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - run: |
           CC=clang \
           CFLAGS="-O0 -g3 \
@@ -43,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - run: |
           CC=clang \
           CFLAGS="-O0 -g3 \

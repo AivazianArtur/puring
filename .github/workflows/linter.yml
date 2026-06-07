@@ -9,6 +9,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - run: |
           sudo apt update
@@ -39,6 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - run: |
           CC=clang CFLAGS="-O0 -g3 \
           -Wall \
@@ -71,6 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
+          mkdir -p cpp-check-results
           cppcheck \
           --cppcheck-build-dir=cpp-check-results \
           --enable=all \
