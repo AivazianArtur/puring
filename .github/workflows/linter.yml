@@ -55,7 +55,7 @@ jobs:
         run: cd requirements/liburing && make
 
       - run: |
-          CC=clang CFLAGS="-O0 -g3 \
+          CC=clang-18 CFLAGS="-O0 -g3 \
           -Wall \
           -Wextra \
           -Werror \
