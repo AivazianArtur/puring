@@ -47,7 +47,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt update && sudo apt install -y clang python3-dev
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo apt install -y clang-21 python3-dev
       - name: Build liburing
         run: cd requirements/liburing && make
 
