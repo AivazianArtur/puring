@@ -47,15 +47,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 18
-          sudo apt install -y clang-18 python3-dev
+          sudo apt update && sudo apt install -y clang python3-dev
       - name: Build liburing
         run: cd requirements/liburing && make
 
       - run: |
-          CC=clang-18 CFLAGS="-O0 -g3 \
+          CC=clang CFLAGS="-O0 -g3 \
           -Wall \
           -Wextra \
           -Werror \
