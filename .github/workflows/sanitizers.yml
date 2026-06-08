@@ -1,0 +1,71 @@
+name: sanitizers
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  sanitizers-asan_ubsan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
+
+      - name: Build with ASan + UBSan
+        run: |
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=address,undefined \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=address,undefined" \
+          python3 setup.py build_ext --inplace
+
+  sanitizers-tsan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
+
+      - name: Build with TSan
+        run: |
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=thread \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=thread" \
+          python3 setup.py build_ext --inplace
+
+  sanitizers-msan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
+
+      - name: Build with MSan
+        run: |
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=memory \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=memory" \
+          python3 setup.py build_ext --inplace

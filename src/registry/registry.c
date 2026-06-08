@@ -1,9 +1,8 @@
 #include "registry.h"
 
-
-RequestRegistry* registry_new(unsigned int size) 
-{
-    RequestRegistry* registry = malloc(sizeof(RequestRegistry));
+RequestRegistry *
+registry_new(unsigned int size) {
+    RequestRegistry *registry = malloc(sizeof(RequestRegistry));
     if (!registry) {
         perror("Cant allocate memory while creating registry");
         return NULL;
@@ -14,6 +13,7 @@ RequestRegistry* registry_new(unsigned int size)
     }
     registry->slots = calloc(size, sizeof(RequestSlot));
     if (!(registry->slots)) {
+        free(registry);
         perror("Cant allocate memory while creating registry");
         return NULL;
     }
@@ -21,22 +21,26 @@ RequestRegistry* registry_new(unsigned int size)
     registry->available_indices = malloc(size * sizeof(int));
     if (!registry->available_indices) {
         free(registry->slots);
-        perror("Cant allocate memory for `available_indices` while creating registry");
+        free(registry);
+        perror(
+            "Cant allocate memory for `available_indices` while creating "
+            "registry"
+        );
         return NULL;
     }
 
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < (int)size; i++) {
         registry->available_indices[i] = i;
     }
-    
-    registry->top = size - 1;
+
+    registry->top = (int)size - 1;
     registry->size = size;
 
     return registry;
 }
 
-void registry_destroy(RequestRegistry *reg)
-{
+void
+registry_destroy(RequestRegistry *reg) {
     if (reg->slots) {
         for (unsigned int i = 0; i < reg->size; i++) {
             if (reg->slots[i].future) {
@@ -53,14 +57,15 @@ void registry_destroy(RequestRegistry *reg)
     if (reg->available_indices) {
         free(reg->available_indices);
     }
-    
+
     reg->slots = NULL;
     reg->available_indices = NULL;
     reg->size = 0;
     reg->top = -1;
 }
 
-int registry_add(
+int
+registry_add(
     RequestRegistry *reg,
     PyObject *future,
     PyObject *buffer,
@@ -69,8 +74,7 @@ int registry_add(
     PuringFile *file,
     PuringSocket *socket,
     struct sockaddr_storage *sockaddr
-) 
-{
+) {
     if (reg->top < 0) {
         return -1;
     }
@@ -79,41 +83,46 @@ int registry_add(
     reg->top--;
 
     RequestSlot *slot = &reg->slots[index];
-    
+
     slot->user_data = (uint64_t)index;
     slot->opcode = opcode;
 
     slot->future = future;
-    Py_INCREF(future); 
+    Py_INCREF(future);
 
     slot->buffer = buffer;
-    if (buffer != NULL) Py_INCREF(buffer);
+    if (buffer != NULL)
+        Py_INCREF(buffer);
 
     slot->iovecs_buffer = iovecs_buffer;
-    if (iovecs_buffer != NULL) Py_INCREF(iovecs_buffer);
+    if (iovecs_buffer != NULL)
+        Py_INCREF(iovecs_buffer);
 
     slot->socket = socket;
     slot->file = file;
-    if (socket != NULL) Py_INCREF(socket);
-    if (file != NULL) Py_INCREF(file);
+    if (socket != NULL)
+        Py_INCREF(socket);
+    if (file != NULL)
+        Py_INCREF(file);
 
     slot->addr = sockaddr;
 
     return index;
 }
 
-RequestSlot* registry_get(RequestRegistry *reg, int index) 
-{
-    if (index < 0 || index >= reg->size) {
+RequestSlot *
+registry_get(RequestRegistry *reg, int index) {
+    if (index < 0 || index >= (int)(reg->size)) {
         return NULL;
     }
-    
+
     return &reg->slots[index];
 }
 
-void registry_remove(RequestRegistry *reg, int index) 
-{
-    if (index < 0 || index >= reg->size) return;
+void
+registry_remove(RequestRegistry *reg, int index) {
+    if (index < 0 || index >= (int)(reg->size))
+        return;
 
     RequestSlot *slot = &reg->slots[index];
 
@@ -121,7 +130,7 @@ void registry_remove(RequestRegistry *reg, int index)
         Py_DECREF(slot->future);
         slot->future = NULL;
     }
-    
+
     if (slot->buffer) {
         Py_DECREF(slot->buffer);
         slot->buffer = NULL;

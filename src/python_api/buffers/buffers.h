@@ -5,13 +5,11 @@
 
 #include <fcntl.h>
 
-
 typedef struct IovecsResult {
     struct iovec *iovecs;
     Py_ssize_t nr_vecs;
     Py_buffer *iovecs_buf;
 } IovecsResult;
-
 
 typedef struct BufferResult {
     void *buffer;
@@ -19,6 +17,7 @@ typedef struct BufferResult {
     Py_buffer *view;
 } BufferResult;
 
-
-IovecsResult* _serialize_iovecs_buffer(PyObject *buffers_obj);
-BufferResult* _get_buffer(PyObject *buffer_obj, int bufsize);
+IovecsResult *
+_serialize_iovecs_buffer(PyObject *buffers_obj);
+BufferResult *
+_get_buffer(PyObject *buffer_obj, int bufsize);

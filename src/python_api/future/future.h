@@ -2,7 +2,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-
 typedef struct PuringLoop PuringLoop;
 
-PyObject* create_future(PuringLoop *self);
+PyObject *
+create_future(PuringLoop *self);

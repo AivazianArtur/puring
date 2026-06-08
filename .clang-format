@@ -1,0 +1,30 @@
+BasedOnStyle: LLVM  # Base LLVM style as the starting point for formatting rules
+
+IndentWidth: 4  # Use 4 spaces for indentation
+ContinuationIndentWidth: 4  # Indent wrapped lines by 4 spaces
+
+UseTab: Never  # Never use tabs, only spaces
+ColumnLimit: 100  # Maximum line length set to 100 characters
+
+BreakBeforeBraces: Attach  # Opening braces stay on the same line
+
+AlwaysBreakAfterDefinitionReturnType: All  # Always break return type onto a new line in function definitions
+BreakAfterReturnType: All  # Always break return type in declarations/definitions
+
+AllowShortIfStatementsOnASingleLine: Never  # Disallow single-line if statements
+AllowShortLoopsOnASingleLine: false  # Disallow single-line loops
+AllowShortBlocksOnASingleLine: Never  # Disallow single-line blocks {}
+
+AllowShortFunctionsOnASingleLine: Empty  # Only allow single-line functions if they are empty
+
+BinPackArguments: false  # Do not pack function arguments into a single line
+BinPackParameters: false  # Do not pack function parameters into a single line
+
+AlignAfterOpenBracket: BlockIndent  # Align arguments with block indentation after '('
+
+PointerAlignment: Right  # Attach pointer asterisk to the variable name (e.g., int* p)
+
+SeparateDefinitionBlocks: Always  # Always separate function/class definitions with blank lines
+MaxEmptyLinesToKeep: 2  # Allow at most 2 consecutive empty lines
+
+SortIncludes: false  # Keep #include order as written, do not auto-sort

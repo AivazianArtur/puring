@@ -1,37 +1,28 @@
 #pragma once
 
+#include <linux/openat2.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <linux/openat2.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 
 #include "liburing.h"
 
-#include "timer/timer.h"
 #include "macroses.h"
+#include "timer/timer.h"
 
-
-typedef enum SOCKET_STATES {
-  NEW,
-  BOUND,
-  LISTENING,
-  CONNECTED,
-  ACCEPTING,
-  CLOSED
-} SOCKET_STATES;
-
-
-int prep_socket(
-    struct io_uring *ring, 
+int
+prep_socket(
+    struct io_uring *ring,
     int request_idx,
     int domain,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_bind(
+int
+uring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -39,51 +30,56 @@ int uring_bind(
     socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_connect(
+int
+uring_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
-    struct sockaddr *addr, 
+    struct sockaddr *addr,
     socklen_t addrlen,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_listen(
+int
+uring_listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
     int backlog,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_accept(
+int
+uring_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
-    struct sockaddr *addr, 
+    struct sockaddr *addr,
     socklen_t *len,
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_close_socket(
+int
+uring_close_socket(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_send(
+int
+uring_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -92,22 +88,24 @@ int uring_send(
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_recv(
+int
+uring_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
-	void *buf,
+    void *buf,
     size_t len,
     int flags,
     SOCKET_STATES state,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_sendto(
+int
+uring_sendto(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -117,23 +115,25 @@ int uring_sendto(
     size_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_recvfrom(
+int
+uring_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
-	void *buf,
+    void *buf,
     size_t len,
-    struct sockaddr *addr, 
-    socklen_t addrlen,
+    struct sockaddr *addr,
+    // socklen_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_sendmsg(
+int
+uring_sendmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -143,10 +143,11 @@ int uring_sendmsg(
     size_t addrlen,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );
 
-int uring_recvmsg(
+int
+uring_recvmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -154,5 +155,5 @@ int uring_recvmsg(
     unsigned nr_vecs,
     int flags,
     // Below are optional
-    struct TimeoutParams *timeout_params
+    const struct TimeoutParams *timeout_params
 );

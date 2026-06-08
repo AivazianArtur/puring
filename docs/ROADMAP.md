@@ -16,19 +16,20 @@
 - [X] Add not implemented `file` methods.
 - [X] Add not implemented `socket` methods.
 - [X] Finish AbstractEventLoop Protocol.
-- [ ] Add tests.
-- [ ] Implement GitHub CI.
+- [X] Implement GitHub CI.
 
-## v0.3.5 - Buffer features
+## v0.4.0 - Buffer features
 - [ ] Implement fixed buffers (`io_uring_register_buffers`).
 - [ ] Implement zero-copy send (`send_zc`).
 - [ ] Use Python application buffers as `PuringLoop` buffers.
 - [ ] Implement a puring-based memory pool for buffers.
 - [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
 - [ ] Implement `ContextManager` protocol for Files and Sockets.
+- [ ] Add tests.
+- [ ] Use `errno` in error handling.
 - [ ] Publish library on PyPI (`pip` installable).
 
-## v0.4.0 - Async Runtime & Architecture
+## v0.5.0 - Async Runtime & Architecture
 - [ ] Run reader in separate thread.
 - [ ] Each thread must own it`s own Rings
 - [ ] Multiring support.
@@ -40,7 +41,7 @@
 - [ ] `Batcher` and `Chainer` OOP interface.
 - [ ] Implement `dir` object completely.
 
-## v0.5.0 - CQE and SQE production features
+## v0.6.0 - CQE and SQE production features
 - [ ] CQE batching.
 - [ ] SQPOLL.
 - [ ] FASTPOLL.
@@ -50,14 +51,14 @@
 - [ ] Persistent log of CQ and SQ entry for backuping, optional.
 
 
-## v0.5.1 - Community & Contribution
+## v0.6.1 - Community & Contribution
 - [ ] Document everything.
 - [ ] Add contribution support:
     - [ ] Write contribution guidelines.
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
 
-## v0.6.0 - Additional functionality
+## v0.7.0 - Additional functionality
 - [ ] Ancillary data support for sockets scatter-gather.
 - [ ] Support io_uring_prep_cmd_sock.
 

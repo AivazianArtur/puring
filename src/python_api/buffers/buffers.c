@@ -1,7 +1,7 @@
 #include "buffers.h"
 
-
-IovecsResult* _serialize_iovecs_buffer(PyObject *buffers_obj) {
+IovecsResult *
+_serialize_iovecs_buffer(PyObject *buffers_obj) {
     PyObject *seq = PySequence_Fast(buffers_obj, "Buffers must be a sequence");
     if (!seq) {
         return NULL;
@@ -9,14 +9,14 @@ IovecsResult* _serialize_iovecs_buffer(PyObject *buffers_obj) {
     Py_ssize_t nr_vecs = PySequence_Fast_GET_SIZE(seq);
     PyObject **items = PySequence_Fast_ITEMS(seq);
 
-    struct iovec *iovecs = PyMem_Malloc(sizeof(struct iovec) * nr_vecs);
+    struct iovec *iovecs = PyMem_Malloc(sizeof(struct iovec) * (unsigned long)nr_vecs);
     if (!iovecs) {
         Py_DECREF(seq);
         PyErr_NoMemory();
         return NULL;
     }
 
-    Py_buffer *iovecs_buf = PyMem_Malloc(sizeof(Py_buffer) * nr_vecs);
+    Py_buffer *iovecs_buf = PyMem_Malloc(sizeof(Py_buffer) * (unsigned long)nr_vecs);
 
     for (Py_ssize_t i = 0; i < nr_vecs; i++) {
         if (PyObject_GetBuffer(items[i], &iovecs_buf[i], PyBUF_SIMPLE) < 0) {
@@ -26,37 +26,41 @@ IovecsResult* _serialize_iovecs_buffer(PyObject *buffers_obj) {
             PyMem_Free(iovecs_buf);
             PyMem_Free(iovecs);
             Py_DECREF(seq);
-            
+
             return NULL;
         }
 
         iovecs[i].iov_base = iovecs_buf[i].buf;
-        iovecs[i].iov_len  = iovecs_buf[i].len;
+        iovecs[i].iov_len = (unsigned long)(iovecs_buf[i].len);
     }
 
     IovecsResult *result = malloc(sizeof(IovecsResult));
+    if (!result) {
+        PyErr_NoMemory();
+        return NULL;
+    }
     result->nr_vecs = nr_vecs;
     result->iovecs = iovecs;
     result->iovecs_buf = iovecs_buf;
     return result;
 }
 
-
-BufferResult* _get_buffer(PyObject *buffer_obj, int bufsize) {
+BufferResult *
+_get_buffer(PyObject *buffer_obj, int bufsize) {
     void *buffer = NULL;
     size_t buffer_len;
 
     Py_buffer view;
-    int buffer_flag;
+    // int buffer_flag;
     if (buffer_obj && buffer_obj != Py_None) {
         if (PyObject_GetBuffer(buffer_obj, &view, PyBUF_WRITABLE) < 0) {
             return NULL;
         }
-        buffer_flag = 0;
+        // buffer_flag = 0;
         buffer = view.buf;
-        buffer_len = view.len;
+        buffer_len = (size_t)(view.len);
     } else {
-        buffer = PyMem_Malloc(bufsize);
+        buffer = PyMem_Malloc((size_t)(bufsize));
         if (!buffer) {
             PyErr_NoMemory();
             return NULL;
@@ -65,6 +69,10 @@ BufferResult* _get_buffer(PyObject *buffer_obj, int bufsize) {
     }
 
     BufferResult *result = malloc(sizeof(BufferResult));
+    if (!result) {
+        PyErr_NoMemory();
+        return NULL;
+    }
     result->buffer = buffer;
     result->buffer_len = buffer_len;
 

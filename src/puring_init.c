@@ -1,3 +1,8 @@
+#pragma clang diagnostic push
+#if defined(__clang__) && (__clang_major__ >= 19)
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+#endif
+
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
@@ -8,23 +13,35 @@
 #include "python_api/ops/sockets/sockets.h"
 #include "python_api/timer/timer.h"
 
+PyMODINIT_FUNC
+PyInit_puring(void);
 
 static PyMethodDef puring_module_methods[] = {
     {"timer", (PyCFunction)PuringLoop_timer, METH_VARARGS | METH_KEYWORDS, "Sets a timer"},
-    {"open_file", (PyCFunction)PuringLoop_open, METH_VARARGS | METH_KEYWORDS, "Opens file and instantiate File object"},
-    {"prep_socket", (PyCFunction)PuringLoop_prep_socket, METH_VARARGS | METH_KEYWORDS, "Opens socket and instantiate Socket object"},
+    {"open_file",
+     (PyCFunction)PuringLoop_open,
+     METH_VARARGS | METH_KEYWORDS,
+     "Opens file and instantiate File object"},
+    {"prep_socket",
+     (PyCFunction)PuringLoop_prep_socket,
+     METH_VARARGS | METH_KEYWORDS,
+     "Opens socket and instantiate Socket object"},
     {NULL, NULL, 0, NULL}
 };
-
 
 static PyMethodDef puring_loop_methods[] = {
     {"close", (PyCFunction)PuringLoop_close, METH_VARARGS, "Close loop"},
 
-    {"_run_once", (PyCFunction)PuringLoop_run_once, METH_NOARGS, "Run one full iteration of the event loop"},
-    {"_write_to_self", (PyCFunction)PuringLoop_write_to_self, METH_NOARGS, "Write a byte to self-pipe, to wake up the event loop"},
+    {"_run_once",
+     (PyCFunction)PuringLoop_run_once,
+     METH_NOARGS,
+     "Run one full iteration of the event loop"},
+    {"_write_to_self",
+     (PyCFunction)PuringLoop_write_to_self,
+     METH_NOARGS,
+     "Write a byte to self-pipe, to wake up the event loop"},
     {NULL, NULL, 0, NULL}
 };
-
 
 static PyMethodDef puring_socket_methods[] = {
     {"bind", (PyCFunction)PuringSocket_bind, METH_VARARGS | METH_KEYWORDS, "Bind socket"},
@@ -48,17 +65,34 @@ static PyMethodDef puring_file_methods[] = {
 
     {"read", (PyCFunction)PuringFile_read, METH_VARARGS | METH_KEYWORDS, "Read file"},
     {"readv", (PyCFunction)PuringFile_readv, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized"},
-    {"readv_raw", (PyCFunction)PuringFile_readv_raw, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized with custom iovecs"},
+    {"readv_raw",
+     (PyCFunction)PuringFile_readv_raw,
+     METH_VARARGS | METH_KEYWORDS,
+     "Read file, vectorized with custom iovecs"},
     {"write", (PyCFunction)PuringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
-    {"writev", (PyCFunction)PuringFile_writev, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized"},
-    {"writev_raw", (PyCFunction)PuringFile_writev_raw, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized with custom iovecs"},
+    {"writev",
+     (PyCFunction)PuringFile_writev,
+     METH_VARARGS | METH_KEYWORDS,
+     "Write file, vectorized"},
+    {"writev_raw",
+     (PyCFunction)PuringFile_writev_raw,
+     METH_VARARGS | METH_KEYWORDS,
+     "Write file, vectorized with custom iovecs"},
     {"close", (PyCFunction)PuringFile_close, METH_VARARGS | METH_KEYWORDS, "Close file"},
-    {"fsync", (PyCFunction)PuringFile_fsync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file"},
-    {"fdatasync", (PyCFunction)PuringFile_fdatasync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file with in fdatasync mode"},
-    {"splice", (PyCFunction)PuringFile_splice, METH_VARARGS | METH_KEYWORDS, "Splicing two file pipes"},
+    {"fsync",
+     (PyCFunction)PuringFile_fsync,
+     METH_VARARGS | METH_KEYWORDS,
+     "Flush file buffer to file"},
+    {"fdatasync",
+     (PyCFunction)PuringFile_fdatasync,
+     METH_VARARGS | METH_KEYWORDS,
+     "Flush file buffer to file with in fdatasync mode"},
+    {"splice",
+     (PyCFunction)PuringFile_splice,
+     METH_VARARGS | METH_KEYWORDS,
+     "Splicing two file pipes"},
     {NULL, NULL, 0, NULL}
 };
-
 
 PyTypeObject *PuringLoopType = NULL;
 
@@ -80,8 +114,8 @@ static PyType_Spec PuringLoop_spec = {
 };
 
 PyTypeObject PuringFileType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "puring.src.python_api.ops.files.PuringFile",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name =
+        "puring.src.python_api.ops.files.PuringFile",
     .tp_doc = PyDoc_STR("Puring file adapter"),
     .tp_basicsize = sizeof(PuringFile),
     .tp_itemsize = 0,
@@ -93,8 +127,8 @@ PyTypeObject PuringFileType = {
 };
 
 PyTypeObject PuringSocketType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "puring.src.python_api.ops.sockets.PuringSocket",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name =
+        "puring.src.python_api.ops.sockets.PuringSocket",
     .tp_doc = PyDoc_STR("Puring socket adapter"),
     .tp_basicsize = sizeof(PuringSocket),
     .tp_itemsize = 0,
@@ -105,10 +139,8 @@ PyTypeObject PuringSocketType = {
     .tp_methods = puring_socket_methods,
 };
 
-
 static int
-puring_module_exec(PyObject *m)
-{
+puring_module_exec(PyObject *m) {
     PyObject *asyncio = PyImport_ImportModule("asyncio");
     if (!asyncio) {
         return -1;
@@ -180,26 +212,23 @@ puring_module_exec(PyObject *m)
     return 0;
 }
 
-
 static PyModuleDef_Slot puring_module_slots[] = {
     {Py_mod_exec, puring_module_exec},
     {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_NOT_SUPPORTED},
     {0, NULL}
 };
 
-
 static PyModuleDef puring_module = {
     .m_base = PyModuleDef_HEAD_INIT,
-    .m_name = "puring",        
+    .m_name = "puring",
     .m_doc = "Module contains uring based loop",
     .m_size = 0,
     .m_methods = puring_module_methods,
     .m_slots = puring_module_slots,
 };
 
-
 PyMODINIT_FUNC
-PyInit_puring(void)
+PyInit_puring(void) // cppcheck-suppress unusedFunction
 {
     return PyModuleDef_Init(&puring_module);
 }

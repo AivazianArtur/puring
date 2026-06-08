@@ -1,8 +1,7 @@
-#include "timer/timer.h"
+#include "python_api/timer/timer.h"
 
-
-int parse_timer_params(PyObject *obj, TimerParams *out)
-{
+int
+parse_timer_params(PyObject *obj, TimerParams *out) {
     if (!obj || obj == Py_None) {
         return -1;
     }
@@ -17,11 +16,8 @@ int parse_timer_params(PyObject *obj, TimerParams *out)
     PyObject *count_obj = PyDict_GetItemString(obj, "count");
     PyObject *is_multishot_obj = PyDict_GetItemString(obj, "is_multishot");
 
-    if (
-        (sec_obj && PyLong_Check(sec_obj))
-        && (nsec_obj && PyLong_Check(nsec_obj))
-        && (count_obj && PyLong_Check(count_obj))
-    ) {
+    if ((sec_obj && PyLong_Check(sec_obj)) && (nsec_obj && PyLong_Check(nsec_obj)) &&
+        (count_obj && PyLong_Check(count_obj))) {
         out->sec = (int)PyLong_AsLong(sec_obj);
         out->nsec = (int)PyLong_AsLong(nsec_obj);
         out->count = (int)PyLong_AsLong(count_obj);
@@ -36,9 +32,8 @@ int parse_timer_params(PyObject *obj, TimerParams *out)
     return -1;
 }
 
-
-int parse_timeout_params(PyObject *obj, TimeoutParams *out)
-{
+int
+parse_timeout_params(PyObject *obj, TimeoutParams *out) {
     if (!obj || obj == Py_None) {
         return 0;
     }
@@ -52,16 +47,11 @@ int parse_timeout_params(PyObject *obj, TimeoutParams *out)
     PyObject *nsec_obj = PyDict_GetItemString(obj, "nsec");
     PyObject *is_required_obj = PyDict_GetItemString(obj, "is_required");
 
-    if (
-        (sec_obj && PyLong_Check(sec_obj))
-        && (nsec_obj && PyLong_Check(nsec_obj))
-        && (is_required_obj && PyBool_Check(is_required_obj))
-    )
-    {
+    if ((sec_obj && PyLong_Check(sec_obj)) && (nsec_obj && PyLong_Check(nsec_obj)) &&
+        (is_required_obj && PyBool_Check(is_required_obj))) {
         out->sec = (int)PyLong_AsLong(sec_obj);
         out->nsec = (int)PyLong_AsLong(nsec_obj);
         out->is_required = PyObject_IsTrue(is_required_obj);
     }
     return 1;
 }
-
