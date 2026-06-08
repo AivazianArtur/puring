@@ -30,7 +30,7 @@ PuringLoop_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "O|iKKKO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &py_path_obj,
             &dfd,
             &timeout_params_obj,
@@ -119,7 +119,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int size_i = 1024;
     static const char *kwlist[] = {"offset", "size", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|iiO", (char *const *)kwlist, &offset, &size_i, &timeout_params_obj
+            args, kwargs, "|iiO", (char **)kwlist, &offset, &size_i, &timeout_params_obj
         )) {
         return NULL;
     }
@@ -182,7 +182,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "O|iiO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &buffers_obj,
             &offset,
             &flags,
@@ -246,7 +246,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "w*|iiO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &iovecs_buf,
             &offset,
             &flags,
@@ -315,7 +315,7 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     static const char *kwlist[] = {"data", "offset", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|iO", (char *const *)kwlist, &data, &offset, &timeout_params_obj
+            args, kwargs, "O|iO", (char **)kwlist, &data, &offset, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -372,7 +372,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "OO|iiO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &buffers_obj,
             &flags,
             &offset,
@@ -438,7 +438,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "Oy|iiO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &iovecs_buf,
             &flags,
             &offset,
@@ -504,9 +504,7 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|O", (char *const *)kwlist, &timeout_params_obj
-        )) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char **)kwlist, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -557,9 +555,7 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|O", (char *const *)kwlist, &timeout_params_obj
-        )) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char **)kwlist, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -596,9 +592,7 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|O", (char *const *)kwlist, &timeout_params_obj
-        )) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char **)kwlist, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -648,7 +642,7 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "iii|iiiO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &src,
             &dst,
             &count,

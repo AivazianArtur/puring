@@ -10,7 +10,7 @@ PuringLoop_timer(
     PyObject *timer_params_obj = NULL;
     static const char *kwlist[] = {"uring_loop", "timer_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|O", (char *const *)kwlist, &loop_obj, &timer_params_obj
+            args, kwargs, "O|O", (char **)kwlist, &loop_obj, &timer_params_obj
         ))) {
         return NULL;
     }

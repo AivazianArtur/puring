@@ -18,7 +18,7 @@ PuringLoop_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kw
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"domain", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|iO", (char *const *)kwlist, &domain, &timeout_params_obj
+            args, kwargs, "|iO", (char **)kwlist, &domain, &timeout_params_obj
         )) {
         return NULL;
     }
@@ -87,7 +87,7 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"host", "port", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "si|O", (char *const *)kwlist, &host, &port, &timeout_params_obj
+            args, kwargs, "si|O", (char **)kwlist, &host, &port, &timeout_params_obj
         )) {
         return NULL;
     }
@@ -141,7 +141,7 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"host", "port", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "si|O", (char *const *)kwlist, &host, &port, &timeout_params_obj
+            args, kwargs, "si|O", (char **)kwlist, &host, &port, &timeout_params_obj
         )) {
         return NULL;
     }
@@ -194,7 +194,7 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     static const char *kwlist[] = {"backlog", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "i|O", (char *const *)kwlist, &backlog, &timeout_params_obj
+            args, kwargs, "i|O", (char **)kwlist, &backlog, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -238,7 +238,7 @@ PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"flags", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|iO", (char *const *)kwlist, &flags, &timeout_params_obj
+            args, kwargs, "|iO", (char **)kwlist, &flags, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -297,9 +297,7 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|O", (char *const *)kwlist, &timeout_params_obj
-        ))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char **)kwlist, &timeout_params_obj))) {
         return NULL;
     }
 
@@ -340,7 +338,7 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"data", "flags", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|iO", (char *const *)kwlist, &data, &flags, &timeout_params_obj
+            args, kwargs, "O|iO", (char **)kwlist, &data, &flags, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -401,7 +399,7 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "|iOiO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &bufsize,
             &buffer_obj,
             &flags,
@@ -478,7 +476,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "Osis|iO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &data,
             &host,
             &port,
@@ -561,7 +559,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "|iOsisiO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &bufsize,
             &buffer_obj,
             &host,
@@ -647,7 +645,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
             args,
             kwargs,
             "O|sisiO",
-            (char *const *)kwlist,
+            (char **)kwlist,
             &buffers_obj,
             &host,
             &port,
@@ -720,7 +718,7 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"buffers", "flags", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|iO", (char *const *)kwlist, &buffers_obj, &flags, &timeout_params_obj
+            args, kwargs, "O|iO", (char **)kwlist, &buffers_obj, &flags, &timeout_params_obj
         ))) {
         return NULL;
     }

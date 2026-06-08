@@ -5,7 +5,7 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     int registry_size = 0;
 
     static const char *kwlist[] = {"registry_size", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char *const *)kwlist, &registry_size))
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char **)kwlist, &registry_size))
         return NULL;
 
     RequestRegistry *registry = registry_new((unsigned int)(registry_size));
