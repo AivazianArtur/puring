@@ -110,8 +110,9 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_BIND;
     PyObject *buffer = NULL;
 
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, NULL, self, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer, NULL, opcode, NULL, self, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         free(addr);

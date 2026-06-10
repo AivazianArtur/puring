@@ -36,7 +36,6 @@
 - [ ] Support all awaitable operations.
 - [ ] Support modern Python async interfaces (`Runners`).
 - [ ] Configurable ring parameters.
-- [ ] Revisit loop replacement (currently uncertain but likely needed).
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
 - [ ] `Batcher` and `Chainer` OOP interface.
 - [ ] Implement `dir` object completely.
@@ -48,7 +47,8 @@
 - [ ] Support linked SQEs for chained operations.
 - [ ] Support `IOSQE_CQE_SKIP_SUCCESS` and `IOSQE_BUFFER_SELECT`.
 - [ ] Keep file descriptors registered (`io_uring_register_files`).
-- [ ] Persistent log of CQ and SQ entry for backuping, optional.
+- [ ] Persistent log of CQ and SQ entry for backuping.
+- [ ] Explore event loop tick cycle.
 
 
 ## v0.6.1 - Community & Contribution
