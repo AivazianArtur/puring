@@ -28,9 +28,7 @@ Looking for contributors and feedback \
 ### Files:
 ```python
 async def main():
-    loop = puring.PuringLoop(registry_size=8)
-
-    file = await loop.open(path='testfile.txt')
+    file = await puring.open_file(path='testfile.txt')
 
     data = b'Hello, puring!\n'
     await file.write(data=data)
@@ -38,9 +36,7 @@ async def main():
 
     await file.close()
 
-    loop.close_loop()
-
-asyncio.run(main())
+asyncio.run(main(), loop_factory=puring.PuringLoop)
 ```
 
 ### Sockets:
@@ -50,17 +46,15 @@ PORT = 9000
 PAYLOAD = b"hello"
 
 async def main():
-    loop = puring.PuringLoop()
-    sock = await loop.tcp_socket()
+    sock = await puring.prep_socket()
 
     await sock.connect(HOST, PORT)
     await sock.send(PAYLOAD)
     data = await sock.recv()
     print("received:", data)
     await sock.close()
-    loop.close_loop()
 
-asyncio.run(main())
+asyncio.run(main(), loop_factory=puring.PuringLoop)
 ```
 
 ## Comparison
