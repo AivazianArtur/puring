@@ -60,8 +60,10 @@ static PyMethodDef puring_socket_methods[] = {
 };
 
 static PyMethodDef puring_file_methods[] = {
-    // TODO: DOCS: Describe that short read/write handling is responsibility of client
-    // TODO: DOCS: Describe that because of async nature, we should explicitly send offsets
+    // TODO: DOCS: Describe that short read/write handling is responsibility of
+    // client
+    // TODO: DOCS: Describe that because of async nature, we should explicitly
+    // send offsets
 
     {"read", (PyCFunction)PuringFile_read, METH_VARARGS | METH_KEYWORDS, "Read file"},
     {"readv", (PyCFunction)PuringFile_readv, METH_VARARGS | METH_KEYWORDS, "Read file, vectorized"},
@@ -114,8 +116,8 @@ static PyType_Spec PuringLoop_spec = {
 };
 
 PyTypeObject PuringFileType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name =
-        "puring.src.python_api.ops.files.PuringFile",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+                   .tp_name = "puring.src.python_api.ops.files.PuringFile",
     .tp_doc = PyDoc_STR("Puring file adapter"),
     .tp_basicsize = sizeof(PuringFile),
     .tp_itemsize = 0,
@@ -127,8 +129,8 @@ PyTypeObject PuringFileType = {
 };
 
 PyTypeObject PuringSocketType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name =
-        "puring.src.python_api.ops.sockets.PuringSocket",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+                   .tp_name = "puring.src.python_api.ops.sockets.PuringSocket",
     .tp_doc = PyDoc_STR("Puring socket adapter"),
     .tp_basicsize = sizeof(PuringSocket),
     .tp_itemsize = 0,

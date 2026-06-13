@@ -59,8 +59,9 @@ on_uring_ready(PuringLoop *self) {
                 break;
             case IORING_OP_READV:
                 if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                    result =
-                        PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                    result = PyBytes_FromStringAndSize(
+                        PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res
+                    );
                 }
                 break;
             case IORING_OP_OPENAT2:
@@ -140,8 +141,9 @@ on_uring_ready(PuringLoop *self) {
                 break;
             case IORING_OP_RECVMSG:
                 if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                    result =
-                        PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                    result = PyBytes_FromStringAndSize(
+                        PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res
+                    );
                 }
                 PyBuffer_Release(slot->iovecs_buffer);
                 PyMem_Free(slot->buffer);

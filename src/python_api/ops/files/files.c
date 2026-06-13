@@ -67,8 +67,9 @@ PuringLoop_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_OPENAT2;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx =
-        registry_add(running_loop->registry, future, buffer, NULL, opcode, file, NULL, NULL);
+    int request_idx = registry_add(
+        running_loop->registry, future, buffer, NULL, opcode, file, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(file);
         Py_DECREF(future);
@@ -141,8 +142,9 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -278,8 +280,9 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
     int opcode = IORING_OP_READV;
 
-    int request_idx =
-        registry_add(self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -328,8 +331,9 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_WRITE;
-    int request_idx =
-        registry_add(self->loop->registry, future, data, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, data, NULL, opcode, self, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -471,8 +475,9 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_WRITEV;
-    int request_idx =
-        registry_add(self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -524,8 +529,9 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs) {
         Py_DECREF(future);
         return PyErr_NoMemory();
     }
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -569,8 +575,9 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_FSYNC;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -606,8 +613,9 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_FSYNC;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -664,8 +672,9 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_SPLICE;
     // For now whoile puring without buffer, we'll do it in next v.
     PyObject *buffer = NULL;
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
