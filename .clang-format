@@ -27,4 +27,4 @@ PointerAlignment: Right  # Attach pointer asterisk to the variable name (e.g., i
 SeparateDefinitionBlocks: Always  # Always separate function/class definitions with blank lines
 MaxEmptyLinesToKeep: 2  # Allow at most 2 consecutive empty lines
 
-SortIncludes: false  # Keep #include order as written, do not auto-sort
+SortIncludes: false  # Keep #include order as written, do not auto-sort. Because of Python

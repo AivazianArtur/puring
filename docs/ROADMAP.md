@@ -39,6 +39,8 @@
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
 - [ ] `Batcher` and `Chainer` OOP interface.
 - [ ] Implement `dir` object completely.
+- [ ] Research and implement futex if needed.
+- [ ] Add poll interface (with multishot poll).
 
 ## v0.6.0 - CQE and SQE production features
 - [ ] CQE batching.
@@ -48,8 +50,7 @@
 - [ ] Support `IOSQE_CQE_SKIP_SUCCESS` and `IOSQE_BUFFER_SELECT`.
 - [ ] Keep file descriptors registered (`io_uring_register_files`).
 - [ ] Persistent log of CQ and SQ entry for backuping.
-- [ ] Explore event loop tick cycle.
-
+- [ ] Explore event loop tick cycles variants.
 
 ## v0.6.1 - Community & Contribution
 - [ ] Document everything.
