@@ -211,6 +211,14 @@ puring_module_exec(PyObject *m) {
         return -1;
     }
 
+    PyObject *data_transfer_modes = create_data_transfer_modes_enum();
+    if (!data_transfer_modes) {
+        return -1;
+    }
+    if (PyModule_AddObject(m, "DataTransferModes", data_transfer_modes) < 0) {
+        Py_DECREF(data_transfer_modes);
+        return -1;
+    }
     return 0;
 }
 

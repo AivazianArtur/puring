@@ -77,3 +77,5 @@ PyObject *
 create_statx_flags_enum(void);
 PyObject *
 create_statx_mask_enum(void);
+PyObject *
+create_data_transfer_modes_enum(void);

@@ -132,3 +132,36 @@ create_statx_mask_enum(void) {
     Py_DECREF(members);
     return result;
 }
+
+
+// for loop
+PyObject *
+create_data_transfer_modes_enum(void) {
+    PyObject *enum_module = PyImport_ImportModule("enum");
+    if (!enum_module)
+        return NULL;
+
+    PyObject *StrFlag = PyObject_GetAttrString(enum_module, "StrFlag");
+    Py_DECREF(enum_module);
+    if (!StrFlag)
+        return NULL;
+
+    PyObject *members = Py_BuildValue(
+        "{s:s, s:s, s:s}",
+        "Normal",
+        "Normal",
+        "ZeroCopy",
+        "ZeroCopy",
+        "BufferPool",
+        "BufferPool"
+    );
+    if (!members) {
+        Py_DECREF(StrFlag);
+        return NULL;
+    }
+
+    PyObject *result = PyObject_CallFunction(StrFlag, "sO", "DataTransferModes", members);
+    Py_DECREF(StrFlag);
+    Py_DECREF(members);
+    return result;
+}

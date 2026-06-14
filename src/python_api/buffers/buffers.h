@@ -3,15 +3,16 @@
 
 #include <Python.h>
 
+#include <stdbool.h>
 #include <fcntl.h>
 
-typedef struct IovecsResult {
+typedef struct IovecsResult {  // DEPRECATED
     struct iovec *iovecs;
     Py_ssize_t nr_vecs;
     Py_buffer *iovecs_buf;
 } IovecsResult;
 
-typedef struct BufferResult {
+typedef struct BufferResult {  // DEPRECATED
     void *buffer;
     size_t buffer_len;
     Py_buffer *view;
@@ -19,5 +20,6 @@ typedef struct BufferResult {
 
 IovecsResult *
 _serialize_iovecs_buffer(PyObject *buffers_obj);
+
 BufferResult *
 _get_buffer(PyObject *buffer_obj, int bufsize);

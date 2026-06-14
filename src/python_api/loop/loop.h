@@ -19,7 +19,7 @@ extern PyTypeObject *PuringLoopType;
 typedef struct PuringLoop {
     PyObject_HEAD
 
-        struct io_uring *ring;
+    struct io_uring *ring;
     pid_t loop_tid;
     int wakeup_fd;
     uint64_t wakeup_buf;
