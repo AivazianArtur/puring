@@ -12,6 +12,8 @@
 #include "python_api/ops/files/files.h"
 #include "python_api/ops/sockets/sockets.h"
 #include "python_api/timer/timer.h"
+#include "python_api/execution_context/execution_context.h"
+
 
 PyMODINIT_FUNC
 PyInit_puring(void);
@@ -211,14 +213,33 @@ puring_module_exec(PyObject *m) {
         return -1;
     }
 
-    PyObject *data_transfer_modes = create_data_transfer_modes_enum();
-    if (!data_transfer_modes) {
+    PyObject *buffer_mode = create_buffer_mode_enum();
+    if (!buffer_mode) {
         return -1;
     }
-    if (PyModule_AddObject(m, "DataTransferModes", data_transfer_modes) < 0) {
-        Py_DECREF(data_transfer_modes);
+    if (PyModule_AddObject(m, "BUFFER_MODE", buffer_mode) < 0) {
+        Py_DECREF(buffer_mode);
         return -1;
     }
+
+    PyObject *stream_strategy = create_stream_strategy_enum();
+    if (!stream_strategy) {
+        return -1;
+    }
+    if (PyModule_AddObject(m, "STREAM_STRATEGY", stream_strategy) < 0) {
+        Py_DECREF(stream_strategy);
+        return -1;
+    }
+
+    PyObject *transfer_mode = create_transfer_mode_enum();
+    if (!transfer_mode) {
+        return -1;
+    }
+    if (PyModule_AddObject(m, "TRANSFER_MODE", transfer_mode) < 0) {
+        Py_DECREF(transfer_mode);
+        return -1;
+    }
+
     return 0;
 }
 

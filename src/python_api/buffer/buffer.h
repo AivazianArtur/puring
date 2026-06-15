@@ -6,13 +6,13 @@
 #include <stdbool.h>
 #include <fcntl.h>
 
-typedef struct IovecsResult {  // DEPRECATED
+typedef struct IovecsResult { // DEPRECATED
     struct iovec *iovecs;
     Py_ssize_t nr_vecs;
     Py_buffer *iovecs_buf;
 } IovecsResult;
 
-typedef struct BufferResult {  // DEPRECATED
+typedef struct BufferResult { // DEPRECATED
     void *buffer;
     size_t buffer_len;
     Py_buffer *view;

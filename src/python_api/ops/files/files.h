@@ -15,7 +15,7 @@
 #include "timer/timer.h"
 #include <linux/openat2.h>
 
-#include "python_api/buffers/buffers.h"
+#include "python_api/buffer/buffer.h"
 #include "python_api/future/future.h"
 #include "python_api/loop/loop.h"
 #include "python_api/timer/timer.h"
@@ -78,4 +78,4 @@ create_statx_flags_enum(void);
 PyObject *
 create_statx_mask_enum(void);
 PyObject *
-create_data_transfer_modes_enum(void);
+create_transfer_mode_enum(void);

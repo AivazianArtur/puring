@@ -1,11 +1,8 @@
 #pragma once
-#define PY_SSIZE_T_CLEAN
-
-#include <Python.h>
 
 #include <stdbool.h>
 #include <fcntl.h>
-
+#include <inttypes.h>
 
 typedef enum PayloadOrigin {
     PAYLOAD_USER,
@@ -42,32 +39,3 @@ typedef struct BufferPayload {
     };
 
 } BufferPayload;
-
-
-typedef enum BufferMode {
-    NORMAL,
-    FIXED,
-    PROVIDED
-} BufferMode;
-
-
-typedef enum TransferMode {
-    NORMAL,
-    ZERO_COPY
-    // POOL
-} TransferMode;
-
-
-typedef enum StreamStrategy {
-    ONESHOT,
-    MULTISHOT
-} StreamStrategy;
-
-
-typedef struct ExecutionContext {
-    TransferMode transfer_mode;
-    StreamStrategy stream;
-    BufferMode buffers;
-} ExecutionContext;
-
-
