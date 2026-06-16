@@ -4,6 +4,7 @@
 #include <Python.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "loop.h"
 #include "python_macroses.h"
 
@@ -14,45 +15,41 @@ typedef enum StreamStrategy { ONESHOT, MULTISHOT } StreamStrategy;
 typedef enum TransferMode { NORMAL_TRANSFER, ZERO_COPY, BUFFER_POOL } TransferMode;
 
 typedef struct ExecutionContext {
-    BufferMode buffers;
+    PyObject_HEAD BufferMode buffer_mode;
     StreamStrategy stream;
     TransferMode transfer_mode;
 } ExecutionContext;
 
 typedef struct BufferModeCtx {
-    PyObject_HEAD
-    PuringLoop *loop;
-    BufferMode *payload; 
+    PyObject_HEAD PuringLoop *loop;
+    BufferMode payload;
 } BufferModeCtx;
 
 typedef struct StreamStrategyCtx {
-    PyObject_HEAD
-    PuringLoop *loop;
-    StreamStrategy *payload; 
+    PyObject_HEAD PuringLoop *loop;
+    StreamStrategy payload;
 } StreamStrategyCtx;
 
 typedef struct TransferModeCtx {
-    PyObject_HEAD
-    PuringLoop *loop;
-    TransferMode *payload; 
+    PyObject_HEAD PuringLoop *loop;
+    TransferMode payload;
 } TransferModeCtx;
 
 typedef struct ExecutionContextCtx {
-    PyObject_HEAD
-    PuringLoop *loop;
-    ExecutionContext *payload; 
+    PyObject_HEAD PuringLoop *loop;
+    ExecutionContext *payload;
 } ExecutionContextCtx;
 
-PyObject *
+BufferModeCtx *
 PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
-PyObject *
+StreamStrategyCtx *
 PuringLoop_stream_strategy(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
-PyObject *
+TransferModeCtx *
 PuringLoop_transfer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
-PyObject *
+ExecutionContextCtx *
 PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
@@ -64,20 +61,38 @@ create_stream_strategy_enum(void);
 PyObject *
 create_transfer_mode_enum(void);
 
-PyObject *
-BufferMode_aenter(BufferModeCtx *self, PyObject *args, PyObject *kwargs);
+void
+BufferMode_aenter(BufferModeCtx *self);
+
+void
+BufferMode_aexit(BufferModeCtx *self);
+
+void
+StreamStrategy_aenter(StreamStrategyCtx *self);
+
+void
+StreamStrategy_aexit(StreamStrategyCtx *self);
+
+void
+TransferMode_aenter(TransferModeCtx *self);
+
+void
+TransferMode_aexit(TransferModeCtx *self);
+
+void
+ExecutionContext_aenter(ExecutionContextCtx *self);
+
+void
+ExecutionContext_aexit(ExecutionContextCtx *self);
 
 PyObject *
-BufferMode_aexit(BufferModeCtx *self, PyObject *args, PyObject *kwargs);
+ContextVar_init(void);
 
-PyObject *
-StreamStrategy_aenter(StreamStrategyCtx *self, PyObject *args, PyObject *kwargs);
+int
+ContextVar_set(PyObject *value);
 
-PyObject *
-StreamStrategy_aexit(StreamStrategyCtx *self, PyObject *args, PyObject *kwargs);
+ExecutionContext *
+ContextVar_get(PyObject *default_val);
 
-PyObject *
-TransferMode_aenter(TransferModeCtx *self, PyObject *args, PyObject *kwargs);
-
-PyObject *
-TransferMode_aexit(TransferModeCtx *self, PyObject *args, PyObject *kwargs);
+void
+ContextVar_dealloc(void);
