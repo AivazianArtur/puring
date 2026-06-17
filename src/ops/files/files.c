@@ -238,13 +238,7 @@ uring_splice(
     SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
 
     io_uring_prep_splice(
-        sqe,
-        fd_in,
-        (int64_t)off_in,
-        fd_out,
-        (int64_t)off_out,
-        (unsigned int)nbytes,
-        (unsigned int)flag
+        sqe, fd_in, (int64_t)off_in, fd_out, (int64_t)off_out, (unsigned int)nbytes, (unsigned int)flag
     );
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;

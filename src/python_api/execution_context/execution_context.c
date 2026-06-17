@@ -1,4 +1,7 @@
 #include "execution_context.h"
+#include <stdlib.h>
+
+#include "loop.h"
 
 BufferModeCtx *
 PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
@@ -27,7 +30,7 @@ PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferModeCtx *buffer_mode_ctx = malloc(sizeof(BufferModeCtx));
+    BufferModeCtx *buffer_mode_ctx = PyObject_New(BufferModeCtx, &PuringBufferModeCtxType);
     if (!buffer_mode_ctx) {
         PyErr_NoMemory();
         return NULL;
@@ -61,7 +64,7 @@ PuringLoop_stream_strategy(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    StreamStrategyCtx *stream_strategy_ctx = malloc(sizeof(StreamStrategyCtx));
+    StreamStrategyCtx *stream_strategy_ctx = PyObject_New(StreamStrategyCtx, &PuringStreamStrategyCtxType);
     if (!stream_strategy_ctx) {
         PyErr_NoMemory();
         return NULL;
@@ -98,7 +101,7 @@ PuringLoop_transfer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    TransferModeCtx *transfer_mode_ctx = malloc(sizeof(TransferModeCtx));
+    TransferModeCtx *transfer_mode_ctx = PyObject_New(TransferModeCtx, &PuringTransferModeCtxType);
     if (!transfer_mode_ctx) {
         PyErr_NoMemory();
         return NULL;
@@ -166,7 +169,7 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    ExecutionContextCtx *execution_context_ctx = malloc(sizeof(ExecutionContextCtx));
+    ExecutionContextCtx *execution_context_ctx = PyObject_New(ExecutionContextCtx, &PuringExecutionContextCtxType);
     if (!execution_context_ctx) {
         PyErr_NoMemory();
         return NULL;
@@ -187,74 +190,150 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
 }
 
 void
-BufferMode_aenter(BufferModeCtx *self) {
+BufferModeCtx_aenter(BufferModeCtx const *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
+    if (!current_context) {
+        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
+        return;
+    }
     current_context->buffer_mode = self->payload;
     PyObject *current_context_obj = (PyObject *)current_context;
-    ContextVar_set(current_context_obj);
+    int result = ContextVar_set(current_context_obj);
+    if (result < 0) {
+        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
+        return;
+    }
 }
 
 void
-BufferMode_aexit(BufferModeCtx *self) {
+BufferModeCtx_aexit(BufferModeCtx *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
+    if (!current_context) {
+        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
+        return;
+    }
     current_context->buffer_mode = NORMAL_BUFFER;
     PyObject *current_context_obj = (PyObject *)current_context;
     Py_DECREF(self);
-    free(self);
-    ContextVar_set(current_context_obj);
+    int result = ContextVar_set(current_context_obj);
+    if (result < 0) {
+        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
+        return;
+    }
 }
 
 void
-StreamStrategy_aenter(StreamStrategyCtx *self) {
+BufferModeCtx_dealloc(BufferModeCtx *self) {
+    PyObject_Free(self);
+}
+
+void
+StreamStrategyCtx_aenter(StreamStrategyCtx const *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
+    if (!current_context) {
+        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
+        return;
+    }
     current_context->stream = self->payload;
     PyObject *current_context_obj = (PyObject *)current_context;
-    ContextVar_set(current_context_obj);
+    int result = ContextVar_set(current_context_obj);
+    if (result < 0) {
+        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
+        return;
+    }
 }
 
 void
-StreamStrategy_aexit(StreamStrategyCtx *self) {
+StreamStrategyCtx_aexit(StreamStrategyCtx *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
+    if (!current_context) {
+        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
+        return;
+    }
     current_context->stream = ONESHOT;
     PyObject *current_context_obj = (PyObject *)current_context;
     Py_DECREF(self);
-    free(self);
-    ContextVar_set(current_context_obj);
+    int result = ContextVar_set(current_context_obj);
+    if (result < 0) {
+        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
+        return;
+    }
 }
 
 void
-TransferMode_aenter(TransferModeCtx *self) {
+StreamStrategyCtx_dealloc(StreamStrategyCtx *self) {
+    PyObject_Free(self);
+}
+
+void
+TransferModeCtx_aenter(TransferModeCtx const *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
+    if (!current_context) {
+        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
+        return;
+    }
     current_context->transfer_mode = self->payload;
     PyObject *current_context_obj = (PyObject *)current_context;
-    ContextVar_set(current_context_obj);
+    int result = ContextVar_set(current_context_obj);
+    if (result < 0) {
+        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
+        return;
+    }
 }
 
 void
-TransferMode_aexit(TransferModeCtx *self) {
+TransferModeCtx_aexit(TransferModeCtx *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
+    if (!current_context) {
+        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
+        return;
+    }
     current_context->transfer_mode = NORMAL_TRANSFER;
     PyObject *current_context_obj = (PyObject *)current_context;
     Py_DECREF(self);
-    free(self);
-    ContextVar_set(current_context_obj);
+    int result = ContextVar_set(current_context_obj);
+    if (result < 0) {
+        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
+        return;
+    }
 }
 
 void
-ExecutionContext_aenter(ExecutionContextCtx *self) {
+TransferModeCtx_dealloc(TransferModeCtx *self) {
+    PyObject_Free(self);
+}
+
+void
+ExecutionContextCtx_aenter(ExecutionContextCtx *self) {
     PyObject *current_context_obj = (PyObject *)self;
-    ContextVar_set(current_context_obj);
+    int result = ContextVar_set(current_context_obj);
+    if (result < 0) {
+        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
+        return;
+    }
 }
 
 void
-ExecutionContext_aexit(ExecutionContextCtx *self) {
+ExecutionContextCtx_aexit(ExecutionContextCtx *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
+    if (!current_context) {
+        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
+        return;
+    }
     current_context->buffer_mode = NORMAL_BUFFER;
     current_context->stream = ONESHOT;
     current_context->transfer_mode = NORMAL_TRANSFER;
     PyObject *current_context_obj = (PyObject *)current_context;
     free(self->payload);
     Py_DECREF(self);
-    free(self);
-    ContextVar_set(current_context_obj);
+    int result = ContextVar_set(current_context_obj);
+    if (result < 0) {
+        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
+        return;
+    }
+}
+
+void
+ExecutionContextCtx_dealloc(ExecutionContextCtx *self) {
+    PyObject_Free(self);
 }

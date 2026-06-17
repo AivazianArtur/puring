@@ -6,21 +6,19 @@ create_buffer_mode_enum(void) {
     if (!enum_module)
         return NULL;
 
-    PyObject *StrFlag = PyObject_GetAttrString(enum_module, "StrFlag");
+    PyObject *IntEnum = PyObject_GetAttrString(enum_module, "IntEnum");
     Py_DECREF(enum_module);
-    if (!StrFlag)
+    if (!IntEnum)
         return NULL;
 
-    PyObject *members = Py_BuildValue(
-        "{s:s, s:s, s:s}", "NORMAL", NORMAL_BUFFER, FIXED, FIXED, PROVIDED, PROVIDED
-    );
+    PyObject *members = Py_BuildValue("{s:i, s:i, s:i}", "NORMAL", NORMAL_BUFFER, "FIXED", FIXED, "PROVIDED", PROVIDED);
     if (!members) {
-        Py_DECREF(StrFlag);
+        Py_DECREF(IntEnum);
         return NULL;
     }
 
-    PyObject *result = PyObject_CallFunction(StrFlag, "sO", "BUFFER_MODE", members);
-    Py_DECREF(StrFlag);
+    PyObject *result = PyObject_CallFunction(IntEnum, "sO", "BUFFER_MODE", members);
+    Py_DECREF(IntEnum);
     Py_DECREF(members);
     return result;
 }
@@ -31,19 +29,19 @@ create_stream_strategy_enum(void) {
     if (!enum_module)
         return NULL;
 
-    PyObject *StrFlag = PyObject_GetAttrString(enum_module, "StrFlag");
+    PyObject *IntEnum = PyObject_GetAttrString(enum_module, "IntEnum");
     Py_DECREF(enum_module);
-    if (!StrFlag)
+    if (!IntEnum)
         return NULL;
 
-    PyObject *members = Py_BuildValue("{s:s, s:s}", ONESHOT, ONESHOT, MULTISHOT, MULTISHOT);
+    PyObject *members = Py_BuildValue("{s:i, s:i}", "ONESHOT", ONESHOT, "MULTISHOT", MULTISHOT);
     if (!members) {
-        Py_DECREF(StrFlag);
+        Py_DECREF(IntEnum);
         return NULL;
     }
 
-    PyObject *result = PyObject_CallFunction(StrFlag, "sO", "STREAM_STRATEGY", members);
-    Py_DECREF(StrFlag);
+    PyObject *result = PyObject_CallFunction(IntEnum, "sO", "STREAM_STRATEGY", members);
+    Py_DECREF(IntEnum);
     Py_DECREF(members);
     return result;
 }
@@ -54,21 +52,21 @@ create_transfer_mode_enum(void) {
     if (!enum_module)
         return NULL;
 
-    PyObject *StrFlag = PyObject_GetAttrString(enum_module, "StrFlag");
+    PyObject *IntEnum = PyObject_GetAttrString(enum_module, "IntEnum");
     Py_DECREF(enum_module);
-    if (!StrFlag)
+    if (!IntEnum)
         return NULL;
 
     PyObject *members = Py_BuildValue(
-        "{s:s, s:s, s:s}", "NORMAL", NORMAL_TRANSFER, ZERO_COPY, ZERO_COPY, BUFFER_POOL, BUFFER_POOL
+        "{s:i, s:i, s:i}", "NORMAL", NORMAL_TRANSFER, "ZERO_COPY", ZERO_COPY, "BUFFER_POOL", BUFFER_POOL
     );
     if (!members) {
-        Py_DECREF(StrFlag);
+        Py_DECREF(IntEnum);
         return NULL;
     }
 
-    PyObject *result = PyObject_CallFunction(StrFlag, "sO", "TRANSFER_MODE", members);
-    Py_DECREF(StrFlag);
+    PyObject *result = PyObject_CallFunction(IntEnum, "sO", "TRANSFER_MODE", members);
+    Py_DECREF(IntEnum);
     Py_DECREF(members);
     return result;
 }

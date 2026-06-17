@@ -42,9 +42,7 @@ on_uring_ready(PuringLoop *self) {
 
                 struct io_uring_sqe *sqe = io_uring_get_sqe(self->ring);
                 if (sqe) {
-                    io_uring_prep_read(
-                        sqe, self->wakeup_fd, &self->wakeup_buf, sizeof(uint64_t), 0
-                    );
+                    io_uring_prep_read(sqe, self->wakeup_fd, &self->wakeup_buf, sizeof(uint64_t), 0);
                     io_uring_sqe_set_data64(sqe, WAKEUP_FD_TAG);
                 }
                 io_uring_cqe_seen(self->ring, cqe);
@@ -59,9 +57,7 @@ on_uring_ready(PuringLoop *self) {
                 break;
             case IORING_OP_READV:
                 if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                    result = PyBytes_FromStringAndSize(
-                        PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res
-                    );
+                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
                 }
                 break;
             case IORING_OP_OPENAT2:
@@ -119,9 +115,7 @@ on_uring_ready(PuringLoop *self) {
                     conn->loop = slot->socket->loop;
                     conn->state = ACCEPTING;
 
-                    memcpy(
-                        &conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage)
-                    );
+                    memcpy(&conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage));
 
                     free(peer_addr);
                     slot->buffer = NULL;
@@ -141,9 +135,7 @@ on_uring_ready(PuringLoop *self) {
                 break;
             case IORING_OP_RECVMSG:
                 if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                    result = PyBytes_FromStringAndSize(
-                        PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res
-                    );
+                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
                 }
                 PyBuffer_Release(slot->iovecs_buffer);
                 PyMem_Free(slot->buffer);

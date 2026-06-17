@@ -4,7 +4,7 @@ IndentWidth: 4  # Use 4 spaces for indentation
 ContinuationIndentWidth: 4  # Indent wrapped lines by 4 spaces
 
 UseTab: Never  # Never use tabs, only spaces
-ColumnLimit: 100  # Maximum line length
+ColumnLimit: 120  # Maximum line length
 
 BreakBeforeBraces: Attach  # Opening braces stay on the same line
 
@@ -14,7 +14,7 @@ BinPackArguments: false  # Do not pack function arguments into a single line
 BinPackParameters: false  # Do not pack function parameters into a single line
 
 AlignAfterOpenBracket: BlockIndent  # Align arguments with block indentation after '('
-PenaltyBreakAssignment: 1000
+PenaltyBreakAssignment: 1000  # Makes breaking line rules less prioritized
 
 AllowShortIfStatementsOnASingleLine: Never  # Disallow single-line if statements
 AllowShortLoopsOnASingleLine: false  # Disallow single-line loops

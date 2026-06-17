@@ -20,12 +20,9 @@ PyInit_puring(void);
 
 static PyMethodDef puring_module_methods[] = {
     {"timer", (PyCFunction)PuringLoop_timer, METH_VARARGS | METH_KEYWORDS, "Sets a timer"},
-    {"open_file",
-     (PyCFunction)PuringLoop_open,
-     METH_VARARGS | METH_KEYWORDS,
-     "Opens file and instantiate File object"},
+    {"open_file", (PyCFunction)PuringFile_open, METH_VARARGS | METH_KEYWORDS, "Opens file and instantiate File object"},
     {"prep_socket",
-     (PyCFunction)PuringLoop_prep_socket,
+     (PyCFunction)PuringSocket_prep_socket,
      METH_VARARGS | METH_KEYWORDS,
      "Opens socket and instantiate Socket object"},
     {NULL, NULL, 0, NULL}
@@ -33,11 +30,24 @@ static PyMethodDef puring_module_methods[] = {
 
 static PyMethodDef puring_loop_methods[] = {
     {"close", (PyCFunction)PuringLoop_close, METH_VARARGS, "Close loop"},
+    {"buffer_mode",
+     (PyCFunction)PuringLoop_buffer_mode,
+     METH_VARARGS | METH_KEYWORDS,
+     "Init context to run loop with specific buffer mode"},
+    {"stream_strategy",
+     (PyCFunction)PuringLoop_stream_strategy,
+     METH_VARARGS | METH_KEYWORDS,
+     "Init context to run loop with specific stream strategy"},
+    {"transfer_mode",
+     (PyCFunction)PuringLoop_transfer_mode,
+     METH_VARARGS | METH_KEYWORDS,
+     "Init context to run loop with specific transfer mode"},
+    {"execution_context",
+     (PyCFunction)PuringLoop_execution_context,
+     METH_VARARGS | METH_KEYWORDS,
+     "Init context to run loop with specific execution context settings"},
 
-    {"_run_once",
-     (PyCFunction)PuringLoop_run_once,
-     METH_NOARGS,
-     "Run one full iteration of the event loop"},
+    {"_run_once", (PyCFunction)PuringLoop_run_once, METH_NOARGS, "Run one full iteration of the event loop"},
     {"_write_to_self",
      (PyCFunction)PuringLoop_write_to_self,
      METH_NOARGS,
@@ -74,29 +84,49 @@ static PyMethodDef puring_file_methods[] = {
      METH_VARARGS | METH_KEYWORDS,
      "Read file, vectorized with custom iovecs"},
     {"write", (PyCFunction)PuringFile_write, METH_VARARGS | METH_KEYWORDS, "Write file"},
-    {"writev",
-     (PyCFunction)PuringFile_writev,
-     METH_VARARGS | METH_KEYWORDS,
-     "Write file, vectorized"},
+    {"writev", (PyCFunction)PuringFile_writev, METH_VARARGS | METH_KEYWORDS, "Write file, vectorized"},
     {"writev_raw",
      (PyCFunction)PuringFile_writev_raw,
      METH_VARARGS | METH_KEYWORDS,
      "Write file, vectorized with custom iovecs"},
     {"close", (PyCFunction)PuringFile_close, METH_VARARGS | METH_KEYWORDS, "Close file"},
-    {"fsync",
-     (PyCFunction)PuringFile_fsync,
-     METH_VARARGS | METH_KEYWORDS,
-     "Flush file buffer to file"},
+    {"fsync", (PyCFunction)PuringFile_fsync, METH_VARARGS | METH_KEYWORDS, "Flush file buffer to file"},
     {"fdatasync",
      (PyCFunction)PuringFile_fdatasync,
      METH_VARARGS | METH_KEYWORDS,
      "Flush file buffer to file with in fdatasync mode"},
-    {"splice",
-     (PyCFunction)PuringFile_splice,
-     METH_VARARGS | METH_KEYWORDS,
-     "Splicing two file pipes"},
+    {"splice", (PyCFunction)PuringFile_splice, METH_VARARGS | METH_KEYWORDS, "Splicing two file pipes"},
     {NULL, NULL, 0, NULL}
 };
+
+static PyMethodDef puring_buffer_mode_ctx_methods[] = {
+    {"__aenter__", (PyCFunction)BufferModeCtx_aenter, METH_NOARGS, "Entering async context manager"},
+    {"__aexit__", (PyCFunction)BufferModeCtx_aexit, METH_NOARGS, "Closing async context manager"},
+
+    {NULL, NULL, 0, NULL}
+};
+
+static PyMethodDef puring_stream_strategy_ctx_methods[] = {
+    {"__aenter__", (PyCFunction)StreamStrategyCtx_aenter, METH_NOARGS, "Entering async context manager"},
+    {"__aexit__", (PyCFunction)StreamStrategyCtx_aexit, METH_NOARGS, "Closing async context manager"},
+
+    {NULL, NULL, 0, NULL}
+};
+
+static PyMethodDef puring_transfer_mode_ctx_methods[] = {
+    {"__aenter__", (PyCFunction)TransferModeCtx_aenter, METH_NOARGS, "Entering async context manager"},
+    {"__aexit__", (PyCFunction)TransferModeCtx_aexit, METH_NOARGS, "Closing async context manager"},
+
+    {NULL, NULL, 0, NULL}
+};
+
+static PyMethodDef puring_execution_context_ctx_methods[] = {
+    {"__aenter__", (PyCFunction)ExecutionContextCtx_aenter, METH_NOARGS, "Entering async context manager"},
+    {"__aexit__", (PyCFunction)ExecutionContextCtx_aexit, METH_NOARGS, "Closing async context manager"},
+
+    {NULL, NULL, 0, NULL}
+};
+
 
 PyTypeObject *PuringLoopType = NULL;
 
@@ -118,8 +148,7 @@ static PyType_Spec PuringLoop_spec = {
 };
 
 PyTypeObject PuringFileType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-                   .tp_name = "puring.src.python_api.ops.files.PuringFile",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.ops.files.PuringFile",
     .tp_doc = PyDoc_STR("Puring file adapter"),
     .tp_basicsize = sizeof(PuringFile),
     .tp_itemsize = 0,
@@ -131,8 +160,7 @@ PyTypeObject PuringFileType = {
 };
 
 PyTypeObject PuringSocketType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
-                   .tp_name = "puring.src.python_api.ops.sockets.PuringSocket",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.ops.sockets.PuringSocket",
     .tp_doc = PyDoc_STR("Puring socket adapter"),
     .tp_basicsize = sizeof(PuringSocket),
     .tp_itemsize = 0,
@@ -141,6 +169,55 @@ PyTypeObject PuringSocketType = {
     .tp_init = NULL,
     .tp_dealloc = (destructor)PuringSocket_dealloc,
     .tp_methods = puring_socket_methods,
+};
+
+
+PyTypeObject PuringBufferModeCtxType = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.execution_context.BufferModeCtx",
+    .tp_doc = PyDoc_STR("Buffer Mode helper for context manager"),
+    .tp_basicsize = sizeof(BufferModeCtx),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+    .tp_init = NULL,
+    .tp_dealloc = (destructor)BufferModeCtx_dealloc,
+    .tp_methods = puring_buffer_mode_ctx_methods,
+};
+
+PyTypeObject PuringStreamStrategyCtxType = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.execution_context.StreamStrategyCtx",
+    .tp_doc = PyDoc_STR("Stream Strategy helper for context manager"),
+    .tp_basicsize = sizeof(StreamStrategyCtx),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+    .tp_init = NULL,
+    .tp_dealloc = (destructor)StreamStrategyCtx_dealloc,
+    .tp_methods = puring_stream_strategy_ctx_methods,
+};
+
+PyTypeObject PuringTransferModeCtxType = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.execution_context.TransferModeCtx",
+    .tp_doc = PyDoc_STR("Transfer Mode helper for context manager"),
+    .tp_basicsize = sizeof(TransferModeCtx),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+    .tp_init = NULL,
+    .tp_dealloc = (destructor)TransferModeCtx_dealloc,
+    .tp_methods = puring_transfer_mode_ctx_methods,
+};
+
+PyTypeObject PuringExecutionContextCtxType = {
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.execution_context.ExecutionContextCtx",
+    .tp_doc = PyDoc_STR("Execution Context helper for context manager"),
+    .tp_basicsize = sizeof(ExecutionContextCtx),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_new = PyType_GenericNew,
+    .tp_init = NULL,
+    .tp_dealloc = (destructor)ExecutionContextCtx_dealloc,
+    .tp_methods = puring_execution_context_ctx_methods,
 };
 
 static int
@@ -176,6 +253,19 @@ puring_module_exec(PyObject *m) {
     if (PyType_Ready(&PuringFileType) < 0) {
         return -1;
     }
+    if (PyType_Ready(&PuringBufferModeCtxType) < 0) {
+        return -1;
+    }
+    if (PyType_Ready(&PuringStreamStrategyCtxType) < 0) {
+        return -1;
+    }
+    if (PyType_Ready(&PuringTransferModeCtxType) < 0) {
+        return -1;
+    }
+    if (PyType_Ready(&PuringExecutionContextCtxType) < 0) {
+        return -1;
+    }
+
     if (PyModule_AddObjectRef(m, "PuringLoop", type) < 0) {
         return -1;
     }
@@ -183,6 +273,18 @@ puring_module_exec(PyObject *m) {
         return -1;
     }
     if (PyModule_AddObjectRef(m, "Socket", (PyObject *)&PuringSocketType) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "BufferModeCtx", (PyObject *)&PuringBufferModeCtxType) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "StreamStrategyCtx", (PyObject *)&PuringStreamStrategyCtxType) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "TransferModeCtx", (PyObject *)&PuringTransferModeCtxType) < 0) {
+        return -1;
+    }
+    if (PyModule_AddObjectRef(m, "ExecutionContextCtx", (PyObject *)&PuringExecutionContextCtxType) < 0) {
         return -1;
     }
 

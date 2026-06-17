@@ -5,8 +5,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "loop.h"
+#include <stdbool.h>
 #include "python_macroses.h"
+
+extern PyTypeObject PuringBufferModeCtxType;
+extern PyTypeObject PuringStreamStrategyCtxType;
+extern PyTypeObject PuringTransferModeCtxType;
+extern PyTypeObject PuringExecutionContextCtxType;
+
+
+typedef struct PuringLoop PuringLoop;
 
 typedef enum BufferMode { NORMAL_BUFFER, FIXED, PROVIDED } BufferMode;
 
@@ -62,28 +70,41 @@ PyObject *
 create_transfer_mode_enum(void);
 
 void
-BufferMode_aenter(BufferModeCtx *self);
+BufferModeCtx_aenter(BufferModeCtx const *self);
 
 void
-BufferMode_aexit(BufferModeCtx *self);
+BufferModeCtx_aexit(BufferModeCtx *self);
 
 void
-StreamStrategy_aenter(StreamStrategyCtx *self);
+BufferModeCtx_dealloc(BufferModeCtx *self);
+
 
 void
-StreamStrategy_aexit(StreamStrategyCtx *self);
+StreamStrategyCtx_aenter(StreamStrategyCtx const *self);
 
 void
-TransferMode_aenter(TransferModeCtx *self);
+StreamStrategyCtx_aexit(StreamStrategyCtx *self);
 
 void
-TransferMode_aexit(TransferModeCtx *self);
+StreamStrategyCtx_dealloc(StreamStrategyCtx *self);
 
 void
-ExecutionContext_aenter(ExecutionContextCtx *self);
+TransferModeCtx_aenter(TransferModeCtx const *self);
 
 void
-ExecutionContext_aexit(ExecutionContextCtx *self);
+TransferModeCtx_aexit(TransferModeCtx *self);
+
+void
+TransferModeCtx_dealloc(TransferModeCtx *self);
+
+void
+ExecutionContextCtx_aenter(ExecutionContextCtx *self);
+
+void
+ExecutionContextCtx_aexit(ExecutionContextCtx *self);
+
+void
+ExecutionContextCtx_dealloc(ExecutionContextCtx *self);
 
 PyObject *
 ContextVar_init(void);

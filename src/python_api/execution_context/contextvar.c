@@ -6,9 +6,7 @@ PyObject *
 ContextVar_init(void) {
     PyObject *contextvars = PyImport_ImportModule("contextvars");
     if (!contextvars) {
-        PyErr_SetString(
-            PyExc_RuntimeError, "Error while setting initital contextvar - contextvars import"
-        );
+        PyErr_SetString(PyExc_RuntimeError, "Error while setting initital contextvar - contextvars import");
         return NULL;
     }
 
@@ -23,9 +21,7 @@ ContextVar_init(void) {
     Py_DECREF(ContextVar);
 
     if (!execution_context_var) {
-        PyErr_SetString(
-            PyExc_RuntimeError, "Error while setting initital contextvar - execution_context_var"
-        );
+        PyErr_SetString(PyExc_RuntimeError, "Error while setting initital contextvar - execution_context_var");
         return NULL;
     }
 
@@ -38,7 +34,7 @@ ContextVar_init(void) {
     execution_context->stream = ONESHOT;
     execution_context->transfer_mode = NORMAL_TRANSFER;
 
-    PyObject *token = PyObject_CallMethodObjArgs(
+    PyObject const *token = PyObject_CallMethodObjArgs(
         execution_context_var, PyUnicode_FromString("set"), execution_context, NULL
     );
     if (!token) {
@@ -56,9 +52,7 @@ ContextVar_set(PyObject *value) {
         return -1;
     }
 
-    PyObject *token = PyObject_CallMethodObjArgs(
-        execution_context_var, PyUnicode_FromString("set"), value, NULL
-    );
+    PyObject *token = PyObject_CallMethodObjArgs(execution_context_var, PyUnicode_FromString("set"), value, NULL);
     if (!token) {
         return -1;
     }
@@ -80,9 +74,7 @@ ContextVar_get(PyObject *default_val) {
             execution_context_var, PyUnicode_FromString("get"), default_val, NULL
         );
     } else {
-        execution_context_obj = PyObject_CallMethodNoArgs(
-            execution_context_var, PyUnicode_FromString("get")
-        );
+        execution_context_obj = PyObject_CallMethodNoArgs(execution_context_var, PyUnicode_FromString("get"));
     }
     return (ExecutionContext *)execution_context_obj;
 }
