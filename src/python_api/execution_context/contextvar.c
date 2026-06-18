@@ -103,12 +103,10 @@ ContextVar_get(PyObject *default_val) {
     PyObject *execution_context_obj;
     PyObject *method_name = PyUnicode_FromString("get");
     if (!method_name) {
-        return -1;
+        return NULL;
     }
     if (default_val) {
-        execution_context_obj = PyObject_CallMethodObjArgs(
-            execution_context_var, method_name, default_val, NULL
-        );
+        execution_context_obj = PyObject_CallMethodObjArgs(execution_context_var, method_name, default_val, NULL);
     } else {
         execution_context_obj = PyObject_CallMethodNoArgs(execution_context_var, method_name);
     }
