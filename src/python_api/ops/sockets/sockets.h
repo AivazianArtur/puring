@@ -31,7 +31,7 @@ typedef struct PuringSocket {
 } PuringSocket;
 
 PyObject *
-PuringSocket_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
+Puring_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
 
 void
 PuringSocket_dealloc(PuringSocket *self);

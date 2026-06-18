@@ -1,7 +1,7 @@
 #include "files.h"
 
 PyObject *
-PuringFile_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
+Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_IS_PURING();
     ASSERT_LOOP_THREAD(running_loop);
     ASSERT_RING_LOOP_IS_CLOSING(running_loop);

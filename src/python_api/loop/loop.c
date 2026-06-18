@@ -104,8 +104,6 @@ PuringLoop_dealloc(PuringLoop *self) {
         close(self->wakeup_fd);
         self->wakeup_fd = -1;
     }
-    self->execution_context_var = NULL;
-    ContextVar_dealloc();
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -127,6 +125,9 @@ PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored)) {
     graceful_shutdown(self->ring, self->registry);
     self->ring = NULL;
     self->registry = NULL;
+
+    self->execution_context_var = NULL;
+    ContextVar_dealloc();
 
     Py_RETURN_NONE;
 }

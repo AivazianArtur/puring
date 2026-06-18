@@ -20,9 +20,9 @@ PyInit_puring(void);
 
 static PyMethodDef puring_module_methods[] = {
     {"timer", (PyCFunction)PuringLoop_timer, METH_VARARGS | METH_KEYWORDS, "Sets a timer"},
-    {"open_file", (PyCFunction)PuringFile_open, METH_VARARGS | METH_KEYWORDS, "Opens file and instantiate File object"},
+    {"open_file", (PyCFunction)Puring_open, METH_VARARGS | METH_KEYWORDS, "Opens file and instantiate File object"},
     {"prep_socket",
-     (PyCFunction)PuringSocket_prep_socket,
+     (PyCFunction)Puring_prep_socket,
      METH_VARARGS | METH_KEYWORDS,
      "Opens socket and instantiate Socket object"},
     {NULL, NULL, 0, NULL}

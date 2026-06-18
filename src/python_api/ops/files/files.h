@@ -33,7 +33,7 @@ typedef struct PuringFile {
 } PuringFile;
 
 PyObject *
-PuringFile_open(PyObject *module, PyObject *args, PyObject *kwargs);
+Puring_open(PyObject *module, PyObject *args, PyObject *kwargs);
 
 void
 PuringFile_dealloc(PuringFile *self);
