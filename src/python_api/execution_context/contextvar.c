@@ -73,23 +73,43 @@ ContextVar_init(void) {
     return execution_context_var;
 }
 
-int
+PyObject *
 ContextVar_set(PyObject *value) {
     if (!execution_context_var) {
         PyErr_SetString(PyExc_RuntimeError, "ContextVar not initialized");
-        return -1;
+        return NULL;
     }
 
     PyObject *method_name = PyUnicode_FromString("set");
     if (!method_name) {
-        return -1;
+        return NULL;
     }
     PyObject *token = PyObject_CallMethodObjArgs(execution_context_var, method_name, value, NULL);
+    Py_DECREF(method_name);
     if (!token) {
-        return -1;
+        return NULL;
     }
 
-    Py_DECREF(token);
+    return token;
+}
+
+int
+ContextVar_reset(PyObject *token)
+{
+    if (!execution_context_var) {
+        PyErr_SetString(PyExc_RuntimeError, "ContextVar not initialized");
+        return -1;
+    }
+    PyObject *method_name = PyUnicode_FromString("reset");
+    if (!method_name) {
+        return -1;
+    }
+    PyObject *result = PyObject_CallMethodObjArgs(execution_context_var, method_name, token, NULL);
+    Py_DECREF(method_name);
+    if (!result) {
+        return -1;
+    }
+    Py_DECREF(result);
     return 0;
 }
 

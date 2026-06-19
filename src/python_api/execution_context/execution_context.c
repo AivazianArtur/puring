@@ -190,7 +190,7 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
 }
 
 void
-BufferModeCtx_aenter(BufferModeCtx const *self) {
+BufferModeCtx_aenter(BufferModeCtx *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
     if (!current_context) {
         PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
@@ -198,27 +198,23 @@ BufferModeCtx_aenter(BufferModeCtx const *self) {
     }
     current_context->buffer_mode = self->payload;
     PyObject *current_context_obj = (PyObject *)current_context;
-    int result = ContextVar_set(current_context_obj);
-    if (result < 0) {
+    PyObject *token = ContextVar_set(current_context_obj);
+    Py_DECREF(current_context_obj);
+    if (token < 0) {
         PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
         return;
     }
+    self->token = token;
 }
 
+
 void
-BufferModeCtx_aexit(BufferModeCtx *self) {
-    ExecutionContext *current_context = ContextVar_get(NULL);
-    if (!current_context) {
-        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
-        return;
-    }
-    current_context->buffer_mode = NORMAL_BUFFER;
-    PyObject *current_context_obj = (PyObject *)current_context;
-    Py_DECREF(self);
-    int result = ContextVar_set(current_context_obj);
+BufferModeCtx_aexit(BufferModeCtx *self)
+{
+    int result = ContextVar_reset(self->token);
+    Py_CLEAR(self->token);
     if (result < 0) {
-        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
-        return;
+        PyErr_SetString(PyExc_ValueError, "Error while resetting contextvar");
     }
 }
 
@@ -228,7 +224,7 @@ BufferModeCtx_dealloc(BufferModeCtx *self) {
 }
 
 void
-StreamStrategyCtx_aenter(StreamStrategyCtx const *self) {
+StreamStrategyCtx_aenter(StreamStrategyCtx *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
     if (!current_context) {
         PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
@@ -236,27 +232,21 @@ StreamStrategyCtx_aenter(StreamStrategyCtx const *self) {
     }
     current_context->stream = self->payload;
     PyObject *current_context_obj = (PyObject *)current_context;
-    int result = ContextVar_set(current_context_obj);
-    if (result < 0) {
+    PyObject *token = ContextVar_set(current_context_obj);
+    Py_DECREF(current_context_obj);
+    if (token < 0) {
         PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
         return;
     }
+    self->token = token;
 }
 
 void
 StreamStrategyCtx_aexit(StreamStrategyCtx *self) {
-    ExecutionContext *current_context = ContextVar_get(NULL);
-    if (!current_context) {
-        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
-        return;
-    }
-    current_context->stream = ONESHOT;
-    PyObject *current_context_obj = (PyObject *)current_context;
-    Py_DECREF(self);
-    int result = ContextVar_set(current_context_obj);
+    int result = ContextVar_reset(self->token);
+    Py_CLEAR(self->token);
     if (result < 0) {
-        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
-        return;
+        PyErr_SetString(PyExc_ValueError, "Error while resetting contextvar");
     }
 }
 
@@ -266,7 +256,7 @@ StreamStrategyCtx_dealloc(StreamStrategyCtx *self) {
 }
 
 void
-TransferModeCtx_aenter(TransferModeCtx const *self) {
+TransferModeCtx_aenter(TransferModeCtx *self) {
     ExecutionContext *current_context = ContextVar_get(NULL);
     if (!current_context) {
         PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
@@ -274,27 +264,21 @@ TransferModeCtx_aenter(TransferModeCtx const *self) {
     }
     current_context->transfer_mode = self->payload;
     PyObject *current_context_obj = (PyObject *)current_context;
-    int result = ContextVar_set(current_context_obj);
-    if (result < 0) {
+    PyObject *token = ContextVar_set(current_context_obj);
+    Py_DECREF(current_context_obj);
+    if (token < 0) {
         PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
         return;
     }
+    self->token = token;
 }
 
 void
 TransferModeCtx_aexit(TransferModeCtx *self) {
-    ExecutionContext *current_context = ContextVar_get(NULL);
-    if (!current_context) {
-        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
-        return;
-    }
-    current_context->transfer_mode = NORMAL_TRANSFER;
-    PyObject *current_context_obj = (PyObject *)current_context;
-    Py_DECREF(self);
-    int result = ContextVar_set(current_context_obj);
+    int result = ContextVar_reset(self->token);
+    Py_CLEAR(self->token);
     if (result < 0) {
-        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
-        return;
+        PyErr_SetString(PyExc_ValueError, "Error while resetting contextvar");
     }
 }
 
@@ -306,34 +290,24 @@ TransferModeCtx_dealloc(TransferModeCtx *self) {
 void
 ExecutionContextCtx_aenter(ExecutionContextCtx *self) {
     PyObject *current_context_obj = (PyObject *)self;
-    int result = ContextVar_set(current_context_obj);
-    if (result < 0) {
+    int token = ContextVar_set(current_context_obj);
+    if (token < 0) {
         PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
         return;
     }
+    self->token = token;
 }
 
 void
 ExecutionContextCtx_aexit(ExecutionContextCtx *self) {
-    ExecutionContext *current_context = ContextVar_get(NULL);
-    if (!current_context) {
-        PyErr_SetString(PyExc_ValueError, "Error while getting contextvar");
-        return;
-    }
-    current_context->buffer_mode = NORMAL_BUFFER;
-    current_context->stream = ONESHOT;
-    current_context->transfer_mode = NORMAL_TRANSFER;
-    PyObject *current_context_obj = (PyObject *)current_context;
-    free(self->payload);
-    Py_DECREF(self);
-    int result = ContextVar_set(current_context_obj);
+    int result = ContextVar_reset(self->token);
+    Py_CLEAR(self->token);
     if (result < 0) {
-        PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
-        return;
+        PyErr_SetString(PyExc_ValueError, "Error while resetting contextvar");
     }
 }
 
 void
 ExecutionContextCtx_dealloc(ExecutionContextCtx *self) {
-    PyObject_Free(self);
+    PyObject_Clear(self);
 }

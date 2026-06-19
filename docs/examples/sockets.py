@@ -1,5 +1,4 @@
 import sys
-import socket
 
 sys.path.insert(0, '')
 

@@ -31,21 +31,25 @@ typedef struct ExecutionContext {
 typedef struct BufferModeCtx {
     PyObject_HEAD PuringLoop *loop;
     BufferMode payload;
+    PyObject *token;
 } BufferModeCtx;
 
 typedef struct StreamStrategyCtx {
     PyObject_HEAD PuringLoop *loop;
     StreamStrategy payload;
+    PyObject *token;
 } StreamStrategyCtx;
 
 typedef struct TransferModeCtx {
     PyObject_HEAD PuringLoop *loop;
     TransferMode payload;
+    PyObject *token;
 } TransferModeCtx;
 
 typedef struct ExecutionContextCtx {
     PyObject_HEAD PuringLoop *loop;
     ExecutionContext *payload;
+    PyObject *token;
 } ExecutionContextCtx;
 
 BufferModeCtx *
@@ -70,7 +74,7 @@ PyObject *
 create_transfer_mode_enum(void);
 
 void
-BufferModeCtx_aenter(BufferModeCtx const *self);
+BufferModeCtx_aenter(BufferModeCtx *self);
 
 void
 BufferModeCtx_aexit(BufferModeCtx *self);
@@ -80,7 +84,7 @@ BufferModeCtx_dealloc(BufferModeCtx *self);
 
 
 void
-StreamStrategyCtx_aenter(StreamStrategyCtx const *self);
+StreamStrategyCtx_aenter(StreamStrategyCtx *self);
 
 void
 StreamStrategyCtx_aexit(StreamStrategyCtx *self);
@@ -89,7 +93,7 @@ void
 StreamStrategyCtx_dealloc(StreamStrategyCtx *self);
 
 void
-TransferModeCtx_aenter(TransferModeCtx const *self);
+TransferModeCtx_aenter(TransferModeCtx *self);
 
 void
 TransferModeCtx_aexit(TransferModeCtx *self);
@@ -109,8 +113,11 @@ ExecutionContextCtx_dealloc(ExecutionContextCtx *self);
 PyObject *
 ContextVar_init(void);
 
-int
+PyObject *
 ContextVar_set(PyObject *value);
+
+int
+ContextVar_reset(PyObject *token);
 
 ExecutionContext *
 ContextVar_get(PyObject *default_val);
