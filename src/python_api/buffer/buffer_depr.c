@@ -1,4 +1,4 @@
-#include "python_api/buffer/buffer.h"
+#include "python_api/buffer/buffer_depr.h"
 
 IovecsResult *
 _serialize_iovecs_buffer(PyObject *buffers_obj) {

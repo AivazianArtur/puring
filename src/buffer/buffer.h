@@ -13,30 +13,26 @@ typedef enum PayloadOrigin {
 typedef enum PayloadType {
     PAYLOAD_LINEAR,
     PAYLOAD_IOVEC,
-    PAYLOAD_PROVIDED,
 } PayloadType;
+
+typedef struct LineaerBuffer {
+    void *base;
+    size_t len;
+} LinearBuffer;
+
+typedef struct VectoredBuffer {
+    struct iovec *iovecs;
+    uint32_t nr_vecs;
+} VectoredBuffer;
 
 typedef struct BufferPayload {
     PayloadType payload_type;
     PayloadOrigin payload_origin;
+    Py_buffer *views;
 
     int len;
 
-    union {
-        struct {
-            void *base;
-            size_t len;
-        } linear;
-
-        struct {
-            struct iovec *iovecs;
-            uint32_t nr_vecs;
-        } vectored;
-
-        struct {
-            uint16_t bgid;
-            uint16_t bid;
-        } provided;
-    };
+    LinearBuffer *linear;
+    VectoredBuffer *vector;
 
 } BufferPayload;

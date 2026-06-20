@@ -9,26 +9,84 @@ PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
     char mode = NORMAL_BUFFER;
-    static const char *kwlist[] = {"mode", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s", (char **)kwlist, &mode)) {
+    PyObject *buffers_obj;
+    static const char *kwlist[] = {"mode", "buffers", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|so", (char **)kwlist, &mode, &buffers_obj)) {
         return NULL;
     }
 
-    BufferMode buffer_mode;
+    PayloadOrigin payload_origin;
+    PayloadType payload_type;
+    PayloadType buffer_type = PAYLOAD_LINEAR;
+    int len;
+    int bufsize;
+    if (buffers_obj) {
+        if (!PySequence_Check(buffers_obj)) {
+            PyErr_SetString(PyExc_TypeError, "Buffers must be a sequence");
+            return NULL;
+        }
+        Py_ssize_t py_len = PySequence_Length(buffers_obj);
+        if (py_len < 0) {
+            return NULL;
+        }
+        len = (int)py_len;
+        payload_origin = PAYLOAD_USER;
+    } else {
+        payload_origin = PAYLOAD_RUNTIME;
+        // TODO: in next version need to get values from puring parameters(puring initialization)
+        len = 3;
+        bufsize = 1024;
+    }
+
+    BufferPayload *buffer_payload = malloc(sizeof(BufferPayload));
+    if (!buffer_payload) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
     switch (mode) {
     case NORMAL_BUFFER:
-        buffer_mode = NORMAL_BUFFER;
+        if (payload_origin == PAYLOAD_RUNTIME) {
+            buffer_payload = make_buffers(len, bufsize, buffer_payload);
+        } else {
+            buffer_payload = serialize_buffers(buffers_obj, len, buffer_payload);
+        }
+        if (!buffer_payload)
+            return NULL;
         break;
     case FIXED:
-        buffer_mode = FIXED;
+        payload_type = PAYLOAD_LINEAR;
+        LinearBuffer *buffers;
+        if (payload_origin == PAYLOAD_RUNTIME) {
+            buffers = create_linear_buffers(len, bufsize, buffer_payload);
+        } else {
+            buffers = serialize_linear_buffers(buffers_obj, len, buffer_payload);
+        }
+        if (!buffers)
+            return NULL;
+
+        buffer_payload->payload_type = payload_type;
         break;
     case PROVIDED:
-        buffer_mode = PROVIDED;
+        payload_type = PAYLOAD_LINEAR;
+        LinearBuffer *buffers;
+        if (payload_origin == PAYLOAD_RUNTIME) {
+            buffers = create_linear_buffers(len, bufsize, buffer_payload);
+        } else {
+            buffers = serialize_linear_buffers(buffers_obj, len, buffer_payload);
+        }
+        if (!buffers)
+            return NULL;
+
+        buffer_payload->payload_type = payload_type;
         break;
     default:
         PyErr_SetString(PyExc_ValueError, "Wrong value for buffer mode");
         return NULL;
     }
+
+    buffer_payload->len = len;
+    buffer_payload->payload_origin = payload_origin;
 
     BufferModeCtx *buffer_mode_ctx = PyObject_New(BufferModeCtx, &PuringBufferModeCtxType);
     if (!buffer_mode_ctx) {
@@ -36,7 +94,9 @@ PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     buffer_mode_ctx->loop = self;
-    buffer_mode_ctx->payload = buffer_mode;
+    buffer_mode_ctx->payload = (BufferMode)mode;
+    buffer_mode_ctx->token = NULL;
+    buffer_mode_ctx->buffer_payload = buffer_payload;
     return buffer_mode_ctx;
 }
 
@@ -207,10 +267,8 @@ BufferModeCtx_aenter(BufferModeCtx *self) {
     self->token = token;
 }
 
-
 void
-BufferModeCtx_aexit(BufferModeCtx *self)
-{
+BufferModeCtx_aexit(BufferModeCtx *self) {
     int result = ContextVar_reset(self->token);
     Py_CLEAR(self->token);
     if (result < 0) {

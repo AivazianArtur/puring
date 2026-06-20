@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "python_macroses.h"
+#include "buffer/buffer.h"
+
 
 extern PyTypeObject PuringBufferModeCtxType;
 extern PyTypeObject PuringStreamStrategyCtxType;
@@ -16,7 +18,7 @@ extern PyTypeObject PuringExecutionContextCtxType;
 
 typedef struct PuringLoop PuringLoop;
 
-typedef enum BufferMode { NORMAL_BUFFER, FIXED, PROVIDED } BufferMode;
+typedef enum BufferMode { NORMAL_BUFFER, FIXED, PROVIDED, BUF_RING } BufferMode;
 
 typedef enum StreamStrategy { ONESHOT, MULTISHOT } StreamStrategy;
 
@@ -26,12 +28,14 @@ typedef struct ExecutionContext {
     PyObject_HEAD BufferMode buffer_mode;
     StreamStrategy stream;
     TransferMode transfer_mode;
+    BufferPayload *buffer_payload;
 } ExecutionContext;
 
 typedef struct BufferModeCtx {
     PyObject_HEAD PuringLoop *loop;
     BufferMode payload;
     PyObject *token;
+    BufferPayload *buffer_payload;
 } BufferModeCtx;
 
 typedef struct StreamStrategyCtx {
@@ -50,6 +54,7 @@ typedef struct ExecutionContextCtx {
     PyObject_HEAD PuringLoop *loop;
     ExecutionContext *payload;
     PyObject *token;
+    BufferPayload *buffer_payload;
 } ExecutionContextCtx;
 
 BufferModeCtx *
@@ -124,3 +129,25 @@ ContextVar_get(PyObject *default_val);
 
 void
 ContextVar_dealloc(void);
+
+
+LinearBuffer *
+create_linear_buffers(int len, int bufsize, BufferPayload *payload);
+
+LinearBuffer *
+serialize_linear_buffers(PyObject *buffers_obj, int len, BufferPayload *payload);
+
+VectoredBuffer *
+create_vectored_buffers(int len, int bufsize, BufferPayload *payload);
+
+VectoredBuffer *
+serialize_vectored_buffers(PyObject *buffers_obj, int len, BufferPayload *payload);
+
+static BufferPayload *
+serialize_buffers(PyObject *buf_obj, int len, BufferPayload *payload);
+
+static BufferPayload *
+make_buffers(int len, size_t bufsize, BufferPayload *payload);
+
+void
+_free_buffer_payload(BufferPayload *payload);

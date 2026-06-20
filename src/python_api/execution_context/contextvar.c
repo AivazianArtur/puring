@@ -35,6 +35,7 @@ ContextVar_init(void) {
     execution_context->buffer_mode = NORMAL_BUFFER;
     execution_context->stream = ONESHOT;
     execution_context->transfer_mode = NORMAL_TRANSFER;
+    execution_context->buffer_payload = NULL;
 
     PyObject *capsule = PyCapsule_New(execution_context, "ExecutionContext", NULL);
 
@@ -94,8 +95,7 @@ ContextVar_set(PyObject *value) {
 }
 
 int
-ContextVar_reset(PyObject *token)
-{
+ContextVar_reset(PyObject *token) {
     if (!execution_context_var) {
         PyErr_SetString(PyExc_RuntimeError, "ContextVar not initialized");
         return -1;

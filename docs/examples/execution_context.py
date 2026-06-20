@@ -12,6 +12,7 @@ async def user_buffer():
     buf = bytearray(4096)
 
     async with loop.buffer_mode(mode='PROVIDED'):
+    # async with loop.buffer_mode(mode='FIXED', buffers=[buf1, buf2]):
         uring_file = await puring.open_file(path=TEMPFILE)
 
         data = b'Hello, puring!\n'

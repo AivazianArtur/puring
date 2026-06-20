@@ -11,7 +11,9 @@ create_buffer_mode_enum(void) {
     if (!IntEnum)
         return NULL;
 
-    PyObject *members = Py_BuildValue("{s:i, s:i, s:i}", "NORMAL", NORMAL_BUFFER, "FIXED", FIXED, "PROVIDED", PROVIDED);
+    PyObject *members = Py_BuildValue(
+        "{s:i, s:i, s:i, s:i}", "NORMAL", NORMAL_BUFFER, "FIXED", FIXED, "PROVIDED", PROVIDED, "BUF_RING", BUF_RING
+    );
     if (!members) {
         Py_DECREF(IntEnum);
         return NULL;
