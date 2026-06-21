@@ -31,11 +31,9 @@ Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs
     }
 
     int opcode = IORING_OP_SOCKET;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
     sock->domain = domain;
 
-    int request_idx = registry_add(running_loop->registry, future, buffer, NULL, opcode, NULL, sock, NULL);
+    int request_idx = registry_add(running_loop->registry, future, NULL, opcode, NULL, sock, NULL);
     if (request_idx < 0) {
         Py_DECREF(sock);
         Py_DECREF(future);
@@ -103,9 +101,8 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_BIND;
-    PyObject *buffer = NULL;
 
-    int request_idx = registry_add(self->loop->registry, future, buffer, NULL, opcode, NULL, self, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         free(addr);
@@ -152,9 +149,7 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_CONNECT;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-    int request_idx = registry_add(self->loop->registry, future, buffer, NULL, opcode, NULL, self, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -195,10 +190,7 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_LISTEN;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-
-    int request_idx = registry_add(self->loop->registry, future, buffer, NULL, opcode, NULL, self, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -243,9 +235,7 @@ PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     struct sockaddr_storage *peer_addr = calloc(1, sizeof(struct sockaddr_storage));
 
     int opcode = IORING_OP_ACCEPT;
-    // TEMP: no buffer
-    // PyObject *buffer = NULL;
-    int request_idx = registry_add(self->loop->registry, future, NULL, NULL, opcode, NULL, self, peer_addr);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, NULL, self, peer_addr);
     if (request_idx < 0) {
         Py_DECREF(future);
         free(addrlen);
@@ -291,9 +281,7 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_CLOSE;
-    // TEMP: no buffer
-    PyObject *buffer = NULL;
-    int request_idx = registry_add(self->loop->registry, future, buffer, NULL, opcode, NULL, self, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -373,11 +361,8 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    BufferResult *buffer_result = _get_buffer(buffer_obj, bufsize);
-    if (!buffer_result) {
-        PyErr_SetString(PyExc_RuntimeError, "Error while getting buffer");
-        return NULL;
-    }
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffer_obj, NULL);
+    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffer_obj);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -387,11 +372,10 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_RECV;
 
     int request_idx = registry_add(
-        self->loop->registry, future, (PyObject *)buffer_result->buffer, NULL, opcode, NULL, self, NULL
+        self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
-        PyMem_Free(buffer_result->buffer);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
@@ -400,8 +384,8 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         self->loop->ring,
         request_idx,
         self->sock_fd,
-        buffer_result->buffer,
-        buffer_result->buffer_len,
+        buffer_payload->linear->buffer,
+        buffer_payload->linear->len,
         flags,
         self->state,
         &timeout_params
@@ -509,11 +493,8 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     addr = _serialize_address(host, port, domain);
     // socklen_t addrlen = _get_socket_size(domain);
 
-    BufferResult *buffer_result = _get_buffer(buffer_obj, (int)bufsize);
-    if (!buffer_result) {
-        PyErr_SetString(PyExc_RuntimeError, "Error while getting buffer");
-        return NULL;
-    }
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffer_obj, NULL);
+    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffer_obj);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -525,7 +506,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_RECVMSG;
 
     int request_idx = registry_add(
-        self->loop->registry, future, (PyObject *)buffer_result->buffer, NULL, opcode, NULL, self, NULL
+        self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -538,8 +519,8 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         self->loop->ring,
         request_idx,
         self->sock_fd,
-        buffer_result->buffer,
-        buffer_result->buffer_len,
+        buffer_payload->linear->buffer,
+        buffer_payload->linear->len,
         addr,
         // addrlen,
         flags,
@@ -567,7 +548,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"buffers", "host", "port", "domain", "flags", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|sisiO", (char **)kwlist, &buffers_obj, &host, &port, &domain, &flags, &timeout_params_obj
+            args, kwargs, "|OsisiO", (char **)kwlist, &buffers_obj, &host, &port, &domain, &flags, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -576,11 +557,9 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     addr = _serialize_address(host, port, domain);
     socklen_t addrlen = _get_socket_size(domain);
 
-    IovecsResult *iovecs_result = _serialize_iovecs_buffer(buffers_obj);
-    if (iovecs_result) {
-        free(addr);
-        return NULL;
-    }
+
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
+    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -593,7 +572,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_SENDMSG;
     int request_idx = registry_add(
-        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, NULL, self, NULL
+        self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -606,8 +585,8 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         self->loop->ring,
         request_idx,
         self->sock_fd,
-        iovecs_result->iovecs,
-        (unsigned int)iovecs_result->nr_vecs,
+        buffer_payload->vector->iovecs,
+        (unsigned int)buffer_payload->vector->nr_vecs,
         addr,
         addrlen,
         flags,
@@ -615,7 +594,6 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     );
 
     free(addr);
-    free(iovecs_result);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -634,15 +612,13 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"buffers", "flags", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|iO", (char **)kwlist, &buffers_obj, &flags, &timeout_params_obj
+            args, kwargs, "|OiO", (char **)kwlist, &buffers_obj, &flags, &timeout_params_obj
         ))) {
         return NULL;
     }
 
-    IovecsResult *iovecs_result = _serialize_iovecs_buffer(buffers_obj);
-    if (iovecs_result) {
-        return NULL;
-    }
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
+    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -653,7 +629,7 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_RECVMSG;
 
     int request_idx = registry_add(
-        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, NULL, self, NULL
+        self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -665,12 +641,11 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         self->loop->ring,
         request_idx,
         self->sock_fd,
-        iovecs_result->iovecs,
-        (unsigned int)iovecs_result->nr_vecs,
+        buffer_payload->vector->iovecs,
+        (unsigned int)buffer_payload->vector->nr_vecs,
         flags,
         &timeout_params
     );
 
-    free(iovecs_result);
     return _check_sockets_result(result, self, request_idx, future);
 }

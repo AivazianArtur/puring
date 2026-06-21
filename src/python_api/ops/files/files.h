@@ -15,7 +15,6 @@
 #include "timer/timer.h"
 #include <linux/openat2.h>
 
-#include "python_api/buffer/buffer_depr.h"
 #include "python_api/future/future.h"
 #include "python_api/loop/loop.h"
 #include "python_api/timer/timer.h"

@@ -51,21 +51,21 @@ on_uring_ready(PuringLoop *self) {
 
             switch (slot->opcode) {
             case IORING_OP_READ:
-                if (slot->buffer && PyBytes_Check(slot->buffer)) {
-                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer), cqe->res);
+                if (slot->buffer_payload->linear->buffer && PyBytes_Check(slot->buffer_payload->linear->buffer)) {
+                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer_payload->linear->buffer), cqe->res);
+                    free_buffer_payload(slot->buffer_payload);
                 }
                 break;
             case IORING_OP_READV:
-                if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
+                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res);
+                    free_buffer_payload(slot->buffer_payload);
                 }
                 break;
             case IORING_OP_OPENAT2:
                 if (slot->file) {
                     PuringFile *file = (PuringFile *)slot->file;
                     file->fd = cqe->res;
-                    // TODO: maybe should try to fix return types to return file
-                    // and socket here and below?
                     result = (PyObject *)slot->file;
                 }
                 break;
@@ -118,30 +118,31 @@ on_uring_ready(PuringLoop *self) {
                     memcpy(&conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage));
 
                     free(peer_addr);
-                    slot->buffer = NULL;
+                    slot->buffer_payload = NULL;
 
                     result = (PyObject *)conn;
                 }
                 break;
             case IORING_OP_RECV:
                 if (slot->socket) {
+                    void *buffer = slot->buffer_payload->linear->buffer;
                     if (cqe->res == 0) {
                         result = PyBytes_FromStringAndSize(NULL, 0);
                     } else if (cqe->res > 0) {
-                        result = PyBytes_FromStringAndSize((char *)slot->buffer, cqe->res);
+                        result = PyBytes_FromStringAndSize((char *)buffer, cqe->res);
                     }
-                    PyMem_Free(slot->buffer);
+                    free_buffer_payload(slot->buffer_payload);
                 }
                 break;
             case IORING_OP_RECVMSG:
-                if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                
+                if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
+                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res);
                 }
-                PyBuffer_Release(slot->iovecs_buffer);
-                PyMem_Free(slot->buffer);
+                free_buffer_payload(slot->buffer_payload);
                 break;
             case IORING_OP_SENDMSG:
-                PyMem_Free(slot->iovecs_buffer);
+                free_buffer_payload(slot->buffer_payload);
                 break;
             case IORING_OP_CLOSE:
                 if (slot->socket) {

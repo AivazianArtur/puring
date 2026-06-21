@@ -47,8 +47,8 @@ registry_destroy(RequestRegistry *reg) {
                 Py_DECREF(reg->slots[i].future);
             }
 
-            if (reg->slots[i].buffer) {
-                Py_DECREF(reg->slots[i].buffer);
+            if (reg->slots[i].buffer_payload) {
+                Py_DECREF(reg->slots[i].buffer_payload);
             }
         }
         free(reg->slots);
@@ -68,8 +68,7 @@ int
 registry_add(
     RequestRegistry *reg,
     PyObject *future,
-    PyObject *buffer,
-    Py_buffer *iovecs_buffer,
+    BufferPayload *buffer_payload,
     int opcode,
     PuringFile *file,
     PuringSocket *socket,
@@ -90,16 +89,13 @@ registry_add(
     slot->future = future;
     Py_INCREF(future);
 
-    slot->buffer = buffer;
-    if (buffer != NULL)
-        Py_INCREF(buffer);
-
-    slot->iovecs_buffer = iovecs_buffer;
-    if (iovecs_buffer != NULL)
-        Py_INCREF(iovecs_buffer);
+    slot->buffer_payload = buffer_payload;
+    if (buffer_payload != NULL)
+        Py_INCREF(buffer_payload);
 
     slot->socket = socket;
     slot->file = file;
+
     if (socket != NULL)
         Py_INCREF(socket);
     if (file != NULL)
@@ -131,14 +127,9 @@ registry_remove(RequestRegistry *reg, int index) {
         slot->future = NULL;
     }
 
-    if (slot->buffer) {
-        Py_DECREF(slot->buffer);
-        slot->buffer = NULL;
-    }
-
-    if (slot->iovecs_buffer) {
-        Py_DECREF(slot->iovecs_buffer);
-        slot->iovecs_buffer = NULL;
+    if (slot->buffer_payload) {
+        Py_DECREF(slot->buffer_payload);
+        slot->buffer_payload = NULL;
     }
 
     if (slot->opcode) {

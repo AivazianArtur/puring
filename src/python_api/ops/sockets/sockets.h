@@ -10,7 +10,6 @@
 
 #include "macroses.h"
 #include "ops/sockets/sockets.h"
-#include "python_api/buffer/buffer_depr.h"
 #include "python_api/future/future.h"
 #include "python_api/loop/loop.h"
 #include "python_macroses.h"

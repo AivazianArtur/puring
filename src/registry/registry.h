@@ -9,12 +9,12 @@
 
 typedef struct PuringSocket PuringSocket;
 typedef struct PuringFile PuringFile;
+typedef struct BufferPayload BufferPayload;
 
 typedef struct RequestSlot {
     uint64_t user_data;
     PyObject *future;
-    PyObject *buffer;
-    Py_buffer *iovecs_buffer;
+    BufferPayload *buffer_payload;
     int opcode;
     PuringFile *file;
     PuringSocket *socket;
@@ -30,6 +30,7 @@ typedef struct RequestRegistry {
 
 RequestRegistry *
 registry_new(unsigned int size);
+
 void
 registry_destroy(RequestRegistry *reg);
 
@@ -37,8 +38,7 @@ int
 registry_add(
     RequestRegistry *reg,
     PyObject *future,
-    PyObject *buffer,
-    Py_buffer *iovecs_buffer,
+    BufferPayload *buffer_payload,
     int opcode,
     PuringFile *file,
     PuringSocket *socket,
