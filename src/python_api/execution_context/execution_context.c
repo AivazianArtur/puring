@@ -183,8 +183,7 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
 }
 
 BufferMode
-_get_buffer_mode()
-{
+_get_buffer_mode(void) {
     ExecutionContext *execution_context = ContextVar_get(NULL);
     return execution_context->buffer_mode;
 }

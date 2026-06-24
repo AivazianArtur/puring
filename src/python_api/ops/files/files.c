@@ -117,28 +117,27 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     Py_ssize_t size = (Py_ssize_t)size_i;
 
-    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
-    if (!buffer) {
+    PyObject *buffer_obj = PyBytes_FromStringAndSize(NULL, size);
+    if (!buffer_obj) {
         Py_DECREF(future);
         return NULL;
     }
 
-    int request_idx = registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    BufferMetadata buffer_metadata = get_buffer_metadata(NULL, NULL);
+    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, NULL);
+    if (!buffer_payload)
+        return NULL;
+
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    char *buf = PyBytes_AS_STRING(buffer);
-    if (!buf) {
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
-        return NULL;
-    }
-
-    int result = uring_read(self->loop->ring, request_idx, self->fd, buf, (unsigned)size, offset, &timeout_params);
+    int result = uring_read(
+        self->loop->ring, request_idx, self->fd, buffer_payload->linear->buffer, (unsigned)size, offset, &timeout_params
+    );
 
     return _check_file_result(result, self, request_idx, future);
 }
@@ -165,6 +164,8 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
+    if (!buffer_payload)
+        return NULL;
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -175,9 +176,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
     int opcode = IORING_OP_READV;
 
-    int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL
-    );
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -213,7 +212,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int offset = 0;
     static const char *kwlist[] = {"iovecs", "offset", "flags", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "w*|iiO", (char **)kwlist, &iovecs_buf, &offset, &flags, &timeout_params_obj
+            args, kwargs, "w*|yiO", (char **)kwlist, &iovecs_buf, &offset, &flags, &timeout_params_obj
         )) {
         return NULL;
     }
@@ -229,11 +228,22 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    struct iovec *iovecs = (struct iovec *)iovecs_buf.buf;
-    unsigned nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
-
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
+
+    BufferMetadata buffer_metadata = get_buffer_metadata(&iovecs_buf, NULL);
+    BufferPayload *buffer_payload = malloc(sizeof(BufferPayload));
+    if (!buffer_payload) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    buffer_payload->len = iovecs_buf.len;
+    buffer_payload->linear = NULL;
+    buffer_payload->mode = buffer_metadata.mode;
+    buffer_payload->payload_origin = buffer_metadata.payload_origin;
+    buffer_payload->payload_type = PAYLOAD_IOVEC;
+    buffer_payload->vector->iovecs = (struct iovec *)iovecs_buf.buf;
+    buffer_payload->vector->nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -241,7 +251,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
     int opcode = IORING_OP_READV;
 
-    int request_idx = registry_add(self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -249,7 +259,14 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int result = uring_readv(
-        self->loop->ring, request_idx, self->fd, iovecs, (unsigned)nr_vecs, offset, flags, &timeout_params
+        self->loop->ring,
+        request_idx,
+        self->fd,
+        buffer_payload->vector->iovecs,
+        (unsigned)buffer_payload->vector->iovecs,
+        offset,
+        flags,
+        &timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -281,23 +298,25 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_WRITE;
-    int request_idx = registry_add(self->loop->registry, future, data, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    char *buf = PyBytes_AS_STRING(data);
-    if (!buf) {
+    char *data_buf = NULL;
+    Py_ssize_t size = 0;
+
+    if (PyBytes_AsStringAndSize(data, &data_buf, &size) < 0) {
         Py_DECREF(future);
         registry_remove(self->loop->registry, request_idx);
-        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
         return NULL;
     }
-    Py_ssize_t size = PyBytes_GET_SIZE(data);
 
-    int result = uring_write(self->loop->ring, request_idx, self->fd, buf, (unsigned)size, offset, &timeout_params);
+    int result = uring_write(
+        self->loop->ring, request_idx, self->fd, data_buf, (unsigned)size, offset, &timeout_params
+    );
 
     return _check_file_result(result, self, request_idx, future);
 }
@@ -319,13 +338,15 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|OOiiO", (char **)kwlist, &buffers_obj, &flags, &offset, &timeout_params_obj
+            args, kwargs, "O|iiiO", (char **)kwlist, &buffers_obj, &flags, &offset, &timeout_params_obj
         ))) {
         return NULL;
     }
 
     BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
+    if (!buffer_payload)
+        return NULL;
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -336,9 +357,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_WRITEV;
-    int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL
-    );
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -393,8 +412,19 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    struct iovec *iovecs = (struct iovec *)iovecs_buf.buf;
-    unsigned nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
+    BufferMetadata buffer_metadata = get_buffer_metadata(&iovecs_buf, NULL);
+    BufferPayload *buffer_payload = malloc(sizeof(BufferPayload));
+    if (!buffer_payload) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    buffer_payload->len = iovecs_buf.len;
+    buffer_payload->linear = NULL;
+    buffer_payload->mode = buffer_metadata.mode;
+    buffer_payload->payload_origin = buffer_metadata.payload_origin;
+    buffer_payload->payload_type = PAYLOAD_IOVEC;
+    buffer_payload->vector->iovecs = (struct iovec *)iovecs_buf.buf;
+    buffer_payload->vector->nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -405,7 +435,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_WRITEV;
-    int request_idx = registry_add(self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -413,7 +443,14 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int result = uring_writev(
-        self->loop->ring, request_idx, self->fd, iovecs, (unsigned)nr_vecs, offset, flags, &timeout_params
+        self->loop->ring,
+        request_idx,
+        self->fd,
+        buffer_payload->vector->iovecs,
+        (unsigned)buffer_payload->vector->nr_vecs,
+        offset,
+        flags,
+        &timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -443,27 +480,13 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_CLOSE;
 
-    Py_ssize_t size = 1024;
-
-    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
-    if (!buffer) {
-        Py_DECREF(future);
-        return PyErr_NoMemory();
-    }
-    int request_idx = registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    const char *buf = PyBytes_AS_STRING(buffer);
-    if (!buf) {
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
-        return NULL;
-    }
     int result = uring_close_file(self->loop->ring, request_idx, self->fd, &timeout_params);
 
     return _check_file_result(result, self, request_idx, future);

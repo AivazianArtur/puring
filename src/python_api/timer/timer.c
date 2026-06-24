@@ -26,9 +26,7 @@ PuringLoop_timer(
 
     int opcode = IORING_OP_TIMEOUT;
 
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-    int request_idx = registry_add(loop->registry, future, buffer, NULL, opcode, NULL, NULL, NULL);
+    int request_idx = registry_add(loop->registry, future, NULL, opcode, NULL, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");

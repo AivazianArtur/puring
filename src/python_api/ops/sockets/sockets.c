@@ -317,7 +317,7 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_SEND;
-    int request_idx = registry_add(self->loop->registry, future, data, NULL, opcode, NULL, self, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -363,6 +363,8 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     BufferMetadata buffer_metadata = get_buffer_metadata(buffer_obj, NULL);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffer_obj);
+    if (!buffer_payload)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -371,9 +373,7 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_RECV;
 
-    int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL
-    );
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -430,7 +430,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_SENDMSG;
-    int request_idx = registry_add(self->loop->registry, future, data, NULL, opcode, NULL, self, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         free(addr);
@@ -495,6 +495,8 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     BufferMetadata buffer_metadata = get_buffer_metadata(buffer_obj, NULL);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffer_obj);
+    if (!buffer_payload)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -505,9 +507,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_RECVMSG;
 
-    int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL
-    );
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         free(addr);
@@ -560,6 +560,8 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
+    if (!buffer_payload)
+        return NULL;
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
@@ -571,9 +573,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_SENDMSG;
-    int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL
-    );
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         free(addr);
@@ -619,6 +619,8 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
+    if (!buffer_payload)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -628,9 +630,7 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_RECVMSG;
 
-    int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL
-    );
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");

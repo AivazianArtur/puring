@@ -13,10 +13,12 @@ create_buffer_payload(BufferMetadata buffer_metadata, PyObject *buffers_obj) {
     int len = buffer_metadata.len;
     int bufsize = buffer_metadata.bufsize;
 
+    LinearBuffer *buffers;
+
     switch (mode) {
     case NORMAL_BUFFER:
         if (origin == PAYLOAD_RUNTIME) {
-            buffer_payload = make_buffers(len, bufsize, buffer_payload);
+            buffer_payload = make_buffers(len, (size_t)bufsize, buffer_payload);
         } else {
             buffer_payload = serialize_buffers(buffers_obj, len, buffer_payload);
         }
@@ -24,7 +26,6 @@ create_buffer_payload(BufferMetadata buffer_metadata, PyObject *buffers_obj) {
             return NULL;
         break;
     case FIXED:
-        LinearBuffer *buffers;
         if (origin == PAYLOAD_RUNTIME) {
             buffers = create_linear_buffers(len, bufsize, buffer_payload);
         } else {
@@ -35,7 +36,6 @@ create_buffer_payload(BufferMetadata buffer_metadata, PyObject *buffers_obj) {
 
         break;
     case PROVIDED:
-        LinearBuffer *buffers;
         if (origin == PAYLOAD_RUNTIME) {
             buffers = create_linear_buffers(len, bufsize, buffer_payload);
         } else {
@@ -46,7 +46,6 @@ create_buffer_payload(BufferMetadata buffer_metadata, PyObject *buffers_obj) {
 
         break;
     case BUF_RING:
-        LinearBuffer *buffers;
         if (origin == PAYLOAD_RUNTIME) {
             buffers = create_linear_buffers(len, bufsize, buffer_payload);
         } else {
@@ -66,7 +65,6 @@ create_buffer_payload(BufferMetadata buffer_metadata, PyObject *buffers_obj) {
     buffer_payload->mode = mode;
     return buffer_payload;
 }
-
 
 BufferMetadata
 get_buffer_metadata(PyObject *buffers_obj, BufferMode mode) {

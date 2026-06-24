@@ -77,7 +77,7 @@ PyObject *
 create_transfer_mode_enum(void);
 
 BufferMode
-_get_buffer_mode();
+_get_buffer_mode(void);
 
 void
 BufferModeCtx_aenter(BufferModeCtx *self);

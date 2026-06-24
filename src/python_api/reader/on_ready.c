@@ -52,13 +52,22 @@ on_uring_ready(PuringLoop *self) {
             switch (slot->opcode) {
             case IORING_OP_READ:
                 if (slot->buffer_payload->linear->buffer && PyBytes_Check(slot->buffer_payload->linear->buffer)) {
-                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer_payload->linear->buffer), cqe->res);
+                    result = PyBytes_FromStringAndSize(
+                        PyBytes_AS_STRING(slot->buffer_payload->linear->buffer), cqe->res
+                    );
                     free_buffer_payload(slot->buffer_payload);
                 }
                 break;
             case IORING_OP_READV:
                 if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
-                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res);
+                    result = PyBytes_FromStringAndSize(
+                        PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res
+                    );
+                    free_buffer_payload(slot->buffer_payload);
+                }
+                break;
+            case IORING_OP_WRITEV:
+                if (slot->buffer_payload) {
                     free_buffer_payload(slot->buffer_payload);
                 }
                 break;
@@ -135,14 +144,17 @@ on_uring_ready(PuringLoop *self) {
                 }
                 break;
             case IORING_OP_RECVMSG:
-                
                 if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
-                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res);
+                    result = PyBytes_FromStringAndSize(
+                        PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res
+                    );
                 }
                 free_buffer_payload(slot->buffer_payload);
                 break;
             case IORING_OP_SENDMSG:
-                free_buffer_payload(slot->buffer_payload);
+                if (slot->buffer_payload) {
+                    free_buffer_payload(slot->buffer_payload);
+                }
                 break;
             case IORING_OP_CLOSE:
                 if (slot->socket) {
