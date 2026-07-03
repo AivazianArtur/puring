@@ -79,6 +79,9 @@ create_transfer_mode_enum(void);
 BufferMode
 _get_buffer_mode(void);
 
+PayloadType
+_get_payload_type(void);
+
 void
 BufferModeCtx_aenter(BufferModeCtx *self);
 

@@ -123,7 +123,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(NULL, NULL);
+    BufferMetadata buffer_metadata = get_buffer_metadata(NULL, BUF_NO_VAL, PAYLOAD_TYPE_NO_VAL);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, NULL);
     if (!buffer_payload)
         return NULL;
@@ -162,7 +162,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, BUF_NO_VAL, PAYLOAD_IOVEC);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
     if (!buffer_payload)
         return NULL;
@@ -231,22 +231,14 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(&iovecs_buf, NULL);
-    BufferPayload *buffer_payload = malloc(sizeof(BufferPayload));
-    if (!buffer_payload) {
-        PyErr_NoMemory();
+    BufferMetadata buffer_metadata = get_buffer_metadata_from_pybuffer(&iovecs_buf, BUF_NO_VAL);
+    BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(buffer_metadata, &iovecs_buf);
+    if (!buffer_payload)
         return NULL;
-    }
-    buffer_payload->len = iovecs_buf.len;
-    buffer_payload->linear = NULL;
-    buffer_payload->mode = buffer_metadata.mode;
-    buffer_payload->payload_origin = buffer_metadata.payload_origin;
-    buffer_payload->payload_type = PAYLOAD_IOVEC;
-    buffer_payload->vector->iovecs = (struct iovec *)iovecs_buf.buf;
-    buffer_payload->vector->nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free(buffer_payload);
         return NULL;
     }
     int opcode = IORING_OP_READV;
@@ -263,7 +255,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         request_idx,
         self->fd,
         buffer_payload->vector->iovecs,
-        (unsigned)buffer_payload->vector->iovecs,
+        (unsigned)buffer_payload->vector->nr_vecs,
         offset,
         flags,
         &timeout_params
@@ -343,7 +335,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, BUF_NO_VAL, PAYLOAD_IOVEC);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
     if (!buffer_payload)
         return NULL;
@@ -412,25 +404,17 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(&iovecs_buf, NULL);
-    BufferPayload *buffer_payload = malloc(sizeof(BufferPayload));
-    if (!buffer_payload) {
-        PyErr_NoMemory();
+    BufferMetadata buffer_metadata = get_buffer_metadata_from_pybuffer(&iovecs_buf, BUF_NO_VAL);
+    BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(buffer_metadata, &iovecs_buf);
+    if (!buffer_payload)
         return NULL;
-    }
-    buffer_payload->len = iovecs_buf.len;
-    buffer_payload->linear = NULL;
-    buffer_payload->mode = buffer_metadata.mode;
-    buffer_payload->payload_origin = buffer_metadata.payload_origin;
-    buffer_payload->payload_type = PAYLOAD_IOVEC;
-    buffer_payload->vector->iovecs = (struct iovec *)iovecs_buf.buf;
-    buffer_payload->vector->nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free(buffer_payload);
         return NULL;
     }
 

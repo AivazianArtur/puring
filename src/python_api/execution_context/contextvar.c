@@ -32,7 +32,7 @@ ContextVar_init(void) {
         return NULL;
     }
 
-    execution_context->buffer_mode = NORMAL_BUFFER;
+    execution_context->buffer_mode = NORMAL_BUF;
     execution_context->stream = ONESHOT;
     execution_context->transfer_mode = NORMAL_TRANSFER;
     execution_context->buffer_payload = NULL;

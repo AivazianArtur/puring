@@ -361,7 +361,7 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffer_obj, NULL);
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffer_obj, BUF_NO_VAL, PAYLOAD_IOVEC);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffer_obj);
     if (!buffer_payload)
         return NULL;
@@ -493,7 +493,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     addr = _serialize_address(host, port, domain);
     // socklen_t addrlen = _get_socket_size(domain);
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffer_obj, NULL);
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffer_obj, BUF_NO_VAL, PAYLOAD_IOVEC);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffer_obj);
     if (!buffer_payload)
         return NULL;
@@ -558,7 +558,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     socklen_t addrlen = _get_socket_size(domain);
 
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, BUF_NO_VAL, PAYLOAD_IOVEC);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
     if (!buffer_payload)
         return NULL;
@@ -617,7 +617,7 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, NULL);
+    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, BUF_NO_VAL, PAYLOAD_IOVEC);
     BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
     if (!buffer_payload)
         return NULL;

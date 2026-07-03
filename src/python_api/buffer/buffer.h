@@ -11,11 +11,11 @@
 
 typedef struct ExecutionContext ExecutionContext;
 
-typedef enum BufferMode { NORMAL_BUFFER, FIXED, PROVIDED, BUF_RING } BufferMode;
+typedef enum BufferMode { NORMAL_BUF, FIXED, PROVIDED, BUF_RING, BUF_NO_VAL } BufferMode;
 
-typedef enum PayloadOrigin { PAYLOAD_USER, PAYLOAD_RUNTIME } PayloadOrigin;
+typedef enum PayloadOrigin { PAYLOAD_USER, PAYLOAD_RUNTIME, ORIGIN_NO_VAL } PayloadOrigin;
 
-typedef enum PayloadType { PAYLOAD_LINEAR, PAYLOAD_IOVEC, PAYLOAD_LINEAR_AND_IOVEC } PayloadType;
+typedef enum PayloadType { PAYLOAD_LINEAR, PAYLOAD_IOVEC, PAYLOAD_LINEAR_AND_IOVEC, PAYLOAD_TYPE_NO_VAL } PayloadType;
 
 typedef struct LineaerBuffer {
     void *buffer;
@@ -41,6 +41,7 @@ typedef struct BufferPayload {
 
 typedef struct BufferMetadata {
     PayloadOrigin payload_origin;
+    PayloadType payload_type;
     BufferMode mode;
     int len;
     int bufsize;
@@ -49,8 +50,14 @@ typedef struct BufferMetadata {
 extern BufferMode
 _get_buffer_mode(void);
 
+extern PayloadType
+_get_payload_type(void);
+
 BufferPayload *
 create_buffer_payload(BufferMetadata buffer_metadata, PyObject *buffers_obj);
+
+BufferPayload *
+create_buffer_payload_from_pybuffer(BufferMetadata buffer_metadata, Py_buffer *iovecs_buf);
 
 LinearBuffer *
 create_linear_buffers(int len, int bufsize, BufferPayload *payload);
@@ -74,4 +81,7 @@ void
 free_buffer_payload(BufferPayload *payload);
 
 BufferMetadata
-get_buffer_metadata(PyObject *buffers_obj, BufferMode mode);
+get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload_type);
+
+BufferMetadata
+get_buffer_metadata_from_pybuffer(Py_buffer *buffers_obj, BufferMode mode);
