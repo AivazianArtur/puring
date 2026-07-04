@@ -15,11 +15,13 @@ PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|sOs", (char **)kwlist, &mode, &buffers_obj, &payload_type)) {
         return NULL;
     }
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, mode, payload_type);
-    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
+    BufferPayload *buffer_payload = create_buffer_payload(mode, payload_type, buffers_obj);
+    if (!buffer_payload)
+        return NULL;
 
     BufferModeCtx *buffer_mode_ctx = PyObject_New(BufferModeCtx, &PuringBufferModeCtxType);
     if (!buffer_mode_ctx) {
+        free_buffer_payload(buffer_payload, true);
         PyErr_NoMemory();
         return NULL;
     }
@@ -183,6 +185,12 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     execution_context->transfer_mode = transfer_mode_val;
     execution_context_ctx->payload = execution_context;
     return execution_context_ctx;
+}
+
+BufferPayload *
+_get_buffer(void) {
+    ExecutionContext *execution_context = ContextVar_get(NULL);
+    return execution_context->buffer_payload;
 }
 
 BufferMode

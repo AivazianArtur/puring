@@ -20,18 +20,19 @@ typedef enum PayloadType { PAYLOAD_LINEAR, PAYLOAD_IOVEC, PAYLOAD_LINEAR_AND_IOV
 typedef struct LineaerBuffer {
     void *buffer;
     size_t len;
+    Py_buffer *views;
 } LinearBuffer;
 
 typedef struct VectoredBuffer {
     struct iovec *iovecs;
     uint32_t nr_vecs;
+    Py_buffer *views;
 } VectoredBuffer;
 
 typedef struct BufferPayload {
     PayloadType payload_type;
     PayloadOrigin payload_origin;
     BufferMode mode;
-    Py_buffer *views;
 
     int len;
 
@@ -47,6 +48,9 @@ typedef struct BufferMetadata {
     int bufsize;
 } BufferMetadata;
 
+extern BufferPayload *
+_get_buffer(void);
+
 extern BufferMode
 _get_buffer_mode(void);
 
@@ -54,10 +58,19 @@ extern PayloadType
 _get_payload_type(void);
 
 BufferPayload *
-create_buffer_payload(BufferMetadata buffer_metadata, PyObject *buffers_obj);
+create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffers_obj);
 
 BufferPayload *
-create_buffer_payload_from_pybuffer(BufferMetadata buffer_metadata, Py_buffer *iovecs_buf);
+create_buffer_payload_from_pybuffer(Py_buffer *iovecs_buf);
+
+BufferPayload *
+create_buffer_payload_from_data(PyObject *data);
+
+BufferPayload *
+get_or_create_linear_buffer(PyObject *buffers_obj, int size);
+
+BufferPayload *
+get_or_create_vectored_buffer(PyObject *buffers_obj, int len, int bufsize);
 
 LinearBuffer *
 create_linear_buffers(int len, int bufsize, BufferPayload *payload);
@@ -69,7 +82,7 @@ VectoredBuffer *
 create_vectored_buffers(int len, int bufsize, BufferPayload *payload);
 
 VectoredBuffer *
-serialize_vectored_buffers(PyObject *buffers_obj, int len, BufferPayload *payload);
+serialize_vectored_buffers(PyObject *buffers_obj, BufferPayload *payload);
 
 BufferPayload *
 serialize_buffers(PyObject *buf_obj, int len, BufferPayload *payload);
@@ -78,10 +91,7 @@ BufferPayload *
 make_buffers(int len, size_t bufsize, BufferPayload *payload);
 
 void
-free_buffer_payload(BufferPayload *payload);
+free_buffer_payload(BufferPayload *payload, bool force);
 
 BufferMetadata
-get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload_type);
-
-BufferMetadata
-get_buffer_metadata_from_pybuffer(Py_buffer *buffers_obj, BufferMode mode);
+_get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload_type);

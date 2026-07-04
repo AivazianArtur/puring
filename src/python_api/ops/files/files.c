@@ -99,7 +99,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *timeout_params_obj = NULL;
-    int offset = 0;
+    int offset = -1;
     int size_i = 1024;
     static const char *kwlist[] = {"offset", "size", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", (char **)kwlist, &offset, &size_i, &timeout_params_obj)) {
@@ -117,20 +117,16 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     Py_ssize_t size = (Py_ssize_t)size_i;
 
-    PyObject *buffer_obj = PyBytes_FromStringAndSize(NULL, size);
-    if (!buffer_obj) {
+    BufferPayload *buffer_payload = get_or_create_linear_buffer(NULL, size_i);
+    if (!buffer_payload) {
         Py_DECREF(future);
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(NULL, BUF_NO_VAL, PAYLOAD_TYPE_NO_VAL);
-    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, NULL);
-    if (!buffer_payload)
-        return NULL;
-
     int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
@@ -138,7 +134,6 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int result = uring_read(
         self->loop->ring, request_idx, self->fd, buffer_payload->linear->buffer, (unsigned)size, offset, &timeout_params
     );
-
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -154,7 +149,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffers_obj;
     PyObject *timeout_params_obj = NULL;
     int flags = 0;
-    int offset = 0;
+    int offset = -1;
     static const char *kwlist[] = {"buffers", "offset", "flags", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "|OiiO", (char **)kwlist, &buffers_obj, &offset, &flags, &timeout_params_obj
@@ -162,8 +157,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, BUF_NO_VAL, PAYLOAD_IOVEC);
-    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
+    BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj, 0, 0);
     if (!buffer_payload)
         return NULL;
 
@@ -172,6 +166,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
     int opcode = IORING_OP_READV;
@@ -179,6 +174,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
@@ -231,14 +227,13 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    BufferMetadata buffer_metadata = get_buffer_metadata_from_pybuffer(&iovecs_buf, BUF_NO_VAL);
-    BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(buffer_metadata, &iovecs_buf);
+    BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(&iovecs_buf);
     if (!buffer_payload)
         return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
-        free(buffer_payload);
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
     int opcode = IORING_OP_READV;
@@ -246,6 +241,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
@@ -285,29 +281,31 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
-    if (!future) {
+    if (!future)
+        return NULL;
+
+    BufferPayload *buffer_payload = create_buffer_payload_from_data(data);
+    if (!buffer_payload) {
+        Py_DECREF(future);
         return NULL;
     }
-
     int opcode = IORING_OP_WRITE;
-    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    char *data_buf = NULL;
-    Py_ssize_t size = 0;
-
-    if (PyBytes_AsStringAndSize(data, &data_buf, &size) < 0) {
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        return NULL;
-    }
-
     int result = uring_write(
-        self->loop->ring, request_idx, self->fd, data_buf, (unsigned)size, offset, &timeout_params
+        self->loop->ring,
+        request_idx,
+        self->fd,
+        buffer_payload->linear->buffer,
+        (unsigned)buffer_payload->linear->len,
+        offset,
+        &timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -335,8 +333,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata(buffers_obj, BUF_NO_VAL, PAYLOAD_IOVEC);
-    BufferPayload *buffer_payload = create_buffer_payload(buffer_metadata, buffers_obj);
+    BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj, 0, 0);
     if (!buffer_payload)
         return NULL;
 
@@ -345,6 +342,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
 
@@ -352,6 +350,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
@@ -404,8 +403,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferMetadata buffer_metadata = get_buffer_metadata_from_pybuffer(&iovecs_buf, BUF_NO_VAL);
-    BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(buffer_metadata, &iovecs_buf);
+    BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(&iovecs_buf);
     if (!buffer_payload)
         return NULL;
 
@@ -414,7 +412,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *future = create_future(self->loop);
     if (!future) {
-        free(buffer_payload);
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
 
@@ -422,6 +420,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
