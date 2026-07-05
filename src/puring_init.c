@@ -100,29 +100,29 @@ static PyMethodDef puring_file_methods[] = {
 };
 
 static PyMethodDef puring_buffer_mode_ctx_methods[] = {
-    {"__aenter__", (PyCFunction)BufferModeCtx_aenter, METH_NOARGS, "Entering async context manager"},
-    {"__aexit__", (PyCFunction)BufferModeCtx_aexit, METH_NOARGS, "Closing async context manager"},
+    {"__enter__", (PyCFunction)BufferModeCtx_enter, METH_NOARGS, "Entering context manager"},
+    {"__exit__", (PyCFunction)BufferModeCtx_exit, METH_VARARGS, "Closing context manager"},
 
     {NULL, NULL, 0, NULL}
 };
 
 static PyMethodDef puring_stream_strategy_ctx_methods[] = {
-    {"__aenter__", (PyCFunction)StreamStrategyCtx_aenter, METH_NOARGS, "Entering async context manager"},
-    {"__aexit__", (PyCFunction)StreamStrategyCtx_aexit, METH_NOARGS, "Closing async context manager"},
+    {"__enter__", (PyCFunction)StreamStrategyCtx_enter, METH_NOARGS, "Entering context manager"},
+    {"__exit__", (PyCFunction)StreamStrategyCtx_exit, METH_NOARGS, "Closing context manager"},
 
     {NULL, NULL, 0, NULL}
 };
 
 static PyMethodDef puring_transfer_mode_ctx_methods[] = {
-    {"__aenter__", (PyCFunction)TransferModeCtx_aenter, METH_NOARGS, "Entering async context manager"},
-    {"__aexit__", (PyCFunction)TransferModeCtx_aexit, METH_NOARGS, "Closing async context manager"},
+    {"__enter__", (PyCFunction)TransferModeCtx_enter, METH_NOARGS, "Entering context manager"},
+    {"__exit__", (PyCFunction)TransferModeCtx_exit, METH_NOARGS, "Closing context manager"},
 
     {NULL, NULL, 0, NULL}
 };
 
 static PyMethodDef puring_execution_context_ctx_methods[] = {
-    {"__aenter__", (PyCFunction)ExecutionContextCtx_aenter, METH_NOARGS, "Entering async context manager"},
-    {"__aexit__", (PyCFunction)ExecutionContextCtx_aexit, METH_NOARGS, "Closing async context manager"},
+    {"__enter__", (PyCFunction)ExecutionContextCtx_enter, METH_NOARGS, "Entering context manager"},
+    {"__exit__", (PyCFunction)ExecutionContextCtx_exit, METH_NOARGS, "Closing context manager"},
 
     {NULL, NULL, 0, NULL}
 };

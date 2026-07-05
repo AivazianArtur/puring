@@ -157,3 +157,59 @@ uring_recvmsg(
     // Below are optional
     const struct TimeoutParams *timeout_params
 );
+
+int
+puring_recv_fixed(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    void *buf,
+    size_t len,
+    int flags,
+    int buf_index,
+    SOCKET_STATES state,
+    // Below are optional
+    const struct TimeoutParams *timeout_params
+);
+
+int
+puring_send_fixed(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    const void *buf,
+    size_t len,
+    int flags,
+    int buf_index,
+    SOCKET_STATES state,
+    // Below are optional
+    const struct TimeoutParams *timeout_params
+);
+
+int
+puring_sendmsg_fixed(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    const struct sockaddr *addr,
+    size_t addrlen,
+    int flags,
+    int buf_index,
+    // Below are optional
+    const struct TimeoutParams *timeout_params
+);
+
+int
+puring_recvmsg_fixed(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int flags,
+    int buf_index,
+    // Below are optional
+    const struct TimeoutParams *timeout_params
+);

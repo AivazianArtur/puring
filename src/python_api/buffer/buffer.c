@@ -60,6 +60,17 @@ create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffe
             return NULL;
         }
     case FIXED:
+        payload_type = PAYLOAD_LINEAR_AND_IOVEC;
+        if (origin == PAYLOAD_RUNTIME) {
+            buffer_payload = make_buffers(len, (size_t)bufsize, buffer_payload);
+        } else if (origin == PAYLOAD_USER) {
+            buffer_payload = serialize_buffers(buffers_obj, len, buffer_payload);
+        } else {
+            return NULL;
+        }
+        if (!buffer_payload)
+            return NULL;
+        break;
     case PROVIDED:
     case BUF_RING:
         payload_type = PAYLOAD_LINEAR;
@@ -506,11 +517,19 @@ _get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload
     int len;
     int bufsize;
     BufferMetadata buffer_metadata = {0};
-    if (!mode || mode == BUF_NO_VAL) {
-        mode = _get_buffer_mode();
-    }
 
-    if (buffers_obj) {
+    if (mode == BUF_NO_VAL)
+        mode = NORMAL_BUF;
+
+    if (payload_type == PAYLOAD_TYPE_NO_VAL)
+        payload_type = PAYLOAD_LINEAR;
+
+    if (buffers_obj == NULL) {
+        payload_origin = PAYLOAD_RUNTIME;
+        // TODO: in next version need to get values from puring parameters(puring initialization)
+        len = 3;
+        bufsize = 1024;
+    } else {
         if (!PySequence_Check(buffers_obj)) {
             PyErr_SetString(PyExc_TypeError, "Buffers must be a sequence");
             return buffer_metadata;
@@ -522,14 +541,6 @@ _get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload
         len = (int)py_len;
         bufsize = (int)(Py_SIZE(buffers_obj) / len);
         payload_origin = PAYLOAD_USER;
-    } else {
-        payload_origin = PAYLOAD_RUNTIME;
-        // TODO: in next version need to get values from puring parameters(puring initialization)
-        len = 3;
-        bufsize = 1024;
-    }
-    if (!payload_type || payload_type == PAYLOAD_TYPE_NO_VAL) {
-        payload_type = _get_payload_type();
     }
 
     buffer_metadata = (BufferMetadata){

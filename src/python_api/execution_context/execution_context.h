@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "python_macroses.h"
+#include "buffer_modes/buffer_modes.h"
 #include "python_api/buffer/buffer.h"
 
 
@@ -79,45 +80,38 @@ create_transfer_mode_enum(void);
 BufferPayload *
 _get_buffer(void);
 
-BufferMode
-_get_buffer_mode(void);
+BufferModeCtx *
+BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
-PayloadType
-_get_payload_type(void);
-
-void
-BufferModeCtx_aenter(BufferModeCtx *self);
-
-void
-BufferModeCtx_aexit(BufferModeCtx *self);
+PyObject *
+BufferModeCtx_exit(BufferModeCtx *self, PyObject *args);
 
 void
 BufferModeCtx_dealloc(BufferModeCtx *self);
 
+StreamStrategyCtx *
+StreamStrategyCtx_enter(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored));
 
-void
-StreamStrategyCtx_aenter(StreamStrategyCtx *self);
-
-void
-StreamStrategyCtx_aexit(StreamStrategyCtx *self);
+PyObject *
+StreamStrategyCtx_exit(StreamStrategyCtx *self, PyObject *args);
 
 void
 StreamStrategyCtx_dealloc(StreamStrategyCtx *self);
 
-void
-TransferModeCtx_aenter(TransferModeCtx *self);
+TransferModeCtx *
+TransferModeCtx_enter(TransferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
-void
-TransferModeCtx_aexit(TransferModeCtx *self);
+PyObject *
+TransferModeCtx_exit(TransferModeCtx *self, PyObject *args);
 
 void
 TransferModeCtx_dealloc(TransferModeCtx *self);
 
 void
-ExecutionContextCtx_aenter(ExecutionContextCtx *self);
+ExecutionContextCtx_enter(ExecutionContextCtx *self);
 
 void
-ExecutionContextCtx_aexit(ExecutionContextCtx *self);
+ExecutionContextCtx_exit(ExecutionContextCtx *self);
 
 void
 ExecutionContextCtx_dealloc(ExecutionContextCtx *self);
@@ -136,3 +130,9 @@ ContextVar_get(PyObject *default_val);
 
 void
 ContextVar_dealloc(void);
+
+BufferMode
+_validate_buffer_mode(BufferMode mode);
+
+PayloadType
+_validate_payload_type(PayloadType payload_type);

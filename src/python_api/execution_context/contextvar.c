@@ -120,17 +120,29 @@ ContextVar_get(PyObject *default_val) {
         return NULL;
     }
 
-    PyObject *execution_context_obj;
     PyObject *method_name = PyUnicode_FromString("get");
     if (!method_name) {
         return NULL;
     }
+    PyObject *capsule;
     if (default_val) {
-        execution_context_obj = PyObject_CallMethodObjArgs(execution_context_var, method_name, default_val, NULL);
+        capsule = PyObject_CallMethodObjArgs(execution_context_var, method_name, default_val, NULL);
     } else {
-        execution_context_obj = PyObject_CallMethodNoArgs(execution_context_var, method_name);
+        capsule = PyObject_CallMethodObjArgs(execution_context_var, method_name, NULL);
     }
-    return (ExecutionContext *)execution_context_obj;
+    Py_DECREF(method_name);
+    if (!capsule)
+        return NULL;
+
+    if (!PyCapsule_CheckExact(capsule)) {
+        PyErr_SetString(PyExc_TypeError, "execution_context_var does not hold a capsule");
+        Py_DECREF(capsule);
+        return NULL;
+    }
+
+    ExecutionContext *ctx = (ExecutionContext *)PyCapsule_GetPointer(capsule, "ExecutionContext");
+    Py_DECREF(capsule);
+    return ctx;
 }
 
 void

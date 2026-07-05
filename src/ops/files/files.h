@@ -33,7 +33,6 @@ uring_read(
     char *buf,
     unsigned size,
     int offset,
-
     // Below are optional
     const struct TimeoutParams *timeout_params
 );
@@ -118,6 +117,32 @@ uring_splice(
     int nbytes,
     int flag,
 
+    // Below are optional
+    const struct TimeoutParams *timeout_params
+);
+
+int
+puring_read_fixed(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    char *buf,
+    unsigned size,
+    int offset,
+    int buf_index,
+    // Below are optional
+    const struct TimeoutParams *timeout_params
+);
+
+int
+puring_write_fixed(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    char *buf,
+    unsigned size,
+    int offset,
+    int buf_index,
     // Below are optional
     const struct TimeoutParams *timeout_params
 );

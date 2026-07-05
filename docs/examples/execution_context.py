@@ -10,13 +10,10 @@ TEMPFILE = 'docs/assets/tempfile.txt'
 async def user_buffer():
     loop = asyncio.get_running_loop()
     buf = bytearray(4096)
-
-    async with loop.buffer_mode(mode='PROVIDED'):
-    # async with loop.buffer_mode(mode='FIXED', buffers=[buf1, buf2]):
+    with loop.buffer_mode(mode=puring.BUFFER_MODE.PROVIDED, buffers=[buf]):
         uring_file = await puring.open_file(path=TEMPFILE)
-
         data = b'Hello, puring!\n'
-        bytes_written = await uring_file.write(data=data, buf=buf)
+        bytes_written = await uring_file.write(data=data)
         print('Bytes written:', bytes_written)
 
 
@@ -26,7 +23,7 @@ async def lib_buffer():
     #     buffer_mode='PROVIDED',
     #     stream_strategy='ZERO_COPY',
     # )
-    async with loop.buffer_mode(mode='PROVIDED'):
+    with loop.buffer_mode(mode=puring.BUFFER_MODE.PROVIDED):
         uring_file = await puring.open_file(path=TEMPFILE)
 
         data = b'Hello, puring!\n'
@@ -36,4 +33,4 @@ async def lib_buffer():
 
 if __name__ == '__main__':
     asyncio.run(user_buffer(), loop_factory=puring.PuringLoop)
-    asyncio.run(lib_buffer(), loop_factory=puring.PuringLoop)
+    # asyncio.run(lib_buffer(), loop_factory=puring.PuringLoop)

@@ -51,12 +51,6 @@ typedef struct BufferMetadata {
 extern BufferPayload *
 _get_buffer(void);
 
-extern BufferMode
-_get_buffer_mode(void);
-
-extern PayloadType
-_get_payload_type(void);
-
 BufferPayload *
 create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffers_obj);
 
