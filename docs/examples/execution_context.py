@@ -10,7 +10,7 @@ TEMPFILE = 'docs/assets/tempfile.txt'
 async def user_buffer():
     loop = asyncio.get_running_loop()
     buf = bytearray(4096)
-    with loop.buffer_mode(mode=puring.BUFFER_MODE.PROVIDED, buffers=[buf]):
+    with loop.buffer_mode(mode=puring.BUFFER_MODE.FIXED, buffers=[buf]):
         uring_file = await puring.open_file(path=TEMPFILE)
         data = b'Hello, puring!\n'
         bytes_written = await uring_file.write(data=data)

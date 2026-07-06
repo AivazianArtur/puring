@@ -11,8 +11,12 @@ PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     BufferMode mode = NORMAL_BUF;
     PayloadType payload_type_obj = PAYLOAD_LINEAR;
     PyObject *buffers_obj = NULL;
-    static const char *kwlist[] = {"mode", "buffers", "payload_type", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iOi", (char **)kwlist, &mode, &buffers_obj, &payload_type_obj)) {
+    int amount = 3;
+    int bufsize = 1024;
+    static const char *kwlist[] = {"mode", "buffers", "payload_type", "amount", "bufsize", NULL};
+    if (!PyArg_ParseTupleAndKeywords(
+            args, kwargs, "|iOiii", (char **)kwlist, &mode, &buffers_obj, &payload_type_obj, &amount, &bufsize
+        )) {
         return NULL;
     }
 
@@ -24,7 +28,7 @@ PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     if (payload_type == PAYLOAD_TYPE_NO_VAL)
         return NULL;
 
-    BufferPayload *buffer_payload = create_buffer_payload(buffer_mode, payload_type, buffers_obj);
+    BufferPayload *buffer_payload = create_buffer_payload(buffer_mode, payload_type, buffers_obj, amount, bufsize);
     if (!buffer_payload)
         return NULL;
 
@@ -122,18 +126,24 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     char transfer_mode = NORMAL_TRANSFER;
     PayloadType payload_type_obj = PAYLOAD_LINEAR;
     PyObject *buffers_obj;
+    int amount = 3;
+    int bufsize = 1024;
 
-    static const char *kwlist[] = {"buffer_mode", "stream_strategy", "transfer_mode", "buffers", "payload_type", NULL};
+    static const char *kwlist[] = {
+        "buffer_mode", "stream_strategy", "transfer_mode", "buffers", "payload_type", "amount", "bufsize", NULL
+    };
     if (!PyArg_ParseTupleAndKeywords(
             args,
             kwargs,
-            "|iiiOi",
+            "|iiiOiii",
             (char **)kwlist,
             &buffer_mode_val,
             &stream_strategy,
             &transfer_mode,
             &buffers_obj,
-            &payload_type_obj
+            &payload_type_obj,
+            &amount,
+            &bufsize
         )) {
         return NULL;
     }
@@ -146,7 +156,7 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     if (payload_type == PAYLOAD_TYPE_NO_VAL)
         return NULL;
 
-    BufferPayload *buffer_payload = create_buffer_payload(buffer_mode, payload_type, buffers_obj);
+    BufferPayload *buffer_payload = create_buffer_payload(buffer_mode, payload_type, buffers_obj, amount, bufsize);
     if (!buffer_payload)
         return NULL;
 
@@ -233,14 +243,16 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
         self->buffer_payload->vector = NULL;
         self->buffer_payload->payload_type = PAYLOAD_LINEAR;
     case PROVIDED:
-        // TODO: INIT PROVDED
-
-        // if (init_provided_mode(
-
-        // ) < 0) {
-        //     PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize provided buffers");
-        //     return NULL;
-        // }
+        if (init_provided_mode(
+                self->loop->ring,
+                self->buffer_payload->linear->buffer,
+                self->buffer_payload->linear->len,
+                self->buffer_payload->amount,
+                self->buffer_payload->bgid
+            ) < 0) {
+            PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize provided buffers");
+            return NULL;
+        }
     case BUF_RING:
         // TODO: INIT BUF_RING
         // init_buf_ring_mode();

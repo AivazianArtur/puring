@@ -20,7 +20,7 @@ puring_recv_fixed(
     }
     io_uring_prep_recv(sqe, sockfd, buf, len, flags);
     sqe->buf_index = (__u16)buf_index;
-    sqe->ioprio |= IORING_RECVSEND_FIXED_BUF; /* требует поддержки ядром (~6.x+) */
+    sqe->ioprio |= IORING_RECVSEND_FIXED_BUF;
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
     int result = io_uring_submit(ring);

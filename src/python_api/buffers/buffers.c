@@ -1,16 +1,16 @@
-#include "python_api/buffer/buffer.h"
+#include "python_api/buffers/buffers.h"
 
 BufferPayload *
-create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffers_obj) {
-    BufferMetadata buffer_metadata = _get_buffer_metadata(buffers_obj, mode, payload_type);
+create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffers_obj, int amount_i, int bufsize_i) {
+    BufferMetadata buffer_metadata = _get_buffer_metadata(buffers_obj, mode, payload_type, amount_i, bufsize_i);
     BufferPayload *buffer_payload = malloc(sizeof(BufferPayload));
     if (!buffer_payload) {
         PyErr_NoMemory();
         return NULL;
     }
-
+    buffer_payload->bgid = 0;
     PayloadOrigin origin = buffer_metadata.payload_origin;
-    int len = buffer_metadata.len;
+    int amount = buffer_metadata.amount;
     int bufsize = buffer_metadata.bufsize;
 
     LinearBuffer *linear_buffers;
@@ -21,9 +21,9 @@ create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffe
         switch (payload_type) {
         case PAYLOAD_LINEAR:
             if (origin == PAYLOAD_RUNTIME) {
-                linear_buffers = create_linear_buffers(len, bufsize, buffer_payload);
+                linear_buffers = create_linear_buffers(amount, bufsize, buffer_payload);
             } else if (origin == PAYLOAD_USER) {
-                linear_buffers = serialize_linear_buffers(buffers_obj, len, buffer_payload);
+                linear_buffers = serialize_linear_buffers(buffers_obj, amount, buffer_payload);
             } else {
                 return NULL;
             }
@@ -33,7 +33,7 @@ create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffe
             break;
         case PAYLOAD_IOVEC:
             if (origin == PAYLOAD_RUNTIME) {
-                vectored_buffers = create_vectored_buffers(len, bufsize, buffer_payload);
+                vectored_buffers = create_vectored_buffers(amount, bufsize, buffer_payload);
             } else if (origin == PAYLOAD_USER) {
                 vectored_buffers = serialize_vectored_buffers(buffers_obj, buffer_payload);
             } else {
@@ -45,9 +45,9 @@ create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffe
             break;
         case PAYLOAD_LINEAR_AND_IOVEC:
             if (origin == PAYLOAD_RUNTIME) {
-                buffer_payload = make_buffers(len, (size_t)bufsize, buffer_payload);
+                buffer_payload = make_buffers(amount, (size_t)bufsize, buffer_payload);
             } else if (origin == PAYLOAD_USER) {
-                buffer_payload = serialize_buffers(buffers_obj, len, buffer_payload);
+                buffer_payload = serialize_buffers(buffers_obj, amount, buffer_payload);
             } else {
                 return NULL;
             }
@@ -62,9 +62,9 @@ create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffe
     case FIXED:
         payload_type = PAYLOAD_LINEAR_AND_IOVEC;
         if (origin == PAYLOAD_RUNTIME) {
-            buffer_payload = make_buffers(len, (size_t)bufsize, buffer_payload);
+            buffer_payload = make_buffers(amount, (size_t)bufsize, buffer_payload);
         } else if (origin == PAYLOAD_USER) {
-            buffer_payload = serialize_buffers(buffers_obj, len, buffer_payload);
+            buffer_payload = serialize_buffers(buffers_obj, amount, buffer_payload);
         } else {
             return NULL;
         }
@@ -73,11 +73,14 @@ create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffe
         break;
     case PROVIDED:
     case BUF_RING:
+        if (mode == PROVIDED) {
+            buffer_payload->bgid = rand();
+        }
         payload_type = PAYLOAD_LINEAR;
         if (origin == PAYLOAD_RUNTIME) {
-            linear_buffers = create_linear_buffers(len, bufsize, buffer_payload);
+            linear_buffers = create_linear_buffers(amount, bufsize, buffer_payload);
         } else if (origin == PAYLOAD_USER) {
-            linear_buffers = serialize_linear_buffers(buffers_obj, len, buffer_payload);
+            linear_buffers = serialize_linear_buffers(buffers_obj, amount, buffer_payload);
         } else {
             return NULL;
         }
@@ -93,7 +96,7 @@ create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffe
         return NULL;
     }
 
-    buffer_payload->len = len;
+    buffer_payload->amount = amount;
     buffer_payload->payload_origin = origin;
     buffer_payload->mode = mode;
     buffer_payload->payload_type = payload_type;
@@ -114,7 +117,7 @@ create_buffer_payload_from_pybuffer(Py_buffer *iovecs_buf) {
         return NULL;
     }
     buffer_payload->payload_type = PAYLOAD_IOVEC;
-    buffer_payload->len = (int)iovecs_buf->len;
+    buffer_payload->amount = (int)iovecs_buf->len;
     buffer_payload->linear = NULL;
     buffer_payload->vector = vec;
     buffer_payload->vector->iovecs = (struct iovec *)iovecs_buf->buf;
@@ -162,7 +165,7 @@ create_buffer_payload_from_data(PyObject *data) {
 
     buffer_payload->payload_type = PAYLOAD_LINEAR;
     buffer_payload->vector = NULL;
-    buffer_payload->len = 1;
+    buffer_payload->amount = 1;
     buffer_payload->linear = buffer;
     buffer_payload->mode = NORMAL_BUF;
     buffer_payload->payload_origin = PAYLOAD_RUNTIME;
@@ -191,7 +194,7 @@ get_or_create_linear_buffer(PyObject *buffers_obj, int size) {
         payload_origin = PAYLOAD_RUNTIME;
         create_linear_buffers(1, size, buffer_payload);
     }
-    buffer_payload->len = 1;
+    buffer_payload->amount = 1;
     buffer_payload->mode = NORMAL_BUF;
     buffer_payload->payload_origin = payload_origin;
     buffer_payload->payload_type = PAYLOAD_LINEAR;
@@ -221,7 +224,7 @@ get_or_create_vectored_buffer(PyObject *buffers_obj, int len, int bufsize) {
         vectored_buffers = create_vectored_buffers(len, bufsize, buffer_payload);
     }
     create_linear_buffers(1, (int)vectored_buffers->nr_vecs, buffer_payload);
-    buffer_payload->len = (int)vectored_buffers->nr_vecs;
+    buffer_payload->amount = (int)vectored_buffers->nr_vecs;
     buffer_payload->mode = NORMAL_BUF;
     buffer_payload->payload_origin = payload_origin;
     buffer_payload->payload_type = PAYLOAD_IOVEC;
@@ -478,12 +481,12 @@ free_buffer_payload(BufferPayload *payload, bool force) {
 
     if (payload->linear) {
         if (payload->payload_origin == PAYLOAD_RUNTIME) {
-            for (int i = 0; i < payload->len; i++) {
+            for (int i = 0; i < payload->amount; i++) {
                 PyMem_Free(payload->linear[i].buffer);
             }
         }
         if (payload->linear->views) {
-            for (int i = 0; i < payload->len; i++) {
+            for (int i = 0; i < payload->amount; i++) {
                 PyBuffer_Release(&payload->linear->views[i]);
             }
             PyMem_Free(payload->linear->views);
@@ -499,7 +502,7 @@ free_buffer_payload(BufferPayload *payload, bool force) {
         }
 
         if (payload->vector->views) {
-            for (int i = 0; i < payload->len; i++) {
+            for (int i = 0; i < payload->amount; i++) {
                 PyBuffer_Release(&payload->vector->views[i]);
             }
             PyMem_Free(payload->vector->views);
@@ -512,10 +515,15 @@ free_buffer_payload(BufferPayload *payload, bool force) {
 }
 
 BufferMetadata
-_get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload_type) {
+_get_buffer_metadata(
+    PyObject *buffers_obj,
+    BufferMode mode,
+    PayloadType payload_type,
+    // TODO: in next version need to get values from puring parameters(puring initialization)
+    int amount,
+    int bufsize
+) {
     PayloadOrigin payload_origin;
-    int len;
-    int bufsize;
     BufferMetadata buffer_metadata = {0};
 
     if (mode == BUF_NO_VAL)
@@ -526,9 +534,6 @@ _get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload
 
     if (buffers_obj == NULL) {
         payload_origin = PAYLOAD_RUNTIME;
-        // TODO: in next version need to get values from puring parameters(puring initialization)
-        len = 3;
-        bufsize = 1024;
     } else {
         if (!PySequence_Check(buffers_obj)) {
             PyErr_SetString(PyExc_TypeError, "Buffers must be a sequence");
@@ -538,8 +543,8 @@ _get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload
         if (py_len < 0) {
             return buffer_metadata;
         }
-        len = (int)py_len;
-        bufsize = (int)(Py_SIZE(buffers_obj) / len);
+        amount = (int)py_len;
+        bufsize = (int)(Py_SIZE(buffers_obj) / amount);
         payload_origin = PAYLOAD_USER;
     }
 
@@ -548,7 +553,7 @@ _get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload
         .payload_type = payload_type,
         .mode = mode,
         .bufsize = bufsize,
-        .len = len,
+        .amount = amount,
     };
     return buffer_metadata;
 }

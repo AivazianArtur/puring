@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include "python_macroses.h"
 #include "buffer_modes/buffer_modes.h"
-#include "python_api/buffer/buffer.h"
+#include "python_api/buffers/buffers.h"
 
 
 extern PyTypeObject PuringBufferModeCtxType;

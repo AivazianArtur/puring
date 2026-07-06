@@ -24,22 +24,25 @@ close_fixed_mode(struct io_uring *ring) {
 }
 
 int
-init_provided_mode(struct io_uring *ring, struct io_uring_sqe *sqe, void *addr, int len, int nr, int bgid, int bid) {
-    io_uring_prep_provide_buffers(sqe, addr, len, nr, bgid, bid);
+init_provided_mode(struct io_uring *ring, void *addr, int len, int nr, int bgid) {
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, NULL);
+
+    io_uring_prep_provide_buffers(sqe, addr, len, nr, bgid, 0);
     int result = io_uring_submit(ring);
     if (result < 0) {
-        fprintf(stderr, "io_uring_submit(provide_buffers) failed: %s\n", strerror(-result));
+        fprintf(stderr, "Submitting provided buffers initialization failed: %s\n", strerror(-result));
         return -1;
     }
     return 1;
 }
 
 int
-close_provided_mode(struct io_uring *ring, struct io_uring_sqe *sqe, int nr, int bgid) {
+close_provided_mode(struct io_uring *ring, int nr, int bgid) {
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, NULL);
     io_uring_prep_remove_buffers(sqe, nr, bgid);
     int result = io_uring_submit(ring);
     if (result < 0) {
-        fprintf(stderr, "io_uring_submit(remove_buffers) failed: %s\n", strerror(-result));
+        fprintf(stderr, "Submitting provided buffers closing failed: %s\n", strerror(-result));
         return -1;
     }
     return 1;

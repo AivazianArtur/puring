@@ -34,8 +34,8 @@ typedef struct BufferPayload {
     PayloadOrigin payload_origin;
     BufferMode mode;
 
-    int len;
-
+    int amount;
+    int bgid;
     LinearBuffer *linear;
     VectoredBuffer *vector;
 } BufferPayload;
@@ -44,7 +44,7 @@ typedef struct BufferMetadata {
     PayloadOrigin payload_origin;
     PayloadType payload_type;
     BufferMode mode;
-    int len;
+    int amount;
     int bufsize;
 } BufferMetadata;
 
@@ -52,7 +52,7 @@ extern BufferPayload *
 _get_buffer(void);
 
 BufferPayload *
-create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffers_obj);
+create_buffer_payload(BufferMode mode, PayloadType payload_type, PyObject *buffers_obj, int amount_i, int bufsize_i);
 
 BufferPayload *
 create_buffer_payload_from_pybuffer(Py_buffer *iovecs_buf);
@@ -88,4 +88,11 @@ void
 free_buffer_payload(BufferPayload *payload, bool force);
 
 BufferMetadata
-_get_buffer_metadata(PyObject *buffers_obj, BufferMode mode, PayloadType payload_type);
+_get_buffer_metadata(
+    PyObject *buffers_obj,
+    BufferMode mode,
+    PayloadType payload_type,
+    // TODO: in next version need to get values from puring parameters(puring initialization)
+    int amount,
+    int bufsize
+);
