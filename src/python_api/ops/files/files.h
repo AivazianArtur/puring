@@ -78,3 +78,7 @@ PyObject *
 create_statx_mask_enum(void);
 PyObject *
 create_transfer_mode_enum(void);
+
+int
+read_dispatcher(
+);

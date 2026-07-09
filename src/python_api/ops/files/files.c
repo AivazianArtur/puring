@@ -131,9 +131,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_read(
-        self->loop->ring, request_idx, self->fd, buffer_payload->linear->buffer, (unsigned)size, offset, &timeout_params
-    );
+    int result = read_dispatcher();
     return _check_file_result(result, self, request_idx, future);
 }
 

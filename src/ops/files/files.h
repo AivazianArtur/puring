@@ -146,3 +146,26 @@ puring_write_fixed(
     // Below are optional
     const struct TimeoutParams *timeout_params
 );
+
+int
+puring_read_buffer_select(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    unsigned size,
+    int offset,
+    int bgid,
+    const struct TimeoutParams *timeout_params
+);
+
+int
+puring_readv_buffer_select(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    unsigned size,
+    int offset,
+    int bgid,
+    int flags,
+    const struct TimeoutParams *timeout_params
+);
