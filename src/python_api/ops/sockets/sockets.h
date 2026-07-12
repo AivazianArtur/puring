@@ -74,3 +74,32 @@ struct sockaddr *
 _serialize_address(const char *host, int port, int domain);
 socklen_t
 _get_socket_size(int domain);
+
+
+int
+recv_dispatcher(
+    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+);
+
+int
+send_dispatcher(
+    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+);
+
+
+int
+sendmsg_dispatcher(
+    PuringSocket *self,
+    BufferPayload *buffer_payload,
+    int offset,
+    const struct sockaddr *addr,
+    size_t addrlen,
+    int is_poll_first,
+    TimeoutParams timeout_params
+);
+
+
+int
+recvmsg_dispatcher(
+    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+);

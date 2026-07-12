@@ -8,9 +8,9 @@ puring_read_buffer_select(
     unsigned size,
     int offset,
     int bgid,
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_read(sqe, fd, NULL, size, (uint64_t)offset);
 
@@ -29,7 +29,6 @@ puring_read_buffer_select(
     return 1;
 }
 
-
 int
 puring_readv_buffer_select(
     struct io_uring *ring,
@@ -38,14 +37,19 @@ puring_readv_buffer_select(
     unsigned size,
     int offset,
     int bgid,
-    int flags,
-    const struct TimeoutParams *timeout_params
+    int nowait,
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
     struct iovec iov = {
         .iov_base = NULL,
         .iov_len = size,
     };
+
+    int flags = 0;
+    if (nowait) {
+        flags |= RWF_NOWAIT;
+    }
 
     io_uring_prep_readv2(sqe, fd, &iov, 1, (uint64_t)offset, flags);
 

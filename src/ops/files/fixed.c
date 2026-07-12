@@ -9,11 +9,10 @@ puring_read_fixed(
     unsigned size,
     int offset,
     int buf_index,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
-    // int buf_idx = _get_buffer_index(buf_index);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
+    int buf_idx = _get_buffer_index(buf_index);
 
     io_uring_prep_read_fixed(sqe, fd, buf, size, (uint64_t)offset, buf_idx);
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
@@ -35,10 +34,9 @@ puring_write_fixed(
     unsigned size,
     int offset,
     int buf_index,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
     io_uring_prep_write_fixed(sqe, fd, buf, size, (uint64_t)offset, buf_index);
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);

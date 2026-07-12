@@ -62,7 +62,7 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = open_file(running_loop->ring, request_idx, dfd, path, flags, resolve, (mode_t)mode, &timeout_params);
+    int result = open_file(running_loop->ring, request_idx, dfd, path, flags, resolve, (mode_t)mode, timeout_params);
     if (result == -1) {
         Py_DECREF(file);
         Py_DECREF(future);
@@ -117,6 +117,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     Py_ssize_t size = (Py_ssize_t)size_i;
 
+
     BufferPayload *buffer_payload = get_or_create_linear_buffer(NULL, size_i);
     if (!buffer_payload) {
         Py_DECREF(future);
@@ -131,7 +132,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = read_dispatcher();
+    int result = read_dispatcher(self, buffer_payload, request_idx, size, offset, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -146,16 +147,20 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *buffers_obj;
     PyObject *timeout_params_obj = NULL;
-    int flags = 0;
+    int nowait = 0;
     int offset = -1;
-    static const char *kwlist[] = {"buffers", "offset", "flags", "timeout_params", NULL};
+    static const char *kwlist[] = {"buffers", "offset", "nowait", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|OiiO", (char **)kwlist, &buffers_obj, &offset, &flags, &timeout_params_obj
+            args, kwargs, "|OipO", (char **)kwlist, &buffers_obj, &offset, &nowait, &timeout_params_obj
         )) {
         return NULL;
     }
 
-    BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj, 0, 0);
+    BufferPayload *buffer_payload;
+    buffer_payload = _get_buffer();
+    if (!(buffer_payload && (buffer_payload->mode == PROVIDED || buffer_payload->mode == BUF_RING))) {
+        buffer_payload = get_or_create_vectored_buffer(buffers_obj, 0, 0);
+    }
     if (!buffer_payload)
         return NULL;
 
@@ -176,18 +181,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-
-    int result = uring_readv(
-        self->loop->ring,
-        request_idx,
-        self->fd,
-        buffer_payload->vector->iovecs,
-        (unsigned int)(buffer_payload->vector->nr_vecs),
-        offset,
-        flags,
-        &timeout_params
-    );
-
+    int result = readv_dispatcher(self, buffer_payload, request_idx, offset, nowait, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -252,7 +246,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         (unsigned)buffer_payload->vector->nr_vecs,
         offset,
         flags,
-        &timeout_params
+        timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -296,16 +290,7 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_write(
-        self->loop->ring,
-        request_idx,
-        self->fd,
-        buffer_payload->linear->buffer,
-        (unsigned)buffer_payload->linear->len,
-        offset,
-        &timeout_params
-    );
-
+    int result = write_dispatcher(self, buffer_payload, request_idx, offset, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -361,7 +346,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
         (unsigned int)(buffer_payload->vector->nr_vecs),
         offset,
         flags,
-        &timeout_params
+        timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -431,7 +416,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         (unsigned)buffer_payload->vector->nr_vecs,
         offset,
         flags,
-        &timeout_params
+        timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -468,7 +453,7 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_close_file(self->loop->ring, request_idx, self->fd, &timeout_params);
+    int result = uring_close_file(self->loop->ring, request_idx, self->fd, timeout_params);
 
     return _check_file_result(result, self, request_idx, future);
 }
@@ -503,7 +488,7 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_fsync(self->loop->ring, request_idx, self->fd, &timeout_params);
+    int result = uring_fsync(self->loop->ring, request_idx, self->fd, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -537,7 +522,7 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_fdatasync(self->loop->ring, request_idx, self->fd, &timeout_params);
+    int result = uring_fdatasync(self->loop->ring, request_idx, self->fd, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -591,7 +576,7 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int result = uring_splice(
-        self->loop->ring, request_idx, src, offset_src, dst, offset_dst, count, flag, &timeout_params
+        self->loop->ring, request_idx, src, offset_src, dst, offset_dst, count, flag, timeout_params
     );
     return _check_file_result(result, self, request_idx, future);
 }

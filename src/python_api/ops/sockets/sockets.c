@@ -41,7 +41,7 @@ Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs
         return NULL;
     }
 
-    int result = prep_socket(running_loop->ring, request_idx, domain, &timeout_params);
+    int result = prep_socket(running_loop->ring, request_idx, domain, timeout_params);
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -110,7 +110,7 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_bind(self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, &timeout_params);
+    int result = uring_bind(self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, timeout_params);
 
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);
@@ -158,7 +158,7 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int result = uring_connect(
-        self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, &timeout_params
+        self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, timeout_params
     );
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);
@@ -197,7 +197,7 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, self->state, &timeout_params);
+    int result = uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, self->state, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -251,7 +251,7 @@ PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         addrlen,
         flags,
         self->state,
-        &timeout_params
+        timeout_params
     );
     return _check_sockets_result(result, self, request_idx, future);
 }
@@ -288,7 +288,7 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_close_socket(self->loop->ring, request_idx, self->sock_fd, &timeout_params);
+    int result = uring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -302,40 +302,37 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *data = NULL;
-    int flags = 0;
+    int is_poll_first = 0;
     PyObject *timeout_params_obj = NULL;
-    static const char *kwlist[] = {"data", "flags", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", (char **)kwlist, &data, &flags, &timeout_params_obj))) {
+    static const char *kwlist[] = {"data", "is_poll_first", "timeout_params", NULL};
+    if (!(PyArg_ParseTupleAndKeywords(
+            args, kwargs, "O|pO", (char **)kwlist, &data, &is_poll_first, &timeout_params_obj
+        ))) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
+    BufferPayload *buffer_payload = create_buffer_payload_from_data(data);
+    if (!buffer_payload)
+        return NULL;
+
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
 
     int opcode = IORING_OP_SEND;
-    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, NULL, self, NULL);
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, NULL, self, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    const char *buffer = PyBytes_AS_STRING(data);
-    if (!buffer) {
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
-        return NULL;
-    }
-    Py_ssize_t size = PyBytes_GET_SIZE(data);
-
-    int result = uring_send(
-        self->loop->ring, request_idx, self->sock_fd, buffer, (size_t)size, flags, self->state, &timeout_params
-    );
+    int result = send_dispatcher(self, buffer_payload, request_idx, is_poll_first, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -350,11 +347,11 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     int bufsize = 1024;
     PyObject *buffer_obj = NULL;
-    int flags = 0;
+    int is_poll_first = 0;
     PyObject *timeout_params_obj = NULL;
-    static const char *kwlist[] = {"bufsize", "buffer", "flags", "timeout_params", NULL};
+    static const char *kwlist[] = {"bufsize", "buffer", "is_poll_first", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|iOiO", (char **)kwlist, &bufsize, &buffer_obj, &flags, &timeout_params_obj
+            args, kwargs, "|iOpO", (char **)kwlist, &bufsize, &buffer_obj, &is_poll_first, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -380,18 +377,7 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-
-    int result = uring_recv(
-        self->loop->ring,
-        request_idx,
-        self->sock_fd,
-        buffer_payload->linear->buffer,
-        buffer_payload->linear->len,
-        flags,
-        self->state,
-        &timeout_params
-    );
-
+    int result = recv_dispatcher(self, buffer_payload, request_idx, is_poll_first, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -408,11 +394,11 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     const char *host;
     int port;
     char domain;
-    int flags = 0;
+    int is_poll_first = 0;
     PyObject *timeout_params_obj = NULL;
-    static const char *kwlist[] = {"data", "host", "port", "domain", "flags", "timeout_params", NULL};
+    static const char *kwlist[] = {"data", "host", "port", "domain", "is_poll_first", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "Osis|iO", (char **)kwlist, &data, &host, &port, &domain, &flags, &timeout_params_obj
+            args, kwargs, "Osis|pO", (char **)kwlist, &data, &host, &port, &domain, &is_poll_first, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -424,9 +410,16 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
+    BufferPayload *buffer_payload = create_buffer_payload_from_data(data);
+    if (!buffer_payload) {
+        free(addr);
+        return NULL;
+    }
+
     PyObject *future = create_future(self->loop);
     if (!future) {
         free(addr);
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
 
@@ -435,22 +428,21 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     if (request_idx < 0) {
         Py_DECREF(future);
         free(addr);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    const char *buffer = PyBytes_AS_STRING(data);
-    if (!buffer) {
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        free(addr);
-        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
-        return NULL;
-    }
-    Py_ssize_t size = PyBytes_GET_SIZE(data);
-
     int result = uring_sendto(
-        self->loop->ring, request_idx, self->sock_fd, buffer, (size_t)size, addr, addrlen, flags, &timeout_params
+        self->loop->ring,
+        request_idx,
+        self->sock_fd,
+        buffer_payload->linear->buffer,
+        (unsigned)buffer_payload->linear->len,
+        addr,
+        addrlen,
+        is_poll_first,
+        timeout_params
     );
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);
@@ -470,21 +462,23 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     char domain;
     unsigned int bufsize = 1024;
     PyObject *buffer_obj = NULL;
-    int flags = 0;
+    int is_poll_first = 0;
 
     PyObject *timeout_params_obj = NULL;
-    static const char *kwlist[] = {"bufsize", "buffer", "host", "port", "domain", "flags", "timeout_params", NULL};
+    static const char *kwlist[] = {
+        "bufsize", "buffer", "host", "port", "domain", "is_poll_first", "timeout_params", NULL
+    };
     if (!(PyArg_ParseTupleAndKeywords(
             args,
             kwargs,
-            "|iOsisiO",
+            "|iOsispO",
             (char **)kwlist,
             &bufsize,
             &buffer_obj,
             &host,
             &port,
             &domain,
-            &flags,
+            &is_poll_first,
             &timeout_params_obj
         ))) {
         return NULL;
@@ -525,8 +519,8 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         buffer_payload->linear->len,
         addr,
         // addrlen,
-        flags,
-        &timeout_params
+        is_poll_first,
+        timeout_params
     );
 
     free(addr);
@@ -546,11 +540,20 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     const char *host;
     int port;
     char domain;
-    int flags = 0;
+    int is_poll_first = 0;
     PyObject *timeout_params_obj = NULL;
-    static const char *kwlist[] = {"buffers", "host", "port", "domain", "flags", "timeout_params", NULL};
+    static const char *kwlist[] = {"buffers", "host", "port", "domain", "is_poll_first", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|OsisiO", (char **)kwlist, &buffers_obj, &host, &port, &domain, &flags, &timeout_params_obj
+            args,
+            kwargs,
+            "|OsispO",
+            (char **)kwlist,
+            &buffers_obj,
+            &host,
+            &port,
+            &domain,
+            &is_poll_first,
+            &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -582,18 +585,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-
-    int result = uring_sendmsg(
-        self->loop->ring,
-        request_idx,
-        self->sock_fd,
-        buffer_payload->vector->iovecs,
-        (unsigned int)buffer_payload->vector->nr_vecs,
-        addr,
-        addrlen,
-        flags,
-        &timeout_params
-    );
+    int result = sendmsg_dispatcher(self, buffer_payload, request_idx, addr, addrlen, is_poll_first, timeout_params);
 
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);
@@ -609,12 +601,12 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *buffers_obj;
-    int flags = 0;
+    int is_poll_first = 0;
 
     PyObject *timeout_params_obj = NULL;
-    static const char *kwlist[] = {"buffers", "flags", "timeout_params", NULL};
+    static const char *kwlist[] = {"buffers", "is_poll_first", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|OiO", (char **)kwlist, &buffers_obj, &flags, &timeout_params_obj
+            args, kwargs, "|OpO", (char **)kwlist, &buffers_obj, &is_poll_first, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -639,16 +631,6 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-
-    int result = uring_recvmsg(
-        self->loop->ring,
-        request_idx,
-        self->sock_fd,
-        buffer_payload->vector->iovecs,
-        (unsigned int)buffer_payload->vector->nr_vecs,
-        flags,
-        &timeout_params
-    );
-
+    int result = recvmsg_dispatcher(self, buffer_payload, request_idx, is_poll_first, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }

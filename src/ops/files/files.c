@@ -11,9 +11,9 @@ open_file(
     int flags,
     int resolve,
     mode_t mode,
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     if (!flags) {
         flags = O_RDWR | O_CREAT;
@@ -47,10 +47,9 @@ uring_read(
     unsigned size,
     int offset,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_read(sqe, fd, buf, size, (uint64_t)offset);
 
@@ -73,12 +72,15 @@ uring_readv(
     struct iovec *iovecs,
     unsigned nr_vecs,
     int offset,
-    int flags,
-
-    const struct TimeoutParams *timeout_params
+    int nowait,
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
+    int flags = 0;
+    if (nowait) {
+        flags |= RWF_NOWAIT;
+    }
     io_uring_prep_readv2(sqe, fd, iovecs, nr_vecs, (uint64_t)offset, flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
@@ -100,10 +102,9 @@ uring_write(
     char *buf,
     unsigned size,
     int offset,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_write(sqe, fd, buf, size, (uint64_t)offset);
 
@@ -128,10 +129,9 @@ uring_writev(
     int offset,
     int flags,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_writev2(sqe, fd, iovecs, nr_vecs, (uint64_t)offset, flags);
 
@@ -147,14 +147,8 @@ uring_writev(
 }
 
 int
-uring_close_file(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
-) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+uring_close_file(struct io_uring *ring, int request_idx, int fd, const struct TimeoutParams timeout_params) {
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_close(sqe, fd);
 
@@ -175,10 +169,9 @@ uring_fsync(
     int request_idx,
     int fd,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     unsigned fsync_flags = 0;
 
@@ -201,10 +194,9 @@ uring_fdatasync(
     int request_idx,
     int fd,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     unsigned fsync_flags = IORING_FSYNC_DATASYNC;
 
@@ -232,10 +224,9 @@ uring_splice(
     int nbytes,
     int flag,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 ) {
-    SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params);
+    SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_splice(
         sqe, fd_in, (int64_t)off_in, fd_out, (int64_t)off_out, (unsigned int)nbytes, (unsigned int)flag

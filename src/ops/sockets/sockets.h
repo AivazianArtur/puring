@@ -13,13 +13,7 @@
 #include "timer/timer.h"
 
 int
-prep_socket(
-    struct io_uring *ring,
-    int request_idx,
-    int domain,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
-);
+prep_socket(struct io_uring *ring, int request_idx, int domain, const struct TimeoutParams timeout_params);
 
 int
 uring_bind(
@@ -29,8 +23,7 @@ uring_bind(
     const struct sockaddr *addr,
     socklen_t addrlen,
     SOCKET_STATES state,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -41,8 +34,7 @@ uring_connect(
     struct sockaddr *addr,
     socklen_t addrlen,
     SOCKET_STATES state,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -52,8 +44,7 @@ uring_listen(
     int fd,
     int backlog,
     SOCKET_STATES state,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -65,18 +56,11 @@ uring_accept(
     socklen_t *len,
     int flags,
     SOCKET_STATES state,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
-uring_close_socket(
-    struct io_uring *ring,
-    int request_idx,
-    int sockfd,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
-);
+uring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params);
 
 int
 uring_send(
@@ -85,10 +69,9 @@ uring_send(
     int sockfd,
     const void *buf,
     size_t len,
-    int flags,
+    int is_poll_first,
     SOCKET_STATES state,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -98,10 +81,9 @@ uring_recv(
     int sockfd,
     void *buf,
     size_t len,
-    int flags,
+    int is_poll_first,
     SOCKET_STATES state,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -113,9 +95,8 @@ uring_sendto(
     size_t len,
     const struct sockaddr *addr,
     size_t addrlen,
-    int flags,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    int is_poll_first,
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -127,9 +108,8 @@ uring_recvfrom(
     size_t len,
     struct sockaddr *addr,
     // socklen_t addrlen,
-    int flags,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    int is_poll_first,
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -141,9 +121,8 @@ uring_sendmsg(
     unsigned nr_vecs,
     const struct sockaddr *addr,
     size_t addrlen,
-    int flags,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    int is_poll_first,
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -153,9 +132,8 @@ uring_recvmsg(
     int sockfd,
     struct iovec *iovecs,
     unsigned nr_vecs,
-    int flags,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    int is_poll_first,
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -165,11 +143,10 @@ puring_recv_fixed(
     int sockfd,
     void *buf,
     size_t len,
-    int flags,
+    int is_poll_first,
     int buf_index,
     SOCKET_STATES state,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -179,11 +156,10 @@ puring_send_fixed(
     int sockfd,
     const void *buf,
     size_t len,
-    int flags,
+    int is_poll_first,
     int buf_index,
     SOCKET_STATES state,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -195,10 +171,9 @@ puring_sendmsg_fixed(
     unsigned nr_vecs,
     const struct sockaddr *addr,
     size_t addrlen,
-    int flags,
+    int is_poll_first,
     int buf_index,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -208,8 +183,31 @@ puring_recvmsg_fixed(
     int sockfd,
     struct iovec *iovecs,
     unsigned nr_vecs,
-    int flags,
+    int is_poll_first,
     int buf_index,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_recv_buffer_select(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    size_t len,
+    int is_poll_first,
+    int bgid,
+    SOCKET_STATES state,
+    const struct TimeoutParams timeout_params
+);
+
+
+int
+puring_recvmsg_buffer_select(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    int is_poll_first,
+    int bgid,
+    SOCKET_STATES state,
+    const struct TimeoutParams timeout_params
 );

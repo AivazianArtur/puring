@@ -41,6 +41,7 @@
 - [ ] Implement `dir` object completely.
 - [ ] Research and implement futex if needed.
 - [ ] Add poll interface (with multishot poll).
+- [ ] Add `socket.send` with `IORING_SEND_VECTORIZED` and `IORING_RECVSEND_BUNDLE` flags as separate methods.
 
 ## v0.6.0 - CQE and SQE production features
 - [ ] CQE batching.

@@ -22,7 +22,7 @@ open_file(
     int flags,
     int resolve,
     mode_t mode,
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -33,8 +33,7 @@ uring_read(
     char *buf,
     unsigned size,
     int offset,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -45,9 +44,9 @@ uring_readv(
     struct iovec *iovecs,
     unsigned nr_vecs,
     int offset,
-    int flags,
+    int nowait,
 
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -58,8 +57,7 @@ uring_write(
     char *buf,
     unsigned size,
     int offset,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -72,8 +70,7 @@ uring_writev(
     int offset,
     int flags,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -82,8 +79,7 @@ uring_close_file(
     int request_idx,
     int fd,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -92,8 +88,7 @@ uring_fsync(
     int request_idx,
     int fd,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -102,8 +97,7 @@ uring_fdatasync(
     int request_idx,
     int fd,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -117,8 +111,7 @@ uring_splice(
     int nbytes,
     int flag,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -130,8 +123,7 @@ puring_read_fixed(
     unsigned size,
     int offset,
     int buf_index,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -143,8 +135,7 @@ puring_write_fixed(
     unsigned size,
     int offset,
     int buf_index,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -155,7 +146,7 @@ puring_read_buffer_select(
     unsigned size,
     int offset,
     int bgid,
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
@@ -166,6 +157,6 @@ puring_readv_buffer_select(
     unsigned size,
     int offset,
     int bgid,
-    int flags,
-    const struct TimeoutParams *timeout_params
+    int nowait,
+    const struct TimeoutParams timeout_params
 );

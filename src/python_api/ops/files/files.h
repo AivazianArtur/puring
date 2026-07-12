@@ -81,4 +81,20 @@ create_transfer_mode_enum(void);
 
 int
 read_dispatcher(
+    PuringFile *self, BufferPayload *buffer_payload, int request_idx, int size, int offset, TimeoutParams timeout_params
+);
+
+int
+readv_dispatcher(
+    PuringFile *self,
+    BufferPayload *buffer_payload,
+    int request_idx,
+    int offset,
+    int nowait,
+    TimeoutParams timeout_params
+);
+
+int
+write_dispatcher(
+    PuringFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
 );
