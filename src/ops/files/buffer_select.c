@@ -15,7 +15,7 @@ puring_read_buffer_select(
     io_uring_prep_read(sqe, fd, NULL, size, (uint64_t)offset);
 
     sqe->flags |= IOSQE_BUFFER_SELECT;
-    sqe->buf_group = bgid;
+    sqe->buf_group = (__u16)bgid;
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -54,7 +54,7 @@ puring_readv_buffer_select(
     io_uring_prep_readv2(sqe, fd, &iov, 1, (uint64_t)offset, flags);
 
     sqe->flags |= IOSQE_BUFFER_SELECT;
-    sqe->buf_group = bgid;
+    sqe->buf_group = (__u16)bgid;
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);

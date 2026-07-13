@@ -19,14 +19,24 @@
 - [X] Implement GitHub CI.
 
 ## v0.4.0 - Buffer features
-- [ ] Implement fixed buffers (`io_uring_register_buffers`).
-- [ ] Implement zero-copy send (`send_zc`).
-- [X] Use Python application buffers as `PuringLoop` buffers.
-- [ ] Implement a puring-based memory pool for buffers.
-- [ ] Implement provided buffer rings / multishot (`register_pbuf_ring`).
+- [ ] Implement `Execution Context` layer: `Buffer Mode`, `Transfer Mode` and `Stream Strategy`.
+    - [ ] Implement `Buffer Mode` layer:
+        - [ ] Implement `fixed` buffer mode.
+        - [ ] Implement `provided` and `buffer ring` buffer modes.
+        - [X] Use Python application buffers as `PuringLoop` buffers - `NORMAL_BUF` buffer mode.
+        - [X] Implement modes dispatching.
+        - [ ] Implement a puring-based memory pool for buffers.
+    - [ ] Implement `Transfer Mode`:
+        - [ ] Zero-copy functionality.
+        - [ ] Zero-copy and normal-copy routing.
+    - [ ] Implement `Stream Strategy` layer:
+        - [ ] Multishot functionality.
+        - [ ] Multishot and one-shot(normal) routing.
 - [ ] Implement `ContextManager` protocol for Files and Sockets.
-- [ ] Add tests.
 - [ ] Use `errno` in error handling.
+- [ ] Add tests for whole library:
+    - [ ] Python-layer.
+    - [ ] C-layer.
 - [ ] Publish library on PyPI (`pip` installable).
 
 ## v0.5.0 - Async Runtime & Architecture

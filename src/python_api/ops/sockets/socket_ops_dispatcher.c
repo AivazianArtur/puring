@@ -7,7 +7,7 @@ recv_dispatcher(
     int result;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = _get_buffer_index(); // Наверно внутрь убрать
+        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
         result = puring_recv_fixed(
             self->loop->ring,
             request_idx,
@@ -56,7 +56,7 @@ send_dispatcher(
     int result;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = _get_buffer_index(); // Наверно внутрь убрать
+        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
         result = puring_send_fixed(
             self->loop->ring,
             request_idx,
@@ -100,7 +100,7 @@ sendmsg_dispatcher(
     int result;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = _get_buffer_index(); // Наверно внутрь убрать
+        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
         result = puring_sendmsg_fixed(
             self->loop->ring,
             request_idx,
@@ -140,7 +140,7 @@ recvmsg_dispatcher(
     int result;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = _get_buffer_index(); // Наверно внутрь убрать
+        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
         result = puring_recvmsg_fixed(
             self->loop->ring,
             request_idx,

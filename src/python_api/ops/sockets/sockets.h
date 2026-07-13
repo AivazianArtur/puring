@@ -10,10 +10,11 @@
 
 #include "macroses.h"
 #include "ops/sockets/sockets.h"
+#include "registry/registry.h"
+#include "buffer_controllers/buffer_controllers.h"
 #include "python_api/future/future.h"
 #include "python_api/loop/loop.h"
 #include "python_macroses.h"
-#include "registry/registry.h"
 
 extern PyTypeObject *PuringLoopType;
 extern PyTypeObject PuringSocketType;

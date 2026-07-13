@@ -9,6 +9,8 @@
 #include <stddef.h>
 #include <inttypes.h>
 
+#include "buffer_controllers/buffer_controllers.h"
+
 typedef struct ExecutionContext ExecutionContext;
 
 typedef enum BufferMode { NORMAL_BUF, FIXED, PROVIDED, BUF_RING, BUF_NO_VAL } BufferMode;
@@ -36,6 +38,8 @@ typedef struct BufferPayload {
 
     int amount;
     int bgid;
+    BufferIdxRegistry *idx_registry;
+    struct io_uring_buf_ring *buf_ring;
     LinearBuffer *linear;
     VectoredBuffer *vector;
 } BufferPayload;

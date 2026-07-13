@@ -7,7 +7,7 @@ read_dispatcher(
     int result;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = _get_buffer_index(); // Наверно внутрь убрать
+        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
         result = puring_read_fixed(
             self->loop->ring,
             request_idx,
@@ -88,7 +88,7 @@ write_dispatcher(
     int result;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = _get_buffer_index(); // Наверно внутрь убрать
+        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
         result = puring_write_fixed(
             self->loop->ring,
             request_idx,

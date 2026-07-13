@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "python_macroses.h"
-#include "buffer_modes/buffer_modes.h"
+#include "buffer_controllers/buffer_controllers.h"
 #include "python_api/buffers/buffers.h"
 
 

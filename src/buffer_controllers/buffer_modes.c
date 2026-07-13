@@ -1,4 +1,4 @@
-#include "buffer_modes.h"
+#include "buffer_controllers/buffer_controllers.h"
 
 // TODO: Updating buffers in next versions
 
@@ -48,25 +48,37 @@ close_provided_mode(struct io_uring *ring, int nr, int bgid) {
     return 1;
 }
 
-int
-init_buf_ring_mode(struct io_uring *ring, struct io_uring_buf_reg *reg, unsigned int flags) {
-    // Maybe create io_uring_buf_reg here?
-    // int result = io_uring_register_buf_ring(ring, reg, flags);
+struct io_uring_buf_ring *
+init_buf_ring_mode(struct io_uring *ring, void *addr, int len, int nentries, int bgid) {
+    struct io_uring_buf_ring *buffer_ring;
+    int err;
 
-    // if (result < 0) {
-    //     fprintf(stderr, "io_uring_register_buf_ring failed: %s\n", strerror(-result));
-    //     return -1;
-    // }
-    // return 1;
+    buffer_ring = io_uring_setup_buf_ring(ring, (unsigned)nentries, bgid, 0, &err);
+
+    if (!buffer_ring) {
+        fprintf(stderr, "io_uring_setup_buf_ring failed: %s\n", strerror(-err));
+        return NULL;
+    }
+
+    io_uring_buf_ring_init(buffer_ring);
+
+    int mask = io_uring_buf_ring_mask((__u32)nentries);
+
+    for (int i = 0; i < nentries; i++) {
+        io_uring_buf_ring_add(buffer_ring, (char *)addr + i * len, (unsigned)len, (unsigned short)i, mask, i);
+    }
+
+    io_uring_buf_ring_advance(buffer_ring, nentries);
+
+    return buffer_ring;
 }
 
 int
-close_buf_ring_mode(struct io_uring *ring, struct io_uring_buf_reg *reg) {
-    // int result = io_uring_unregister_buf_ring(ring, reg);
+close_buf_ring_mode(struct io_uring *ring, struct io_uring_buf_ring *buffer_ring, int nentries, int bgid) {
+    if (!buffer_ring)
+        return -1;
 
-    // if (result < 0) {
-    //     fprintf(stderr, "io_uring_unregister_buf_ring failed: %s\n", strerror(-result));
-    //     return -1;
-    // }
-    // return 1;
+    io_uring_free_buf_ring(ring, buffer_ring, (unsigned)nentries, bgid);
+
+    return 1;
 }

@@ -240,6 +240,11 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
             PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize fixed buffers");
             return NULL;
         };
+        BufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_new(NULL);
+        if (!buffer_idx_registry)
+            return NULL;
+
+        self->buffer_payload->idx_registry = buffer_idx_registry;
         self->buffer_payload->vector = NULL;
         self->buffer_payload->payload_type = PAYLOAD_LINEAR;
     case PROVIDED:
@@ -254,11 +259,16 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
             return NULL;
         }
     case BUF_RING:
-        // TODO: INIT BUF_RING
-        // init_buf_ring_mode();
+        struct io_uring_buf_ring *buf_ring = init_buf_ring_mode(
+            self->loop->ring,
+            self->buffer_payload->linear->buffer,
+            self->buffer_payload->linear->len,
+            self->buffer_payload->amount,
+            self->buffer_payload->bgid
+        );
+        self->buffer_payload->buf_ring = buf_ring;
     default: // do nothing
     }
-
 
     self->token = token;
     Py_INCREF(self);
@@ -277,12 +287,14 @@ BufferModeCtx_exit(BufferModeCtx *self, PyObject *args) {
     switch (self->buffer_payload->mode) {
     case FIXED:
         close_fixed_mode(self->loop->ring);
+        buffer_idx_registry_destroy(self->buffer_payload->idx_registry);
     case PROVIDED:
-        // TODO: TODO: CLOSE PROVIDED
-        // close_provided_mode(self->loop->ring, ...);
+        close_provided_mode(self->loop->ring, self->buffer_payload->amount, self->buffer_payload->bgid);
     case BUF_RING:
-        // TODO: CLOSE BUF_RING
-        // close_buf_ring_mode(self->loop->ring, ...);
+        close_buf_ring_mode(
+            self->loop->ring, self->buffer_payload->buf_ring, self->buffer_payload->amount, self->buffer_payload->bgid
+        );
+        self->buffer_payload->buf_ring = NULL;
     default: // do nothing
     }
     Py_RETURN_FALSE;
