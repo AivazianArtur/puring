@@ -5,9 +5,11 @@ read_dispatcher(
     PuringFile *self, BufferPayload *buffer_payload, int request_idx, int size, int offset, TimeoutParams timeout_params
 ) {
     int result;
+    int buf_idx;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buffer_payload->buf_idx = buf_idx;
         result = puring_read_fixed(
             self->loop->ring,
             request_idx,
@@ -26,8 +28,9 @@ read_dispatcher(
         );
         break;
     case NORMAL_BUF:
+    case BUF_NO_VAL:
     default:
-        result = uring_read(
+        result = puring_read(
             self->loop->ring,
             request_idx,
             self->fd,
@@ -57,7 +60,7 @@ readv_dispatcher(
             self->loop->ring,
             request_idx,
             self->fd,
-            buffer_payload->linear->len,
+            (unsigned int)buffer_payload->linear->len,
             offset,
             buffer_payload->bgid,
             nowait,
@@ -66,8 +69,9 @@ readv_dispatcher(
         break;
     case FIXED:
     case NORMAL_BUF:
+    case BUF_NO_VAL:
     default:
-        result = uring_readv(
+        result = puring_readv(
             self->loop->ring,
             request_idx,
             self->fd,
@@ -86,9 +90,11 @@ write_dispatcher(
     PuringFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
 ) {
     int result;
+    int buf_idx;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buffer_payload->buf_idx = buf_idx;
         result = puring_write_fixed(
             self->loop->ring,
             request_idx,
@@ -103,8 +109,9 @@ write_dispatcher(
     case PROVIDED:
     case BUF_RING:
     case NORMAL_BUF:
+    case BUF_NO_VAL:
     default:
-        result = uring_write(
+        result = puring_write(
             self->loop->ring,
             request_idx,
             self->fd,

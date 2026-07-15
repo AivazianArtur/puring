@@ -37,11 +37,13 @@ typedef struct BufferPayload {
     BufferMode mode;
 
     int amount;
-    int bgid;
-    BufferIdxRegistry *idx_registry;
-    struct io_uring_buf_ring *buf_ring;
     LinearBuffer *linear;
     VectoredBuffer *vector;
+
+    BufferIdxRegistry *idx_registry;    // FIXED mode only
+    int buf_idx;                        // FIXED mode only
+    int bgid;                           // PROVIDED and BUF_RING modes only
+    struct io_uring_buf_ring *buf_ring; // BUF_RING mode only
 } BufferPayload;
 
 typedef struct BufferMetadata {

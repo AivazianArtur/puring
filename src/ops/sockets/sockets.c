@@ -23,7 +23,7 @@ prep_socket(struct io_uring *ring, int request_idx, int domain, const struct Tim
 }
 
 int
-uring_bind(
+puring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -53,7 +53,7 @@ uring_bind(
 }
 
 int
-uring_connect(
+puring_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -82,7 +82,7 @@ uring_connect(
 }
 
 int
-uring_listen(
+puring_listen(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -110,7 +110,7 @@ uring_listen(
 }
 
 int
-uring_accept(
+puring_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -140,7 +140,7 @@ uring_accept(
 }
 
 int
-uring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params) {
+puring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_close(sqe, sockfd);
@@ -157,7 +157,7 @@ uring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const str
 }
 
 int
-uring_send(
+puring_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -192,7 +192,7 @@ uring_send(
 }
 
 int
-uring_recv(
+puring_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -227,7 +227,7 @@ uring_recv(
 }
 
 int
-uring_sendto(
+puring_sendto(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -259,7 +259,7 @@ uring_sendto(
 }
 
 int
-uring_recvfrom(
+puring_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -307,7 +307,7 @@ uring_recvfrom(
 }
 
 int
-uring_sendmsg(
+puring_sendmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -352,7 +352,7 @@ uring_sendmsg(
 }
 
 int
-uring_recvmsg(
+puring_recvmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -393,7 +393,3 @@ uring_recvmsg(
     }
     return 1;
 }
-
-// TODO
-// io_uring_prep_send_zc
-// io_uring_prep_multishot_accept

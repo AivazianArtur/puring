@@ -211,7 +211,7 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
 
 BufferPayload *
 _get_buffer(void) {
-    ExecutionContext *execution_context = ContextVar_get(NULL);
+    const ExecutionContext *execution_context = ContextVar_get(NULL);
     return execution_context->buffer_payload;
 }
 
@@ -232,6 +232,8 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
     if (!token)
         return NULL;
 
+
+    struct io_uring_buf_ring *buf_ring;
     switch (self->buffer_payload->mode) {
     case FIXED:
         if (init_fixed_mode(
@@ -240,7 +242,7 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
             PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize fixed buffers");
             return NULL;
         };
-        BufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_new(NULL);
+        BufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_new(0);
         if (!buffer_idx_registry)
             return NULL;
 
@@ -251,7 +253,7 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
         if (init_provided_mode(
                 self->loop->ring,
                 self->buffer_payload->linear->buffer,
-                self->buffer_payload->linear->len,
+                (int)self->buffer_payload->linear->len,
                 self->buffer_payload->amount,
                 self->buffer_payload->bgid
             ) < 0) {
@@ -259,15 +261,18 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
             return NULL;
         }
     case BUF_RING:
-        struct io_uring_buf_ring *buf_ring = init_buf_ring_mode(
+        buf_ring = init_buf_ring_mode(
             self->loop->ring,
             self->buffer_payload->linear->buffer,
-            self->buffer_payload->linear->len,
+            (int)self->buffer_payload->linear->len,
             self->buffer_payload->amount,
             self->buffer_payload->bgid
         );
         self->buffer_payload->buf_ring = buf_ring;
+    case BUF_NO_VAL:
+    case NORMAL_BUF:
     default: // do nothing
+        ;
     }
 
     self->token = token;
@@ -276,7 +281,7 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
 }
 
 PyObject *
-BufferModeCtx_exit(BufferModeCtx *self, PyObject *args) {
+BufferModeCtx_exit(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
     int result = ContextVar_reset(self->token);
     Py_CLEAR(self->token);
     if (result < 0) {
@@ -295,7 +300,10 @@ BufferModeCtx_exit(BufferModeCtx *self, PyObject *args) {
             self->loop->ring, self->buffer_payload->buf_ring, self->buffer_payload->amount, self->buffer_payload->bgid
         );
         self->buffer_payload->buf_ring = NULL;
+    case BUF_NO_VAL:
+    case NORMAL_BUF:
     default: // do nothing
+        ;
     }
     Py_RETURN_FALSE;
 }
@@ -328,7 +336,7 @@ StreamStrategyCtx_enter(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored)) {
 }
 
 PyObject *
-StreamStrategyCtx_exit(StreamStrategyCtx *self, PyObject *args) {
+StreamStrategyCtx_exit(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored)) {
     int result = ContextVar_reset(self->token);
     Py_CLEAR(self->token);
     if (result < 0) {
@@ -366,12 +374,13 @@ TransferModeCtx_enter(TransferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
 }
 
 PyObject *
-TransferModeCtx_exit(TransferModeCtx *self, PyObject *args) {
+TransferModeCtx_exit(TransferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
     int result = ContextVar_reset(self->token);
     Py_CLEAR(self->token);
     if (result < 0) {
         PyErr_SetString(PyExc_ValueError, "Error while resetting contextvar");
     }
+    Py_RETURN_FALSE;
 }
 
 void

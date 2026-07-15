@@ -110,7 +110,7 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_bind(self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, timeout_params);
+    int result = puring_bind(self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, timeout_params);
 
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);
@@ -157,7 +157,7 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_connect(
+    int result = puring_connect(
         self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, timeout_params
     );
     free(addr);
@@ -197,7 +197,7 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, self->state, timeout_params);
+    int result = puring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, self->state, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -243,7 +243,7 @@ PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_accept(
+    int result = puring_accept(
         self->loop->ring,
         request_idx,
         self->sock_fd,
@@ -288,7 +288,7 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
+    int result = puring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -331,7 +331,7 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-
+    fprintf(stderr, "HERE?");
     int result = send_dispatcher(self, buffer_payload, request_idx, is_poll_first, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
@@ -433,7 +433,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_sendto(
+    int result = puring_sendto(
         self->loop->ring,
         request_idx,
         self->sock_fd,
@@ -511,7 +511,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_recvfrom(
+    int result = puring_recvfrom(
         self->loop->ring,
         request_idx,
         self->sock_fd,

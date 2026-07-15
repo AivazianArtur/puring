@@ -5,9 +5,11 @@ recv_dispatcher(
     PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
 ) {
     int result;
+    int buf_idx;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buffer_payload->buf_idx = buf_idx;
         result = puring_recv_fixed(
             self->loop->ring,
             request_idx,
@@ -34,8 +36,9 @@ recv_dispatcher(
         );
         break;
     case NORMAL_BUF:
+    case BUF_NO_VAL:
     default:
-        result = uring_recv(
+        result = puring_recv(
             self->loop->ring,
             request_idx,
             self->sock_fd,
@@ -54,9 +57,13 @@ send_dispatcher(
     PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
 ) {
     int result;
+    int buf_idx;
+
+    fprintf(stderr, "INSIDE DISPATCHER");
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buffer_payload->buf_idx = buf_idx;
         result = puring_send_fixed(
             self->loop->ring,
             request_idx,
@@ -72,8 +79,10 @@ send_dispatcher(
     case PROVIDED:
     case BUF_RING:
     case NORMAL_BUF:
+    case BUF_NO_VAL:
     default:
-        result = uring_send(
+        fprintf(stderr, "INSIDE DISPATCHER DEFAULT\n");
+        result = puring_send(
             self->loop->ring,
             request_idx,
             self->sock_fd,
@@ -84,6 +93,8 @@ send_dispatcher(
             timeout_params
         );
     }
+
+    fprintf(stderr, "RESULT %d \n", result);
     return result;
 }
 
@@ -98,9 +109,11 @@ sendmsg_dispatcher(
     TimeoutParams timeout_params
 ) {
     int result;
+    int buf_idx;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buffer_payload->buf_idx = buf_idx;
         result = puring_sendmsg_fixed(
             self->loop->ring,
             request_idx,
@@ -117,8 +130,9 @@ sendmsg_dispatcher(
     case PROVIDED:
     case BUF_RING:
     case NORMAL_BUF:
+    case BUF_NO_VAL:
     default:
-        result = uring_sendmsg(
+        result = puring_sendmsg(
             self->loop->ring,
             request_idx,
             self->sock_fd,
@@ -138,9 +152,11 @@ recvmsg_dispatcher(
     PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
 ) {
     int result;
+    int buf_idx;
     switch (buffer_payload->mode) {
     case FIXED:
-        int buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+        buffer_payload->buf_idx = buf_idx;
         result = puring_recvmsg_fixed(
             self->loop->ring,
             request_idx,
@@ -155,12 +171,19 @@ recvmsg_dispatcher(
     case PROVIDED:
     case BUF_RING:
         result = puring_recvmsg_buffer_select(
-            self->loop->ring, request_idx, self->sock_fd, is_poll_first, self->state, timeout_params
+            self->loop->ring,
+            request_idx,
+            self->sock_fd,
+            is_poll_first,
+            buffer_payload->bgid,
+            self->state,
+            timeout_params
         );
         break;
     case NORMAL_BUF:
+    case BUF_NO_VAL:
     default:
-        result = uring_recvmsg(
+        result = puring_recvmsg(
             self->loop->ring,
             request_idx,
             self->sock_fd,

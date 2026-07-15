@@ -26,7 +26,7 @@ open_file(
 );
 
 int
-uring_read(
+puring_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -37,7 +37,7 @@ uring_read(
 );
 
 int
-uring_readv(
+puring_readv(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -50,7 +50,7 @@ uring_readv(
 );
 
 int
-uring_write(
+puring_write(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -61,7 +61,7 @@ uring_write(
 );
 
 int
-uring_writev(
+puring_writev(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -74,7 +74,7 @@ uring_writev(
 );
 
 int
-uring_close_file(
+puring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -83,7 +83,7 @@ uring_close_file(
 );
 
 int
-uring_fsync(
+puring_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -92,7 +92,7 @@ uring_fsync(
 );
 
 int
-uring_fdatasync(
+puring_fdatasync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -101,7 +101,7 @@ uring_fdatasync(
 );
 
 int
-uring_splice(
+puring_splice(
     struct io_uring *ring,
     int request_idx,
     int fd_in,

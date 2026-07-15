@@ -132,7 +132,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = read_dispatcher(self, buffer_payload, request_idx, size, offset, timeout_params);
+    int result = read_dispatcher(self, buffer_payload, request_idx, (int)size, offset, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -238,7 +238,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_readv(
+    int result = puring_readv(
         self->loop->ring,
         request_idx,
         self->fd,
@@ -338,7 +338,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_writev(
+    int result = puring_writev(
         self->loop->ring,
         request_idx,
         self->fd,
@@ -408,7 +408,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_writev(
+    int result = puring_writev(
         self->loop->ring,
         request_idx,
         self->fd,
@@ -453,7 +453,7 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_close_file(self->loop->ring, request_idx, self->fd, timeout_params);
+    int result = puring_close_file(self->loop->ring, request_idx, self->fd, timeout_params);
 
     return _check_file_result(result, self, request_idx, future);
 }
@@ -488,7 +488,7 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_fsync(self->loop->ring, request_idx, self->fd, timeout_params);
+    int result = puring_fsync(self->loop->ring, request_idx, self->fd, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -522,7 +522,7 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_fdatasync(self->loop->ring, request_idx, self->fd, timeout_params);
+    int result = puring_fdatasync(self->loop->ring, request_idx, self->fd, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -575,7 +575,7 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = uring_splice(
+    int result = puring_splice(
         self->loop->ring, request_idx, src, offset_src, dst, offset_dst, count, flag, timeout_params
     );
     return _check_file_result(result, self, request_idx, future);

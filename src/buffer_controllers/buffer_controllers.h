@@ -46,4 +46,4 @@ int
 get_buffer_idx(BufferIdxRegistry *reg);
 
 int
-buffer_idx_registry_release(BufferIdxRegistry *reg, int index);
+release_buffer_idx(BufferIdxRegistry *reg, int index);

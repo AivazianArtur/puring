@@ -20,12 +20,11 @@
 
 ## v0.4.0 - Buffer features
 - [ ] Implement `Execution Context` layer: `Buffer Mode`, `Transfer Mode` and `Stream Strategy`.
-    - [ ] Implement `Buffer Mode` layer:
-        - [ ] Implement `fixed` buffer mode.
-        - [ ] Implement `provided` and `buffer ring` buffer modes.
+    - [X] Implement `Buffer Mode` layer:
+        - [X] Implement `fixed` buffer mode.
+        - [X] Implement `provided` and `buffer ring` buffer modes.
         - [X] Use Python application buffers as `PuringLoop` buffers - `NORMAL_BUF` buffer mode.
         - [X] Implement modes dispatching.
-        - [ ] Implement a puring-based memory pool for buffers.
     - [ ] Implement `Transfer Mode`:
         - [ ] Zero-copy functionality.
         - [ ] Zero-copy and normal-copy routing.
