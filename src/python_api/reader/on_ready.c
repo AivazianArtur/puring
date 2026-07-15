@@ -42,9 +42,7 @@ on_uring_ready(PuringLoop *self) {
 
                 struct io_uring_sqe *sqe = io_uring_get_sqe(self->ring);
                 if (sqe) {
-                    io_uring_prep_read(
-                        sqe, self->wakeup_fd, &self->wakeup_buf, sizeof(uint64_t), 0
-                    );
+                    io_uring_prep_read(sqe, self->wakeup_fd, &self->wakeup_buf, sizeof(uint64_t), 0);
                     io_uring_sqe_set_data64(sqe, WAKEUP_FD_TAG);
                 }
                 io_uring_cqe_seen(self->ring, cqe);
@@ -53,22 +51,40 @@ on_uring_ready(PuringLoop *self) {
 
             switch (slot->opcode) {
             case IORING_OP_READ:
-                if (slot->buffer && PyBytes_Check(slot->buffer)) {
-                    result = PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->buffer), cqe->res);
+                if (slot->buffer_payload->linear->buffer) {
+                    result = PyBytes_FromStringAndSize(slot->buffer_payload->linear->buffer, cqe->res);
                 }
+                if (slot->buffer_payload->mode == FIXED) {
+                    release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
+                }
+                free_buffer_payload(slot->buffer_payload, false);
                 break;
             case IORING_OP_READV:
-                if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                    result =
-                        PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
+                    result = PyBytes_FromStringAndSize(
+                        PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res
+                    );
+                }
+                free_buffer_payload(slot->buffer_payload, false);
+                break;
+            case IORING_OP_WRITE:
+                if (slot->buffer_payload->payload_origin)
+                    result = PyLong_FromLong(cqe->res);
+
+                if (slot->buffer_payload->mode == FIXED) {
+                    release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
+                }
+                free_buffer_payload(slot->buffer_payload, true);
+                break;
+            case IORING_OP_WRITEV:
+                if (slot->buffer_payload) {
+                    free_buffer_payload(slot->buffer_payload, false);
                 }
                 break;
             case IORING_OP_OPENAT2:
                 if (slot->file) {
                     PuringFile *file = (PuringFile *)slot->file;
                     file->fd = cqe->res;
-                    // TODO: maybe should try to fix return types to return file
-                    // and socket here and below?
                     result = (PyObject *)slot->file;
                 }
                 break;
@@ -118,36 +134,56 @@ on_uring_ready(PuringLoop *self) {
                     conn->loop = slot->socket->loop;
                     conn->state = ACCEPTING;
 
-                    memcpy(
-                        &conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage)
-                    );
+                    memcpy(&conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage));
 
                     free(peer_addr);
-                    slot->buffer = NULL;
+                    slot->buffer_payload = NULL;
 
                     result = (PyObject *)conn;
                 }
                 break;
             case IORING_OP_RECV:
                 if (slot->socket) {
+                    void *buffer = slot->buffer_payload->linear->buffer;
                     if (cqe->res == 0) {
                         result = PyBytes_FromStringAndSize(NULL, 0);
                     } else if (cqe->res > 0) {
-                        result = PyBytes_FromStringAndSize((char *)slot->buffer, cqe->res);
+                        result = PyBytes_FromStringAndSize((char *)buffer, cqe->res);
                     }
-                    PyMem_Free(slot->buffer);
+                    if (slot->buffer_payload->mode == FIXED) {
+                        release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
+                    }
+                    free_buffer_payload(slot->buffer_payload, false);
                 }
                 break;
             case IORING_OP_RECVMSG:
-                if (slot->iovecs_buffer && PyBytes_Check(slot->iovecs_buffer)) {
-                    result =
-                        PyBytes_FromStringAndSize(PyBytes_AS_STRING(slot->iovecs_buffer), cqe->res);
+                if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
+                    result = PyBytes_FromStringAndSize(
+                        PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res
+                    );
                 }
-                PyBuffer_Release(slot->iovecs_buffer);
-                PyMem_Free(slot->buffer);
+                if (slot->buffer_payload->mode == FIXED) {
+                    release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
+                }
+                free_buffer_payload(slot->buffer_payload, false);
+                break;
+            case IORING_OP_SEND:
+                if (slot->buffer_payload) {
+                    free_buffer_payload(slot->buffer_payload, false);
+                }
+                if (slot->buffer_payload->mode == FIXED) {
+                    release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
+                }
+                result = PyLong_FromLong(cqe->res);
                 break;
             case IORING_OP_SENDMSG:
-                PyMem_Free(slot->iovecs_buffer);
+                if (slot->buffer_payload) {
+                    free_buffer_payload(slot->buffer_payload, false);
+                }
+                if (slot->buffer_payload->mode == FIXED) {
+                    release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
+                }
+                result = PyLong_FromLong(cqe->res);
                 break;
             case IORING_OP_CLOSE:
                 if (slot->socket) {

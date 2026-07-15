@@ -81,6 +81,12 @@ PuringLoop_init(
     }
 
     self->loop_tid = gettid();
+    PyObject *contextvar = ContextVar_init();
+    if (!contextvar) {
+        PyErr_SetString(PyExc_RuntimeError, "Failed to register required contextvar");
+        return -1;
+    }
+    self->execution_context_var = contextvar;
     self->initialized = true;
     return 0;
 }
@@ -98,7 +104,6 @@ PuringLoop_dealloc(PuringLoop *self) {
         close(self->wakeup_fd);
         self->wakeup_fd = -1;
     }
-
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -120,6 +125,9 @@ PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored)) {
     graceful_shutdown(self->ring, self->registry);
     self->ring = NULL;
     self->registry = NULL;
+
+    self->execution_context_var = NULL;
+    ContextVar_dealloc();
 
     Py_RETURN_NONE;
 }

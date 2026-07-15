@@ -1,7 +1,7 @@
 #include "files.h"
 
 PyObject *
-PuringLoop_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
+Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_IS_PURING();
     ASSERT_LOOP_THREAD(running_loop);
     ASSERT_RING_LOOP_IS_CLOSING(running_loop);
@@ -23,20 +23,9 @@ PuringLoop_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     int resolve = 0;
     int mode = 0644;
 
-    static const char *kwlist[] = {
-        "path", "dirfd", "flags", "resolve", "mode", "timeout_params", NULL
-    };
+    static const char *kwlist[] = {"path", "dirfd", "flags", "resolve", "mode", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args,
-            kwargs,
-            "O|iKKKO",
-            (char **)kwlist,
-            &py_path_obj,
-            &dfd,
-            &timeout_params_obj,
-            &flags,
-            &resolve,
-            &mode
+            args, kwargs, "O|iKKKO", (char **)kwlist, &py_path_obj, &dfd, &timeout_params_obj, &flags, &resolve, &mode
         )) {
         Py_DECREF(file);
         return NULL;
@@ -65,10 +54,7 @@ PuringLoop_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_OPENAT2;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-    int request_idx =
-        registry_add(running_loop->registry, future, buffer, NULL, opcode, file, NULL, NULL);
+    int request_idx = registry_add(running_loop->registry, future, NULL, opcode, file, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(file);
         Py_DECREF(future);
@@ -76,9 +62,7 @@ PuringLoop_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = open_file(
-        running_loop->ring, request_idx, dfd, path, flags, resolve, (mode_t)mode, &timeout_params
-    );
+    int result = open_file(running_loop->ring, request_idx, dfd, path, flags, resolve, (mode_t)mode, timeout_params);
     if (result == -1) {
         Py_DECREF(file);
         Py_DECREF(future);
@@ -115,12 +99,10 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *timeout_params_obj = NULL;
-    int offset = 0;
+    int offset = -1;
     int size_i = 1024;
     static const char *kwlist[] = {"offset", "size", "timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|iiO", (char **)kwlist, &offset, &size_i, &timeout_params_obj
-        )) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", (char **)kwlist, &offset, &size_i, &timeout_params_obj)) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
@@ -135,32 +117,22 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     Py_ssize_t size = (Py_ssize_t)size_i;
 
-    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
-    if (!buffer) {
+
+    BufferPayload *buffer_payload = get_or_create_linear_buffer(NULL, size_i);
+    if (!buffer_payload) {
         Py_DECREF(future);
         return NULL;
     }
 
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    char *buf = PyBytes_AS_STRING(buffer);
-    if (!buf) {
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
-        return NULL;
-    }
-
-    int result = uring_read(
-        self->loop->ring, request_idx, self->fd, buf, (unsigned)size, offset, &timeout_params
-    );
-
+    int result = read_dispatcher(self, buffer_payload, request_idx, (int)size, offset, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -175,56 +147,41 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *buffers_obj;
     PyObject *timeout_params_obj = NULL;
-    int flags = 0;
-    int offset = 0;
-    static const char *kwlist[] = {"buffers", "offset", "flags", "timeout_params", NULL};
+    int nowait = 0;
+    int offset = -1;
+    static const char *kwlist[] = {"buffers", "offset", "nowait", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args,
-            kwargs,
-            "O|iiO",
-            (char **)kwlist,
-            &buffers_obj,
-            &offset,
-            &flags,
-            &timeout_params_obj
+            args, kwargs, "|OipO", (char **)kwlist, &buffers_obj, &offset, &nowait, &timeout_params_obj
         )) {
         return NULL;
     }
 
-    IovecsResult *iovecs_result = _serialize_iovecs_buffer(buffers_obj);
-    if (iovecs_result) {
-        return NULL;
+    BufferPayload *buffer_payload;
+    buffer_payload = _get_buffer();
+    if (!(buffer_payload && (buffer_payload->mode == PROVIDED || buffer_payload->mode == BUF_RING))) {
+        buffer_payload = get_or_create_vectored_buffer(buffers_obj, 0, 0);
     }
+    if (!buffer_payload)
+        return NULL;
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
     int opcode = IORING_OP_READV;
 
-    int request_idx = registry_add(
-        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, self, NULL, NULL
-    );
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-
-    int result = uring_readv(
-        self->loop->ring,
-        request_idx,
-        self->fd,
-        iovecs_result->iovecs,
-        (unsigned int)(iovecs_result->nr_vecs),
-        offset,
-        flags,
-        &timeout_params
-    );
-
+    int result = readv_dispatcher(self, buffer_payload, request_idx, offset, nowait, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -243,14 +200,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int offset = 0;
     static const char *kwlist[] = {"iovecs", "offset", "flags", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args,
-            kwargs,
-            "w*|iiO",
-            (char **)kwlist,
-            &iovecs_buf,
-            &offset,
-            &flags,
-            &timeout_params_obj
+            args, kwargs, "w*|yiO", (char **)kwlist, &iovecs_buf, &offset, &flags, &timeout_params_obj
         )) {
         return NULL;
     }
@@ -266,35 +216,37 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    struct iovec *iovecs = (struct iovec *)iovecs_buf.buf;
-    unsigned nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
-
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
+    BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(&iovecs_buf);
+    if (!buffer_payload)
+        return NULL;
+
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
     int opcode = IORING_OP_READV;
 
-    int request_idx =
-        registry_add(self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    int result = uring_readv(
+    int result = puring_readv(
         self->loop->ring,
         request_idx,
         self->fd,
-        iovecs,
-        (unsigned)nr_vecs,
+        buffer_payload->vector->iovecs,
+        (unsigned)buffer_payload->vector->nr_vecs,
         offset,
         flags,
-        &timeout_params
+        timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -314,41 +266,31 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"data", "offset", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|iO", (char **)kwlist, &data, &offset, &timeout_params_obj
-        ))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|iO", (char **)kwlist, &data, &offset, &timeout_params_obj))) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
-    if (!future) {
+    if (!future)
+        return NULL;
+
+    BufferPayload *buffer_payload = create_buffer_payload_from_data(data);
+    if (!buffer_payload) {
+        Py_DECREF(future);
         return NULL;
     }
-
     int opcode = IORING_OP_WRITE;
-    int request_idx =
-        registry_add(self->loop->registry, future, data, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    char *buf = PyBytes_AS_STRING(data);
-    if (!buf) {
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
-        return NULL;
-    }
-    Py_ssize_t size = PyBytes_GET_SIZE(data);
-
-    int result = uring_write(
-        self->loop->ring, request_idx, self->fd, buf, (unsigned)size, offset, &timeout_params
-    );
-
+    int result = write_dispatcher(self, buffer_payload, request_idx, offset, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -369,50 +311,42 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args,
-            kwargs,
-            "OO|iiO",
-            (char **)kwlist,
-            &buffers_obj,
-            &flags,
-            &offset,
-            &timeout_params_obj
+            args, kwargs, "O|iiiO", (char **)kwlist, &buffers_obj, &flags, &offset, &timeout_params_obj
         ))) {
         return NULL;
     }
 
-    IovecsResult *iovecs_result = _serialize_iovecs_buffer(buffers_obj);
-    if (iovecs_result) {
+    BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj, 0, 0);
+    if (!buffer_payload)
         return NULL;
-    }
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
 
     int opcode = IORING_OP_WRITEV;
-    int request_idx = registry_add(
-        self->loop->registry, future, NULL, iovecs_result->iovecs_buf, opcode, self, NULL, NULL
-    );
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    int result = uring_writev(
+    int result = puring_writev(
         self->loop->ring,
         request_idx,
         self->fd,
-        iovecs_result->iovecs,
-        (unsigned int)(iovecs_result->nr_vecs),
+        buffer_payload->vector->iovecs,
+        (unsigned int)(buffer_payload->vector->nr_vecs),
         offset,
         flags,
-        &timeout_params
+        timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -435,14 +369,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args,
-            kwargs,
-            "Oy|iiO",
-            (char **)kwlist,
-            &iovecs_buf,
-            &flags,
-            &offset,
-            &timeout_params_obj
+            args, kwargs, "Oy|iiO", (char **)kwlist, &iovecs_buf, &flags, &offset, &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -459,35 +386,37 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    struct iovec *iovecs = (struct iovec *)iovecs_buf.buf;
-    unsigned nr_vecs = (unsigned int)(iovecs_buf.len) / sizeof(struct iovec);
+    BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(&iovecs_buf);
+    if (!buffer_payload)
+        return NULL;
 
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
+        free_buffer_payload(buffer_payload, false);
         return NULL;
     }
 
     int opcode = IORING_OP_WRITEV;
-    int request_idx =
-        registry_add(self->loop->registry, future, NULL, &iovecs_buf, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
+        free_buffer_payload(buffer_payload, false);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    int result = uring_writev(
+    int result = puring_writev(
         self->loop->ring,
         request_idx,
         self->fd,
-        iovecs,
-        (unsigned)nr_vecs,
+        buffer_payload->vector->iovecs,
+        (unsigned)buffer_payload->vector->nr_vecs,
         offset,
         flags,
-        &timeout_params
+        timeout_params
     );
 
     return _check_file_result(result, self, request_idx, future);
@@ -517,29 +446,14 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_CLOSE;
 
-    Py_ssize_t size = 1024;
-
-    PyObject *buffer = PyBytes_FromStringAndSize(NULL, size);
-    if (!buffer) {
-        Py_DECREF(future);
-        return PyErr_NoMemory();
-    }
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    const char *buf = PyBytes_AS_STRING(buffer);
-    if (!buf) {
-        Py_DECREF(future);
-        registry_remove(self->loop->registry, request_idx);
-        PyErr_SetString(PyExc_TypeError, "Data in buffer is not byte objects");
-        return NULL;
-    }
-    int result = uring_close_file(self->loop->ring, request_idx, self->fd, &timeout_params);
+    int result = puring_close_file(self->loop->ring, request_idx, self->fd, timeout_params);
 
     return _check_file_result(result, self, request_idx, future);
 }
@@ -567,17 +481,14 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_FSYNC;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    int result = uring_fsync(self->loop->ring, request_idx, self->fd, &timeout_params);
+    int result = puring_fsync(self->loop->ring, request_idx, self->fd, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -604,17 +515,14 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_FSYNC;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    int result = uring_fdatasync(self->loop->ring, request_idx, self->fd, &timeout_params);
+    int result = puring_fdatasync(self->loop->ring, request_idx, self->fd, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
@@ -635,9 +543,7 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs) {
     int flag = 0;
 
     PyObject *timeout_params_obj = NULL;
-    static const char *kwlist[] = {
-        "src", "dst", "count", "offset_src", "offset_dst", "flag", "timeout_params", NULL
-    };
+    static const char *kwlist[] = {"src", "dst", "count", "offset_src", "offset_dst", "flag", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
             args,
             kwargs,
@@ -662,26 +568,15 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_SPLICE;
-    // For now whoile puring without buffer, we'll do it in next v.
-    PyObject *buffer = NULL;
-    int request_idx =
-        registry_add(self->loop->registry, future, buffer, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
 
-    int result = uring_splice(
-        self->loop->ring,
-        request_idx,
-        src,
-        offset_src,
-        dst,
-        offset_dst,
-        count,
-        flag,
-        &timeout_params
+    int result = puring_splice(
+        self->loop->ring, request_idx, src, offset_src, dst, offset_dst, count, flag, timeout_params
     );
     return _check_file_result(result, self, request_idx, future);
 }

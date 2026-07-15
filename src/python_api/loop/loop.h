@@ -1,6 +1,12 @@
 #pragma once
 #define PY_SSIZE_T_CLEAN
 
+#include <Python.h>
+#include <liburing.h>
+#include <stdbool.h>
+#include <sys/eventfd.h>
+#include <sys/types.h>
+#include "execution_context.h"
 #include "python_api/ops/files/files.h"
 #include "python_api/ops/sockets/sockets.h"
 #include "python_macroses.h"
@@ -8,11 +14,6 @@
 #include "registry/registry.h"
 #include "ring/ring.h"
 #include "signals/signals.h"
-#include <Python.h>
-#include <liburing.h>
-#include <stdbool.h>
-#include <sys/eventfd.h>
-#include <sys/types.h>
 
 extern PyTypeObject *PuringLoopType;
 
@@ -29,6 +30,8 @@ typedef struct PuringLoop {
 
     PyObject *readers;
     PyObject *writers;
+
+    PyObject *execution_context_var;
 
     bool initialized;
 } PuringLoop;

@@ -22,24 +22,46 @@ open_file(
     int flags,
     int resolve,
     mode_t mode,
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
-uring_read(
+puring_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
     char *buf,
     unsigned size,
     int offset,
-
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
-uring_readv(
+puring_readv(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    struct iovec *iovecs,
+    unsigned nr_vecs,
+    int offset,
+    int nowait,
+
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_write(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    char *buf,
+    unsigned size,
+    int offset,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_writev(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -48,67 +70,38 @@ uring_readv(
     int offset,
     int flags,
 
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
-uring_write(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    char *buf,
-    unsigned size,
-    int offset,
-    // Below are optional
-    const struct TimeoutParams *timeout_params
-);
-
-int
-uring_writev(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    struct iovec *iovecs,
-    unsigned nr_vecs,
-    int offset,
-    int flags,
-
-    // Below are optional
-    const struct TimeoutParams *timeout_params
-);
-
-int
-uring_close_file(
+puring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
-uring_fsync(
+puring_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
-uring_fdatasync(
+puring_fdatasync(
     struct io_uring *ring,
     int request_idx,
     int fd,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
 );
 
 int
-uring_splice(
+puring_splice(
     struct io_uring *ring,
     int request_idx,
     int fd_in,
@@ -118,6 +111,52 @@ uring_splice(
     int nbytes,
     int flag,
 
-    // Below are optional
-    const struct TimeoutParams *timeout_params
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_read_fixed(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    char *buf,
+    unsigned size,
+    int offset,
+    int buf_index,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_write_fixed(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    char *buf,
+    unsigned size,
+    int offset,
+    int buf_index,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_read_buffer_select(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    unsigned size,
+    int offset,
+    int bgid,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_readv_buffer_select(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    unsigned size,
+    int offset,
+    int bgid,
+    int nowait,
+    const struct TimeoutParams timeout_params
 );

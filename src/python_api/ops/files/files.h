@@ -7,15 +7,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <linux/openat2.h>
 
 #include <liburing.h>
 
 #include "ops/files/files.h"
 #include "registry/registry.h"
 #include "timer/timer.h"
-#include <linux/openat2.h>
+#include "buffer_controllers/buffer_controllers.h"
 
-#include "python_api/buffers/buffers.h"
 #include "python_api/future/future.h"
 #include "python_api/loop/loop.h"
 #include "python_api/timer/timer.h"
@@ -33,7 +33,7 @@ typedef struct PuringFile {
 } PuringFile;
 
 PyObject *
-PuringLoop_open(PyObject *module, PyObject *args, PyObject *kwargs);
+Puring_open(PyObject *module, PyObject *args, PyObject *kwargs);
 
 void
 PuringFile_dealloc(PuringFile *self);
@@ -77,3 +77,25 @@ PyObject *
 create_statx_flags_enum(void);
 PyObject *
 create_statx_mask_enum(void);
+PyObject *
+create_transfer_mode_enum(void);
+
+int
+read_dispatcher(
+    PuringFile *self, BufferPayload *buffer_payload, int request_idx, int size, int offset, TimeoutParams timeout_params
+);
+
+int
+readv_dispatcher(
+    PuringFile *self,
+    BufferPayload *buffer_payload,
+    int request_idx,
+    int offset,
+    int nowait,
+    TimeoutParams timeout_params
+);
+
+int
+write_dispatcher(
+    PuringFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
+);

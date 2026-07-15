@@ -10,11 +10,11 @@
 
 #include "macroses.h"
 #include "ops/sockets/sockets.h"
-#include "python_api/buffers/buffers.h"
+#include "registry/registry.h"
+#include "buffer_controllers/buffer_controllers.h"
 #include "python_api/future/future.h"
 #include "python_api/loop/loop.h"
 #include "python_macroses.h"
-#include "registry/registry.h"
 
 extern PyTypeObject *PuringLoopType;
 extern PyTypeObject PuringSocketType;
@@ -31,7 +31,7 @@ typedef struct PuringSocket {
 } PuringSocket;
 
 PyObject *
-PuringLoop_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
+Puring_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
 
 void
 PuringSocket_dealloc(PuringSocket *self);
@@ -75,3 +75,32 @@ struct sockaddr *
 _serialize_address(const char *host, int port, int domain);
 socklen_t
 _get_socket_size(int domain);
+
+
+int
+recv_dispatcher(
+    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+);
+
+int
+send_dispatcher(
+    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+);
+
+
+int
+sendmsg_dispatcher(
+    PuringSocket *self,
+    BufferPayload *buffer_payload,
+    int offset,
+    const struct sockaddr *addr,
+    size_t addrlen,
+    int is_poll_first,
+    TimeoutParams timeout_params
+);
+
+
+int
+recvmsg_dispatcher(
+    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+);
