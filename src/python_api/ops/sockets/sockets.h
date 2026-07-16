@@ -84,7 +84,12 @@ recv_dispatcher(
 
 int
 send_dispatcher(
-    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+    PuringSocket *self,
+    BufferPayload *buffer_payload,
+    TransferMode transfer_mode,
+    int request_idx,
+    int is_poll_first,
+    TimeoutParams timeout_params
 );
 
 
@@ -92,6 +97,7 @@ int
 sendmsg_dispatcher(
     PuringSocket *self,
     BufferPayload *buffer_payload,
+    TransferMode transfer_mode,
     int offset,
     const struct sockaddr *addr,
     size_t addrlen,

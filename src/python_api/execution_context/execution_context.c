@@ -84,22 +84,15 @@ PuringLoop_transfer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
-    char mode = NORMAL_TRANSFER;
+    TransferMode transfer_mode = NORMAL_TRANSFER;
     static const char *kwlist[] = {"mode", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s", (char **)kwlist, &mode)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char **)kwlist, &transfer_mode)) {
         return NULL;
     }
 
-    TransferMode transfer_mode;
-    switch (mode) {
+    switch (transfer_mode) {
     case NORMAL_TRANSFER:
-        transfer_mode = NORMAL_TRANSFER;
-        break;
     case ZERO_COPY:
-        transfer_mode = ZERO_COPY;
-        break;
-    case BUFFER_POOL:
-        transfer_mode = BUFFER_POOL;
         break;
     default:
         PyErr_SetString(PyExc_ValueError, "Wrong value for transfer mode");
@@ -181,9 +174,6 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     case ZERO_COPY:
         transfer_mode_val = ZERO_COPY;
         break;
-    case BUFFER_POOL:
-        transfer_mode_val = BUFFER_POOL;
-        break;
     default:
         PyErr_SetString(PyExc_ValueError, "Wrong value for transfer mode");
         return NULL;
@@ -213,6 +203,12 @@ BufferPayload *
 _get_buffer(void) {
     const ExecutionContext *execution_context = ContextVar_get(NULL);
     return execution_context->buffer_payload;
+}
+
+TransferMode
+get_transfer_mode(void) {
+    const ExecutionContext *execution_context = ContextVar_get(NULL);
+    return execution_context->transfer_mode;
 }
 
 BufferModeCtx *
@@ -379,6 +375,7 @@ TransferModeCtx_exit(TransferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
     Py_CLEAR(self->token);
     if (result < 0) {
         PyErr_SetString(PyExc_ValueError, "Error while resetting contextvar");
+        return NULL;
     }
     Py_RETURN_FALSE;
 }
@@ -417,11 +414,8 @@ BufferMode
 _validate_buffer_mode(BufferMode mode) {
     switch (mode) {
     case NORMAL_BUF:
-        return mode;
     case FIXED:
-        return mode;
     case PROVIDED:
-        return mode;
     case BUF_RING:
         return mode;
     case BUF_NO_VAL:

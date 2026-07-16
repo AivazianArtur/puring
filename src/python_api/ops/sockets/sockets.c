@@ -317,6 +317,8 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     if (!buffer_payload)
         return NULL;
 
+    TransferMode transfer_mode = get_transfer_mode();
+
     PyObject *future = create_future(self->loop);
     if (!future) {
         free_buffer_payload(buffer_payload, false);
@@ -331,8 +333,7 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-    fprintf(stderr, "HERE?");
-    int result = send_dispatcher(self, buffer_payload, request_idx, is_poll_first, timeout_params);
+    int result = send_dispatcher(self, buffer_payload, transfer_mode, request_idx, is_poll_first, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -566,6 +567,8 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     if (!buffer_payload)
         return NULL;
 
+    TransferMode transfer_mode = get_transfer_mode();
+
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
@@ -585,7 +588,9 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-    int result = sendmsg_dispatcher(self, buffer_payload, request_idx, addr, addrlen, is_poll_first, timeout_params);
+    int result = sendmsg_dispatcher(
+        self, buffer_payload, transfer_mode, request_idx, addr, addrlen, is_poll_first, timeout_params
+    );
 
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);

@@ -21,7 +21,7 @@ typedef struct PuringLoop PuringLoop;
 
 typedef enum StreamStrategy { ONESHOT, MULTISHOT } StreamStrategy;
 
-typedef enum TransferMode { NORMAL_TRANSFER, ZERO_COPY, BUFFER_POOL } TransferMode;
+typedef enum TransferMode { NORMAL_TRANSFER, ZERO_COPY } TransferMode;
 
 typedef struct ExecutionContext {
     PyObject_HEAD BufferMode buffer_mode;
@@ -79,6 +79,9 @@ create_transfer_mode_enum(void);
 
 BufferPayload *
 _get_buffer(void);
+
+TransferMode
+get_transfer_mode(void);
 
 BufferModeCtx *
 BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored));
