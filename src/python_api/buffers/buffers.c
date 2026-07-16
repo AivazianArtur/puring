@@ -168,12 +168,6 @@ create_buffer_payload_from_data(PyObject *data) {
     buffer_payload->amount = 1;
     buffer_payload->linear = buffer;
 
-    const BufferPayload *current_buffer_payload = _get_buffer();
-    if (current_buffer_payload && current_buffer_payload->mode == FIXED) {
-        buffer_payload->mode = FIXED;
-    } else {
-        buffer_payload->mode = NORMAL_BUF;
-    }
     buffer_payload->payload_origin = PAYLOAD_RUNTIME;
 
     return buffer_payload;
@@ -232,12 +226,6 @@ get_or_create_vectored_buffer(PyObject *buffers_obj, int len, int bufsize) {
     create_linear_buffers(1, (int)vectored_buffers->nr_vecs, buffer_payload);
     buffer_payload->amount = (int)vectored_buffers->nr_vecs;
 
-    const BufferPayload *current_buffer_payload = _get_buffer();
-    if (current_buffer_payload && current_buffer_payload->mode == FIXED) {
-        buffer_payload->mode = FIXED;
-    } else {
-        buffer_payload->mode = NORMAL_BUF;
-    }
     buffer_payload->payload_origin = payload_origin;
     buffer_payload->payload_type = PAYLOAD_IOVEC;
     return buffer_payload;

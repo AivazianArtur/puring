@@ -25,7 +25,7 @@
         - [X] Implement `provided` and `buffer ring` buffer modes.
         - [X] Use Python application buffers as `PuringLoop` buffers - `NORMAL_BUF` buffer mode.
         - [X] Implement modes dispatching.
-    - [ ] Implement `Transfer Mode`:
+    - [X] Implement `Transfer Mode`:
         - [X] Zero-copy functionality.
         - [X] Zero-copy and normal-copy routing.
     - [ ] Implement `Stream Strategy` layer:
