@@ -124,6 +124,8 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
+    StreamStrategy stream_strategy = get_stream_strategy();
+
     int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -132,7 +134,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = read_dispatcher(self, buffer_payload, request_idx, (int)size, offset, timeout_params);
+    int result = read_dispatcher(self, buffer_payload, stream_strategy, request_idx, (int)size, offset, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 

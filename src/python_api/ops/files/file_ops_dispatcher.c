@@ -2,7 +2,13 @@
 
 int
 read_dispatcher(
-    PuringFile *self, BufferPayload *buffer_payload, int request_idx, int size, int offset, TimeoutParams timeout_params
+    PuringFile *self,
+    BufferPayload *buffer_payload,
+    StreamStrategy stream,
+    int request_idx,
+    int size,
+    int offset,
+    TimeoutParams timeout_params
 ) {
     int result;
     int buf_idx;
@@ -23,9 +29,15 @@ read_dispatcher(
         break;
     case PROVIDED:
     case BUF_RING:
-        result = puring_read_buffer_select(
-            self->loop->ring, request_idx, self->fd, (unsigned)size, offset, buffer_payload->bgid, timeout_params
-        );
+        if (stream == MULTISHOT) {
+            result = puring_read_multishot(
+                self->loop->ring, request_idx, self->fd, size, offset, buffer_payload->bgid, timeout_params
+            );
+        } else {
+            result = puring_read_buffer_select(
+                self->loop->ring, request_idx, self->fd, (unsigned)size, offset, buffer_payload->bgid, timeout_params
+            );
+        }
         break;
     case NORMAL_BUF:
     case BUF_NO_VAL:

@@ -83,6 +83,9 @@ _get_buffer(void);
 TransferMode
 get_transfer_mode(void);
 
+StreamStrategy
+get_stream_strategy(void);
+
 BufferModeCtx *
 BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored));
 

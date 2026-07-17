@@ -206,12 +206,11 @@ puring_recv_buffer_select(
     int request_idx,
     int sockfd,
     size_t len,
-    int is_poll_first,
     int bgid,
+    int is_poll_first,
     SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
-
 
 int
 puring_recvmsg_buffer_select(
@@ -220,6 +219,41 @@ puring_recvmsg_buffer_select(
     int sockfd,
     int is_poll_first,
     int bgid,
+    SOCKET_STATES state,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_accept_multishot(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct sockaddr *addr,
+    socklen_t *len,
+    int flags,
+    SOCKET_STATES state,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_recv_multishot(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    size_t len,
+    int bgid,
+    int is_poll_first,
+    SOCKET_STATES state,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_recvmsg_multishot(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    int bgid,
+    int is_poll_first,
     SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );

@@ -79,7 +79,22 @@ _get_socket_size(int domain);
 
 int
 recv_dispatcher(
-    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+    PuringSocket *self,
+    BufferPayload *buffer_payload,
+    StreamStrategy stream_strategy,
+    int request_idx,
+    int is_poll_first,
+    TimeoutParams timeout_params
+);
+
+int
+recvmsg_dispatcher(
+    PuringSocket *self,
+    BufferPayload *buffer_payload,
+    StreamStrategy stream_strategy,
+    int request_idx,
+    int is_poll_first,
+    TimeoutParams timeout_params
 );
 
 int
@@ -107,6 +122,11 @@ sendmsg_dispatcher(
 
 
 int
-recvmsg_dispatcher(
-    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+accept_dispatcher(
+    PuringSocket *self,
+    StreamStrategy stream_strategy,
+    int request_idx,
+    struct sockaddr *addr,
+    socklen_t *len,
+    TimeoutParams timeout_params
 );

@@ -50,19 +50,15 @@ PuringLoop_stream_strategy(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
-    char stream = ONESHOT;
+    StreamStrategy stream = ONESHOT;
     static const char *kwlist[] = {"stream", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|s", (char **)kwlist, &stream)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", (char **)kwlist, &stream)) {
         return NULL;
     }
 
-    StreamStrategy stream_strategy;
     switch (stream) {
     case ONESHOT:
-        stream_strategy = ONESHOT;
-        break;
     case MULTISHOT:
-        stream_strategy = MULTISHOT;
         break;
     default:
         PyErr_SetString(PyExc_ValueError, "Wrong value for stream strategy");
@@ -75,7 +71,7 @@ PuringLoop_stream_strategy(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     stream_strategy_ctx->loop = self;
-    stream_strategy_ctx->payload = stream_strategy;
+    stream_strategy_ctx->payload = stream;
     return stream_strategy_ctx;
 }
 
@@ -209,6 +205,12 @@ TransferMode
 get_transfer_mode(void) {
     const ExecutionContext *execution_context = ContextVar_get(NULL);
     return execution_context->transfer_mode;
+}
+
+StreamStrategy
+get_stream_strategy(void) {
+    const ExecutionContext *execution_context = ContextVar_get(NULL);
+    return execution_context->stream;
 }
 
 BufferModeCtx *
