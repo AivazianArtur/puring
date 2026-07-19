@@ -165,6 +165,32 @@ on_uring_ready(PuringLoop *self) {
                 if (slot->buffer_payload->mode == FIXED) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
+                if (slot->stream_strategy == MULTISHOT) {
+                    unsigned bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
+                    void *buf = (char *)slot->buffer_payload->linear->buffer +
+                                (bid * slot->buffer_payload->linear->len);
+                    RecvMsgMultishotResult out = puring_recvmsg_validate_multishot(
+                        buf, cqe->res, slot->msghdr, cqe->res
+                    );
+                    if (out.is_null == true) {
+                        PyErr_SetString(PyExc_RuntimeError, "Operation result is not valid.");
+                        PyErr_Print();
+                    }
+                    if (is_puring_recvmsg_multishot_resubmit_required(cqe)) {
+                        TimeoutParams timeout_params = {0};
+                        puring_recvmsg_multishot(
+                            slot->socket->loop->ring,
+                            index,
+                            slot->socket->sock_fd,
+                            slot->buffer_payload->bgid,
+                            0,
+                            slot->msghdr,
+                            timeout_params
+                        );
+                    }
+                    result = PyBytes_FromStringAndSize(out.payload, (Py_ssize_t)out.payload_len);
+                    break;
+                }
                 free_buffer_payload(slot->buffer_payload, false);
                 break;
             case IORING_OP_SEND:

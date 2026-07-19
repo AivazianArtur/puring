@@ -76,24 +76,16 @@ puring_recvmsg_multishot(
     int sockfd,
     int bgid,
     int is_poll_first,
-    SOCKET_STATES state,
+    struct msghdr *msghdr,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-
-    if (!(state == CONNECTED || state == ACCEPTING)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED`or `ACCEPTING`.\n");
-        return -2;
-    }
-
-    struct msghdr msg;
-    memset(&msg, 0, sizeof(msg));
 
     int flags = 0;
     if (is_poll_first)
         flags |= IORING_RECVSEND_POLL_FIRST;
 
-    io_uring_prep_recvmsg_multishot(sqe, sockfd, &msg, (unsigned)flags);
+    io_uring_prep_recvmsg_multishot(sqe, sockfd, msghdr, (unsigned)flags);
 
     sqe->buf_group = (__u16)bgid;
     sqe->flags |= IOSQE_BUFFER_SELECT;
@@ -108,4 +100,23 @@ puring_recvmsg_multishot(
     }
 
     return 1;
+}
+
+RecvMsgMultishotResult
+puring_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len) {
+    RecvMsgMultishotResult result = {NULL, 0, true};
+
+    struct io_uring_recvmsg_out *out = io_uring_recvmsg_validate(buf, buf_len, msghdr);
+    if (!out)
+        return result;
+
+    result.payload = io_uring_recvmsg_payload(out, msghdr);
+    result.payload_len = io_uring_recvmsg_payload_length(out, len, msghdr);
+    result.is_null = false;
+    return result;
+}
+
+bool
+is_puring_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe) {
+    return !(cqe->flags & IORING_CQE_F_MORE);
 }

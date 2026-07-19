@@ -69,10 +69,12 @@ registry_add(
     RequestRegistry *reg,
     PyObject *future,
     BufferPayload *buffer_payload,
+    StreamStrategy stream_strategy,
     int opcode,
     PuringFile *file,
     PuringSocket *socket,
-    struct sockaddr_storage *sockaddr
+    struct sockaddr_storage *sockaddr,
+    struct msghdr *msghdr
 ) {
     if (reg->top < 0) {
         return -1;
@@ -95,13 +97,16 @@ registry_add(
 
     slot->socket = socket;
     slot->file = file;
-
-    if (socket != NULL)
+    if (socket != NULL) {
         Py_INCREF(socket);
-    if (file != NULL)
+    }
+    if (file != NULL) {
         Py_INCREF(file);
+    }
 
     slot->addr = sockaddr;
+    slot->stream_strategy = stream_strategy;
+    slot->msghdr = msghdr;
 
     return index;
 }
@@ -132,6 +137,8 @@ registry_remove(RequestRegistry *reg, int index) {
         slot->buffer_payload = NULL;
     }
 
+    free(slot->msghdr);
+    slot->msghdr = NULL;
     if (slot->opcode) {
         slot->opcode = 0;
     }

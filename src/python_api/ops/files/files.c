@@ -54,7 +54,7 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_OPENAT2;
-    int request_idx = registry_add(running_loop->registry, future, NULL, opcode, file, NULL, NULL);
+    int request_idx = registry_add(running_loop->registry, future, NULL, ONESHOT, opcode, file, NULL, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(file);
         Py_DECREF(future);
@@ -126,7 +126,9 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     StreamStrategy stream_strategy = get_stream_strategy();
 
-    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer_payload, stream_strategy, opcode, self, NULL, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         free_buffer_payload(buffer_payload, false);
@@ -176,7 +178,9 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
     int opcode = IORING_OP_READV;
 
-    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer_payload, ONESHOT, opcode, self, NULL, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         free_buffer_payload(buffer_payload, false);
@@ -232,7 +236,9 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
     int opcode = IORING_OP_READV;
 
-    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer_payload, ONESHOT, opcode, self, NULL, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         free_buffer_payload(buffer_payload, false);
@@ -284,7 +290,9 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     int opcode = IORING_OP_WRITE;
-    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer_payload, ONESHOT, opcode, self, NULL, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         free_buffer_payload(buffer_payload, false);
@@ -332,7 +340,9 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_WRITEV;
-    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer_payload, ONESHOT, opcode, self, NULL, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         free_buffer_payload(buffer_payload, false);
@@ -402,7 +412,9 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_WRITEV;
-    int request_idx = registry_add(self->loop->registry, future, buffer_payload, opcode, self, NULL, NULL);
+    int request_idx = registry_add(
+        self->loop->registry, future, buffer_payload, ONESHOT, opcode, self, NULL, NULL, NULL
+    );
     if (request_idx < 0) {
         Py_DECREF(future);
         free_buffer_payload(buffer_payload, false);
@@ -448,7 +460,7 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_CLOSE;
 
-    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, ONESHOT, opcode, self, NULL, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -483,7 +495,7 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_FSYNC;
-    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, ONESHOT, opcode, self, NULL, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -517,7 +529,7 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_FSYNC;
-    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, ONESHOT, opcode, self, NULL, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
@@ -570,7 +582,7 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     int opcode = IORING_OP_SPLICE;
-    int request_idx = registry_add(self->loop->registry, future, NULL, opcode, self, NULL, NULL);
+    int request_idx = registry_add(self->loop->registry, future, NULL, ONESHOT, opcode, self, NULL, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");

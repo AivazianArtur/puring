@@ -12,6 +12,12 @@
 #include "macroses.h"
 #include "timer/timer.h"
 
+typedef struct RecvMsgMultishotResult {
+    void *payload;
+    size_t payload_len;
+    bool is_null;
+} RecvMsgMultishotResult;
+
 int
 prep_socket(struct io_uring *ring, int request_idx, int domain, const struct TimeoutParams timeout_params);
 
@@ -254,6 +260,12 @@ puring_recvmsg_multishot(
     int sockfd,
     int bgid,
     int is_poll_first,
-    SOCKET_STATES state,
+    struct msghdr *msghdr,
     const struct TimeoutParams timeout_params
 );
+
+RecvMsgMultishotResult
+puring_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len);
+
+bool
+is_puring_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe);

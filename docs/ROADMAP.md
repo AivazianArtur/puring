@@ -25,12 +25,13 @@
         - [X] Implement `provided` and `buffer ring` buffer modes.
         - [X] Use Python application buffers as `PuringLoop` buffers - `NORMAL_BUF` buffer mode.
         - [X] Implement modes dispatching.
+        - [ ] Implement a memory pool for buffer creation.
     - [X] Implement `Transfer Mode`:
         - [X] Zero-copy functionality.
         - [X] Zero-copy and normal-copy routing.
     - [ ] Implement `Stream Strategy` layer:
         - [ ] Multishot functionality.
-        - [ ] Multishot and one-shot(normal) routing.
+        - [X] Multishot and one-shot(normal) routing.
 - [ ] Implement `ContextManager` protocol for Files and Sockets.
 - [ ] Use `errno` in error handling.
 - [ ] Add tests for whole library:

@@ -94,6 +94,7 @@ recvmsg_dispatcher(
     StreamStrategy stream_strategy,
     int request_idx,
     int is_poll_first,
+    struct msghdr *msghdr,
     TimeoutParams timeout_params
 );
 

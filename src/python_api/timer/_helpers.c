@@ -1,7 +1,7 @@
 #include "python_api/timer/timer.h"
 
 int
-parse_timer_params(PyObject *obj, TimerParams *out) {
+parse_timer_params(PyObject *obj, TimerParams *out, StreamStrategy stream_strategy) {
     if (!obj || obj == Py_None) {
         return -1;
     }
@@ -23,9 +23,13 @@ parse_timer_params(PyObject *obj, TimerParams *out) {
         out->count = (int)PyLong_AsLong(count_obj);
 
         if (is_multishot_obj && PyBool_Check(is_multishot_obj)) {
-            out->is_multishot = PyObject_IsTrue(is_multishot_obj);
+            if (stream_strategy == MULTISHOT) {
+                out->is_multishot = PyObject_IsTrue(is_multishot_obj);
+            } else {
+                out->is_multishot = false;
+            }
         } else {
-            out->is_multishot = NULL;
+            out->is_multishot = false;
         }
         return 1;
     }

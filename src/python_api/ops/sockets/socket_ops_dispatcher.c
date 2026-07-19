@@ -119,6 +119,7 @@ recvmsg_dispatcher(
     StreamStrategy stream_strategy,
     int request_idx,
     int is_poll_first,
+    struct msghdr *msghdr,
     TimeoutParams timeout_params
 ) {
     int result;
@@ -147,7 +148,7 @@ recvmsg_dispatcher(
                 self->sock_fd,
                 buffer_payload->bgid,
                 is_poll_first,
-                self->state,
+                msghdr,
                 timeout_params
             );
         } else {

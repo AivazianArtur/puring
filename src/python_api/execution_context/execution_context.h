@@ -9,7 +9,7 @@
 #include "python_macroses.h"
 #include "buffer_controllers/buffer_controllers.h"
 #include "python_api/buffers/buffers.h"
-
+#include "python_api/execution_context/execution_context_enums.h"
 
 extern PyTypeObject PuringBufferModeCtxType;
 extern PyTypeObject PuringStreamStrategyCtxType;
@@ -18,10 +18,6 @@ extern PyTypeObject PuringExecutionContextCtxType;
 
 
 typedef struct PuringLoop PuringLoop;
-
-typedef enum StreamStrategy { ONESHOT, MULTISHOT } StreamStrategy;
-
-typedef enum TransferMode { NORMAL_TRANSFER, ZERO_COPY } TransferMode;
 
 typedef struct ExecutionContext {
     PyObject_HEAD BufferMode buffer_mode;
