@@ -144,10 +144,10 @@ on_uring_ready(PuringLoop *self) {
                 break;
             case IORING_OP_RECV:
                 if (slot->socket) {
-                    void *buffer = slot->buffer_payload->linear->buffer;
                     if (cqe->res == 0) {
                         result = PyBytes_FromStringAndSize(NULL, 0);
                     } else if (cqe->res > 0) {
+                        void *buffer = slot->buffer_payload->linear->buffer;
                         result = PyBytes_FromStringAndSize((char *)buffer, cqe->res);
                     }
                     if (slot->buffer_payload->mode == FIXED) {

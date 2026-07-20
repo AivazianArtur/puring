@@ -91,46 +91,194 @@ PuringLoop_init(
     return 0;
 }
 
-void
-PuringLoop_dealloc(PuringLoop *self) {
+int
+PuringLoop_traverse(PuringLoop *self, visitproc visit, void *arg) {
+    fprintf(stderr, "TRAV self=%p readers=%p writers=%p ctx=%p\n",
+            self,
+            self->readers,
+            self->writers,
+            self->execution_context_var);
+    Py_VISIT(self->readers);
+    Py_VISIT(self->writers);
+    Py_VISIT(self->execution_context_var);
+
+    if (PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_MANAGED_DICT)) {
+        PyObject_VisitManagedDict((PyObject *)self, visit, arg);
+    } else {
+        PyObject **dictptr = _PyObject_GetDictPtr((PyObject *)self);
+        if (dictptr && *dictptr)
+            Py_VISIT(*dictptr);
+    }
+
+    Py_VISIT(Py_TYPE(self));
+    return 0;
+}
+
+int
+PuringLoop_clear(PuringLoop *self) {
+    fprintf(stderr, "INSIDE CLEAR");
     Py_CLEAR(self->readers);
     Py_CLEAR(self->writers);
+    Py_CLEAR(self->execution_context_var);
 
-    if (self->registry) {
-        registry_destroy(self->registry);
+    if (PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_MANAGED_DICT)) {
+        PyObject_ClearManagedDict((PyObject *)self);
+    } else {
+        PyObject **dictptr = _PyObject_GetDictPtr((PyObject *)self);
+        if (dictptr && *dictptr)
+            Py_CLEAR(*dictptr);
     }
+
+    return 0;
+}
+
+void
+PuringLoop_dealloc(PuringLoop *self)
+{
+    fprintf(stderr, "DeALLOC\n");
+
+    PyTypeObject *tp = Py_TYPE(self);
+    PyObject_GC_UnTrack(self);
+
+    PuringLoop_clear(self);
 
     if (self->wakeup_fd >= 0) {
         close(self->wakeup_fd);
         self->wakeup_fd = -1;
     }
-    Py_TYPE(self)->tp_free((PyObject *)self);
+
+    if (self->ring) {
+        free(self->ring);
+        self->ring = NULL;
+    }
+
+    if (self->registry) {
+        registry_destroy(self->registry);
+        self->registry = NULL;
+    }
+
+    freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+    free_func(self);
+    Py_DECREF(tp);
+}
+
+static void
+debug_print_referrers(PyObject *obj, const char *label) {
+    PyObject *gc_module = PyImport_ImportModule("gc");
+    if (!gc_module) {
+        fprintf(stderr, "[%s] failed to import gc\n", label);
+        PyErr_Clear();
+        return;
+    }
+
+    PyObject *referrers = PyObject_CallMethod(gc_module, "get_referrers", "O", obj);
+    Py_DECREF(gc_module);
+    if (!referrers) {
+        fprintf(stderr, "[%s] get_referrers failed\n", label);
+        PyErr_Clear();
+        return;
+    }
+
+    Py_ssize_t n = PyList_Size(referrers);
+    fprintf(stderr, "[%s] refcount=%ld referrers_count=%ld\n", label, Py_REFCNT(obj), (long)n);
+
+    for (Py_ssize_t i = 0; i < n; i++) {
+        PyObject *r = PyList_GetItem(referrers, i);
+        PyObject *repr = PyObject_Repr(r);
+        const char *repr_str = repr ? PyUnicode_AsUTF8(repr) : "<repr failed>";
+        fprintf(stderr, "    [%s] referrer[%ld] type=%s repr=%.150s\n",
+                label, (long)i, Py_TYPE(r)->tp_name, repr_str ? repr_str : "?");
+        Py_XDECREF(repr);
+    }
+
+    Py_DECREF(referrers);
 }
 
 PyObject *
 PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored)) {
     ASSERT_LOOP_THREAD(self);
+
+    fprintf(stderr, "=== close() ENTER ===\n");
+    debug_print_referrers((PyObject *)self, "self@enter");
+
     if (self->ring == NULL)
         Py_RETURN_NONE;
 
     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
 
     PyObject *res = PyObject_CallMethod(base, "close", "O", (PyObject *)self);
-
     if (!res)
         return NULL;
-
     Py_DECREF(res);
+
+    debug_print_referrers((PyObject *)self, "self@after_base_close");
 
     graceful_shutdown(self->ring, self->registry);
     self->ring = NULL;
     self->registry = NULL;
 
-    self->execution_context_var = NULL;
-    ContextVar_dealloc();
+    if (self->wakeup_fd >= 0) {
+        close(self->wakeup_fd);
+        self->wakeup_fd = -1;
+    }
+
+    fprintf(stderr, "--- before clearing execution_context_var ---\n");
+    if (self->execution_context_var) {
+        fprintf(stderr, "    execution_context_var refcount BEFORE clear = %ld\n",
+                Py_REFCNT(self->execution_context_var));
+        debug_print_referrers(self->execution_context_var, "execution_context_var");
+    }
+    Py_CLEAR(self->execution_context_var);
+
+    fprintf(stderr, "--- before clearing readers/writers ---\n");
+    if (self->readers) {
+        fprintf(stderr, "    readers refcount = %ld\n", Py_REFCNT(self->readers));
+    }
+    if (self->writers) {
+        fprintf(stderr, "    writers refcount = %ld\n", Py_REFCNT(self->writers));
+    }
+    Py_CLEAR(self->readers);
+    Py_CLEAR(self->writers);
+
+    fprintf(stderr, "=== close() EXIT ===\n");
+    debug_print_referrers((PyObject *)self, "self@exit");
 
     Py_RETURN_NONE;
 }
+
+// PyObject *
+// PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored)) {
+//     ASSERT_LOOP_THREAD(self);
+//     if (self->ring == NULL)
+//         Py_RETURN_NONE;
+
+//     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
+
+//     PyObject *res = PyObject_CallMethod(base, "close", "O", (PyObject *)self);
+
+//     if (!res)
+//         return NULL;
+
+//     Py_DECREF(res);
+
+//     graceful_shutdown(self->ring, self->registry);
+//     self->ring = NULL;
+//     self->registry = NULL;
+
+//     if (self->wakeup_fd >= 0) {
+//         close(self->wakeup_fd);
+//         self->wakeup_fd = -1;
+//     }
+
+//     Py_CLEAR(self->execution_context_var);
+//     Py_CLEAR(self->readers);
+//     Py_CLEAR(self->writers);
+
+//     fprintf(stderr, "after ctx clear\n");
+//     fprintf(stderr, "refs=%ld\n", Py_REFCNT(self));
+
+//     Py_RETURN_NONE;
+// }
 
 PyObject *
 PuringLoop_run_once(PuringLoop *self) {
@@ -159,7 +307,7 @@ PuringLoop_write_to_self(PuringLoop *self) {
     if (ret < 0 && errno != EAGAIN) {
         PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
-    } // cppcheck-suppress missingReturn
+    }
 
     Py_RETURN_NONE;
 }

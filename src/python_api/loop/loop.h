@@ -46,6 +46,13 @@ PuringLoop_init(
     // PyObject *kwargs
 );
 
+
+int
+PuringLoop_traverse(PuringLoop *self, visitproc visit, void *arg);
+
+int
+PuringLoop_clear(PuringLoop *self);
+
 void
 PuringLoop_dealloc(PuringLoop *self);
 

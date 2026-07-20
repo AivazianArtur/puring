@@ -114,7 +114,7 @@ sendmsg_dispatcher(
     PuringSocket *self,
     BufferPayload *buffer_payload,
     TransferMode transfer_mode,
-    int offset,
+    int request_idx,
     const struct sockaddr *addr,
     size_t addrlen,
     int is_poll_first,

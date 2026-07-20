@@ -50,6 +50,12 @@ registry_destroy(RequestRegistry *reg) {
             if (reg->slots[i].buffer_payload) {
                 Py_DECREF(reg->slots[i].buffer_payload);
             }
+            if (reg->slots[i].socket) {
+                Py_DECREF(reg->slots[i].socket);
+            }
+            if (reg->slots[i].file) {
+                Py_DECREF(reg->slots[i].file);
+            }
         }
         free(reg->slots);
     }
@@ -135,6 +141,16 @@ registry_remove(RequestRegistry *reg, int index) {
     if (slot->buffer_payload) {
         Py_DECREF(slot->buffer_payload);
         slot->buffer_payload = NULL;
+    }
+
+    if (slot->socket) {
+        Py_DECREF(slot->socket);
+        slot->socket = NULL;
+    }
+
+    if (slot->file) {
+        Py_DECREF(slot->file);
+        slot->file = NULL;
     }
 
     free(slot->msghdr);

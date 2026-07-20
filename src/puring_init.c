@@ -135,6 +135,8 @@ static PyType_Slot PuringLoop_slots[] = {
     {Py_tp_new, PuringLoop_new},
     {Py_tp_init, PuringLoop_init},
     {Py_tp_dealloc, PuringLoop_dealloc},
+    {Py_tp_traverse, PuringLoop_traverse},
+    {Py_tp_clear, PuringLoop_clear},
     {Py_tp_methods, puring_loop_methods},
     {0, NULL}
 };
@@ -143,7 +145,7 @@ static PyType_Spec PuringLoop_spec = {
     .name = "puring.src.python_api.loop.PuringLoop",
     .basicsize = sizeof(PuringLoop),
     .itemsize = 0,
-    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     .slots = PuringLoop_slots,
 };
 

@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0, '')
 import asyncio
 import puring
-
+import gc
 
 TEMPFILE = 'docs/assets/tempfile.txt'
 
@@ -51,21 +51,22 @@ async def transfer_mode():
         print('Sockets closed')
 
 
-async def lib_buffer():
-    loop = asyncio.get_running_loop()
-    # async with loop.execution_context(
-    #     buffer_mode='PROVIDED',
-    #     stream_strategy='ZERO_COPY',
-    # )
-    with loop.buffer_mode(mode=puring.BUFFER_MODE.PROVIDED):
-        uring_file = await puring.open_file(path=TEMPFILE)
-
-        data = b'Hello, puring!\n'
-        bytes_written = await uring_file.write(data=data)
-        print('Bytes written:', bytes_written)
-
-
 if __name__ == '__main__':
     asyncio.run(buffer_mode(), loop_factory=puring.PuringLoop)
-    asyncio.run(transfer_mode(), loop_factory=puring.PuringLoop)
-    # asyncio.run(lib_buffer(), loop_factory=puring.PuringLoop)
+    # with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
+    #     runner.run(transfer_mode())
+    #     loop = runner.get_loop()
+
+    # import gc
+    # print(sys.getrefcount(loop))
+    # for r in gc.get_referrers(loop):
+    #     print(type(r), r)
+
+    # gc.set_debug(gc.DEBUG_SAVEALL)
+    # asyncio.run(transfer_mode(), loop_factory=puring.PuringLoop)
+
+    # gc.collect()
+    # print("garbage:", gc.garbage)
+    # for obj in gc.garbage:
+    #     if isinstance(obj, puring.PuringLoop):
+    #         print("referrers:", gc.get_referrers(obj))

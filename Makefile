@@ -110,7 +110,7 @@ sanitize: dev-deps sanitize-asan_ubsan sanitize-tsan sanitize-msan
 sanitize-asan_ubsan: dev-deps
 	@echo "START SANITIZING[ASan-UBSan]"
 	@echo "--------"
-	CFLAGS="-O0 -g3 -fsanitize=address,undefined -fno-omit-frame-pointer" \
+	CFLAGS="-O0 -g3 -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all " \
 	LDFLAGS="-fsanitize=address,undefined" \
 	$(PY) setup.py build_ext --inplace
 	@echo "========"
@@ -182,6 +182,9 @@ lint-cppcheck: dev-deps
 	--check-level=exhaustive \
 	--suppress=missingIncludeSystem \
 	--suppress=missingInclude \
+	-D"Py_RETURN_FALSE=return Py_False;" \
+	-D"Py_RETURN_TRUE=return Py_True;" \
+	-D"Py_RETURN_NONE=return Py_None;" \
 	-I ./src ./src
 	@echo "========"
 

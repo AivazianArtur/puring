@@ -86,7 +86,7 @@ BufferModeCtx *
 BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-BufferModeCtx_exit(BufferModeCtx *self, PyObject *args);
+BufferModeCtx_exit(BufferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
 void
 BufferModeCtx_dealloc(BufferModeCtx *self);
@@ -95,7 +95,7 @@ StreamStrategyCtx *
 StreamStrategyCtx_enter(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-StreamStrategyCtx_exit(StreamStrategyCtx *self, PyObject *args);
+StreamStrategyCtx_exit(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored));
 
 void
 StreamStrategyCtx_dealloc(StreamStrategyCtx *self);
@@ -104,16 +104,16 @@ TransferModeCtx *
 TransferModeCtx_enter(TransferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-TransferModeCtx_exit(TransferModeCtx *self, PyObject *args);
+TransferModeCtx_exit(TransferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
 void
 TransferModeCtx_dealloc(TransferModeCtx *self);
 
-void
-ExecutionContextCtx_enter(ExecutionContextCtx *self);
+ExecutionContextCtx *
+ExecutionContextCtx_enter(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored));
 
-void
-ExecutionContextCtx_exit(ExecutionContextCtx *self);
+PyObject *
+ExecutionContextCtx_exit(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored));
 
 void
 ExecutionContextCtx_dealloc(ExecutionContextCtx *self);
@@ -129,9 +129,6 @@ ContextVar_reset(PyObject *token);
 
 ExecutionContext *
 ContextVar_get(PyObject *default_val);
-
-void
-ContextVar_dealloc(void);
 
 BufferMode
 _validate_buffer_mode(BufferMode mode);

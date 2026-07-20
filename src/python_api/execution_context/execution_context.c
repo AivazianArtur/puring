@@ -111,8 +111,8 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
     BufferMode buffer_mode_val = NORMAL_BUF;
-    char stream_strategy = ONESHOT;
-    char transfer_mode = NORMAL_TRANSFER;
+    StreamStrategy stream_strategy = ONESHOT;
+    TransferMode transfer_mode = NORMAL_TRANSFER;
     PayloadType payload_type_obj = PAYLOAD_LINEAR;
     PyObject *buffers_obj;
     int amount = 3;
@@ -149,26 +149,18 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     if (!buffer_payload)
         return NULL;
 
-    StreamStrategy stream_strategy_val;
     switch (stream_strategy) {
     case ONESHOT:
-        stream_strategy_val = ONESHOT;
-        break;
     case MULTISHOT:
-        stream_strategy_val = MULTISHOT;
         break;
     default:
         PyErr_SetString(PyExc_ValueError, "Wrong value for stream strategy");
         return NULL;
     }
 
-    TransferMode transfer_mode_val;
     switch (transfer_mode) {
     case NORMAL_TRANSFER:
-        transfer_mode_val = NORMAL_TRANSFER;
-        break;
     case ZERO_COPY:
-        transfer_mode_val = ZERO_COPY;
         break;
     default:
         PyErr_SetString(PyExc_ValueError, "Wrong value for transfer mode");
@@ -187,10 +179,11 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
         free(execution_context_ctx);
         return NULL;
     }
+
     execution_context->buffer_payload = buffer_payload;
     execution_context->buffer_mode = buffer_mode_val;
-    execution_context->stream = stream_strategy_val;
-    execution_context->transfer_mode = transfer_mode_val;
+    execution_context->stream = stream_strategy;
+    execution_context->transfer_mode = transfer_mode;
     execution_context_ctx->payload = execution_context;
     return execution_context_ctx;
 }
@@ -247,6 +240,7 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
         self->buffer_payload->idx_registry = buffer_idx_registry;
         self->buffer_payload->vector = NULL;
         self->buffer_payload->payload_type = PAYLOAD_LINEAR;
+        break;
     case PROVIDED:
         if (init_provided_mode(
                 self->loop->ring,
@@ -258,6 +252,7 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
             PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize provided buffers");
             return NULL;
         }
+        break;
     case BUF_RING:
         buf_ring = init_buf_ring_mode(
             self->loop->ring,
@@ -267,6 +262,7 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
             self->buffer_payload->bgid
         );
         self->buffer_payload->buf_ring = buf_ring;
+        break;
     case BUF_NO_VAL:
     case NORMAL_BUF:
     default: // do nothing
@@ -291,13 +287,16 @@ BufferModeCtx_exit(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
     case FIXED:
         close_fixed_mode(self->loop->ring);
         buffer_idx_registry_destroy(self->buffer_payload->idx_registry);
+        break;
     case PROVIDED:
         close_provided_mode(self->loop->ring, self->buffer_payload->amount, self->buffer_payload->bgid);
+        break;
     case BUF_RING:
         close_buf_ring_mode(
             self->loop->ring, self->buffer_payload->buf_ring, self->buffer_payload->amount, self->buffer_payload->bgid
         );
         self->buffer_payload->buf_ring = NULL;
+        break;
     case BUF_NO_VAL:
     case NORMAL_BUF:
     default: // do nothing
@@ -387,28 +386,33 @@ TransferModeCtx_dealloc(TransferModeCtx *self) {
     PyObject_Free(self);
 }
 
-void
-ExecutionContextCtx_enter(ExecutionContextCtx *self) {
+ExecutionContextCtx *
+ExecutionContextCtx_enter(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored)) {
     PyObject *current_context_obj = (PyObject *)self;
     PyObject *token = ContextVar_set(current_context_obj);
     if (!token) {
         PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
-        return;
+        return NULL;
     }
     self->token = token;
+    return self;
 }
 
-void
-ExecutionContextCtx_exit(ExecutionContextCtx *self) {
+PyObject *
+ExecutionContextCtx_exit(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored)) {
     int result = ContextVar_reset(self->token);
     Py_CLEAR(self->token);
     if (result < 0) {
         PyErr_SetString(PyExc_ValueError, "Error while resetting contextvar");
+        return NULL;
     }
+    Py_RETURN_FALSE;
 }
 
 void
 ExecutionContextCtx_dealloc(ExecutionContextCtx *self) {
+    // fprintf(stderr, "DEALLOC EXECUTION CONTEXT");
+    // PyObject_Free(self->payload);
     PyObject_Free(self);
 }
 

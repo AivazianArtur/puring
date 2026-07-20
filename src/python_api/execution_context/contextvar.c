@@ -71,6 +71,7 @@ ContextVar_init(void) {
 
     Py_DECREF(token);
 
+    Py_INCREF(execution_context_var); 
     return execution_context_var;
 }
 
@@ -143,9 +144,4 @@ ContextVar_get(PyObject *default_val) {
     ExecutionContext *ctx = (ExecutionContext *)PyCapsule_GetPointer(capsule, "ExecutionContext");
     Py_DECREF(capsule);
     return ctx;
-}
-
-void
-ContextVar_dealloc(void) {
-    Py_CLEAR(execution_context_var);
 }
