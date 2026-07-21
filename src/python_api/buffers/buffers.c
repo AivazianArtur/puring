@@ -134,6 +134,7 @@ create_buffer_payload_from_data(PyObject *data) {
         PyErr_NoMemory();
         return NULL;
     }
+    memset(buffer_payload, 0, sizeof(BufferPayload));
 
     LinearBuffer *buffer = PyMem_Malloc(sizeof(LinearBuffer));
     if (!buffer) {
@@ -168,7 +169,7 @@ create_buffer_payload_from_data(PyObject *data) {
     buffer_payload->amount = 1;
     buffer_payload->linear = buffer;
 
-    buffer_payload->payload_origin = PAYLOAD_RUNTIME;
+    buffer_payload->payload_origin = PAYLOAD_USER;
 
     return buffer_payload;
 }
@@ -427,7 +428,7 @@ serialize_buffers(PyObject *buf_obj, int len, BufferPayload *payload) {
         payload->vector->iovecs[i] = (struct iovec){.iov_base = views[i].buf, .iov_len = (size_t)views[i].len};
     }
     payload->linear->views = views;
-    payload->vector->views = views;
+    payload->vector->views = NULL;
     return payload;
 }
 

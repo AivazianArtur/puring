@@ -21,10 +21,13 @@ graceful_shutdown(struct io_uring *ring, RequestRegistry *reg) {
     }
 
     registry_destroy(reg);
-    PyObject *empty_object = PyBytes_FromStringAndSize(NULL, 0);
-    ContextVar_set(empty_object);
+    PyObject *token = ContextVar_set(Py_None);
+    if (token) {
+        Py_DECREF(token);
+    } else {
+        PyErr_Clear();
+    }
     ring_destroy(ring);
-    fprintf(stderr, "FINISH GRACEFUL SHUTDOWN");
 }
 
 struct __kernel_timespec

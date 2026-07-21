@@ -60,4 +60,5 @@
         PyErr_SetString(PyExc_RuntimeError, "Uring-based methods requires uring-based loop");                          \
         return NULL;                                                                                                   \
     }                                                                                                                  \
-    PuringLoop *running_loop = (PuringLoop *)loop_obj;
+    PuringLoop *running_loop = (PuringLoop *)loop_obj;                                                                 \
+    Py_DECREF(loop_obj);

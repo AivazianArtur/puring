@@ -6,7 +6,7 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(running_loop);
     ASSERT_RING_LOOP_IS_CLOSING(running_loop);
 
-    PuringFile *file = PyObject_New(PuringFile, &PuringFileType);
+    PuringFile *file = PyObject_GC_New(PuringFile, &PuringFileType);
     if (!file) {
         return PyErr_NoMemory();
     }
@@ -14,6 +14,7 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     file->loop = running_loop;
     file->closed = false;
     Py_INCREF(running_loop);
+    PyObject_GC_Track(file);
 
     const char *path = NULL;
     int dfd = AT_FDCWD;
@@ -80,13 +81,29 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     return future;
 }
 
+int
+PuringFile_traverse(PuringFile *self, visitproc visit, void *arg) {
+    Py_VISIT(self->loop);
+    return 0;
+}
+
+int
+PuringFile_clear(PuringFile *self) {
+    Py_CLEAR(self->loop);
+    return 0;
+}
+
 void
 PuringFile_dealloc(PuringFile *self) {
+    PyObject_GC_UnTrack(self);
     self->closed = true;
-    if (self->loop) {
-        Py_XDECREF(self->loop);
+    PuringFile_clear(self);
+    freefunc free_func = PyType_GetSlot(Py_TYPE(self), Py_tp_free);
+    if (free_func) {
+        free_func(self);
+    } else {
+        PyObject_GC_Del(self);
     }
-    Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 PyObject *

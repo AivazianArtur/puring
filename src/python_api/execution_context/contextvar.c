@@ -4,6 +4,11 @@ static PyObject *execution_context_var = NULL;
 
 PyObject *
 ContextVar_init(void) {
+    if (execution_context_var != NULL) {
+        Py_INCREF(execution_context_var);
+        return execution_context_var;
+    }
+
     PyObject *contextvars = PyImport_ImportModule("contextvars");
     if (!contextvars) {
         return NULL;
@@ -27,7 +32,7 @@ ContextVar_init(void) {
     ExecutionContext *execution_context = malloc(sizeof(ExecutionContext));
     if (!execution_context) {
         PyErr_NoMemory();
-        Py_DECREF(execution_context_var);
+        Py_CLEAR(execution_context_var);
         execution_context_var = NULL;
         return NULL;
     }
@@ -37,22 +42,19 @@ ContextVar_init(void) {
     execution_context->transfer_mode = NORMAL_TRANSFER;
     execution_context->buffer_payload = NULL;
 
-    PyObject *capsule = PyCapsule_New(execution_context, "ExecutionContext", NULL);
+    PyObject *capsule = PyCapsule_New(execution_context, "ExecutionContext", free_exec_context);
 
     if (!capsule) {
         free(execution_context);
-
-        Py_DECREF(execution_context_var);
+        Py_CLEAR(execution_context_var);
         execution_context_var = NULL;
-
         return NULL;
     }
 
     PyObject *method_name = PyUnicode_FromString("set");
     if (!method_name) {
         Py_DECREF(capsule);
-
-        Py_DECREF(execution_context_var);
+        Py_CLEAR(execution_context_var);
         execution_context_var = NULL;
 
         return NULL;
@@ -64,14 +66,13 @@ ContextVar_init(void) {
     Py_DECREF(capsule);
 
     if (!token) {
-        Py_DECREF(execution_context_var);
+        Py_CLEAR(execution_context_var);
         execution_context_var = NULL;
         return NULL;
     }
 
     Py_DECREF(token);
 
-    Py_INCREF(execution_context_var); 
     return execution_context_var;
 }
 

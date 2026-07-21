@@ -20,7 +20,7 @@ extern PyTypeObject PuringExecutionContextCtxType;
 typedef struct PuringLoop PuringLoop;
 
 typedef struct ExecutionContext {
-    PyObject_HEAD BufferMode buffer_mode;
+    BufferMode buffer_mode;
     StreamStrategy stream;
     TransferMode transfer_mode;
     BufferPayload *buffer_payload;
@@ -63,6 +63,12 @@ PuringLoop_transfer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
 ExecutionContextCtx *
 PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs);
+
+void
+free_exec_context(PyObject *capsule);
+
+ExecutionContext *
+clone_execution_context(const ExecutionContext *src);
 
 PyObject *
 create_buffer_mode_enum(void);

@@ -33,6 +33,12 @@ typedef struct PuringSocket {
 PyObject *
 Puring_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
 
+int
+PuringSocket_traverse(PuringSocket *self, visitproc visit, void *arg);
+
+int
+PuringSocket_clear(PuringSocket *self);
+
 void
 PuringSocket_dealloc(PuringSocket *self);
 

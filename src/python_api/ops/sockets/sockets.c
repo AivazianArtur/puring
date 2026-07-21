@@ -6,18 +6,21 @@ Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs
     ASSERT_LOOP_THREAD(running_loop);
     ASSERT_RING_LOOP_IS_CLOSING(running_loop);
 
-    PuringSocket *sock = PyObject_New(PuringSocket, &PuringSocketType);
+    PuringSocket *sock = PyObject_GC_New(PuringSocket, &PuringSocketType);
     if (!sock) {
         return PyErr_NoMemory();
     }
     sock->closed = false;
     sock->loop = running_loop;
+    sock->addr = NULL;
     Py_INCREF(running_loop);
+    PyObject_GC_Track(sock);
 
     int domain = AF_INET;
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"domain", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", (char **)kwlist, &domain, &timeout_params_obj)) {
+        Py_DECREF(sock);
         return NULL;
     }
 
@@ -59,13 +62,33 @@ Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs
     return future;
 }
 
+int
+PuringSocket_traverse(PuringSocket *self, visitproc visit, void *arg) {
+    Py_VISIT(self->loop);
+    return 0;
+}
+
+int
+PuringSocket_clear(PuringSocket *self) {
+    Py_CLEAR(self->loop);
+    return 0;
+}
+
 void
 PuringSocket_dealloc(PuringSocket *self) {
+    PyObject_GC_UnTrack(self);
     self->closed = true;
-    if (self->loop) {
-        Py_XDECREF(self->loop);
+    if (self->addr) {
+        free(self->addr);
+        self->addr = NULL;
     }
-    Py_TYPE(self)->tp_free((PyObject *)self);
+    PuringSocket_clear(self);
+    freefunc free_func = PyType_GetSlot(Py_TYPE(self), Py_tp_free);
+    if (free_func) {
+        free_func(self);
+    } else {
+        PyObject_GC_Del(self);
+    }
 }
 
 PyObject *

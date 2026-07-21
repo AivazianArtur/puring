@@ -35,6 +35,12 @@ typedef struct PuringFile {
 PyObject *
 Puring_open(PyObject *module, PyObject *args, PyObject *kwargs);
 
+int
+PuringFile_traverse(PuringFile *self, visitproc visit, void *arg);
+
+int
+PuringFile_clear(PuringFile *self);
+
 void
 PuringFile_dealloc(PuringFile *self);
 

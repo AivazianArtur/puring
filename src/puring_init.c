@@ -154,9 +154,11 @@ PyTypeObject PuringFileType = {
     .tp_doc = PyDoc_STR("Puring file adapter"),
     .tp_basicsize = sizeof(PuringFile),
     .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     .tp_new = PyType_GenericNew,
     .tp_init = NULL,
+    .tp_traverse = (traverseproc)PuringFile_traverse,
+    .tp_clear = (inquiry)PuringFile_clear,
     .tp_dealloc = (destructor)PuringFile_dealloc,
     .tp_methods = puring_file_methods,
 };
@@ -166,13 +168,14 @@ PyTypeObject PuringSocketType = {
     .tp_doc = PyDoc_STR("Puring socket adapter"),
     .tp_basicsize = sizeof(PuringSocket),
     .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     .tp_new = PyType_GenericNew,
     .tp_init = NULL,
+    .tp_traverse = (traverseproc)PuringSocket_traverse,
+    .tp_clear = (inquiry)PuringSocket_clear,
     .tp_dealloc = (destructor)PuringSocket_dealloc,
     .tp_methods = puring_socket_methods,
 };
-
 
 PyTypeObject PuringBufferModeCtxType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.execution_context.BufferModeCtx",

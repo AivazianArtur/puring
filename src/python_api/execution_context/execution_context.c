@@ -188,6 +188,25 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     return execution_context_ctx;
 }
 
+void
+free_exec_context(PyObject *capsule) {
+    ExecutionContext *ctx = (ExecutionContext *)PyCapsule_GetPointer(capsule, "ExecutionContext");
+    if (ctx) {
+        free(ctx);
+    }
+}
+
+ExecutionContext *
+clone_execution_context(const ExecutionContext *src) {
+    ExecutionContext *new_ctx = malloc(sizeof(ExecutionContext));
+    if (!new_ctx) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+    *new_ctx = *src;
+    return new_ctx;
+}
+
 BufferPayload *
 _get_buffer(void) {
     const ExecutionContext *execution_context = ContextVar_get(NULL);
@@ -214,15 +233,22 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
 
     current_context->buffer_mode = self->payload;
 
-    PyObject *capsule = PyCapsule_New(current_context, "ExecutionContext", NULL);
+    ExecutionContext *new_context = clone_execution_context(current_context);
+    if (!new_context)
+        return NULL;
+
+    new_context->buffer_mode = self->payload;
+
+    PyObject *capsule = PyCapsule_New(new_context, "ExecutionContext", free_exec_context);
     if (!capsule)
         return NULL;
 
     PyObject *token = ContextVar_set(capsule);
     Py_DECREF(capsule);
-    if (!token)
+    if (!token) {
+        free(new_context);
         return NULL;
-
+    }
 
     struct io_uring_buf_ring *buf_ring;
     switch (self->buffer_payload->mode) {
@@ -231,11 +257,14 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
                 self->loop->ring, self->buffer_payload->vector->iovecs, self->buffer_payload->vector->nr_vecs
             ) < 0) {
             PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize fixed buffers");
+            free(new_context);
             return NULL;
         };
         BufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_new(0);
-        if (!buffer_idx_registry)
+        if (!buffer_idx_registry) {
+            free(new_context);
             return NULL;
+        }
 
         self->buffer_payload->idx_registry = buffer_idx_registry;
         self->buffer_payload->vector = NULL;
@@ -316,16 +345,24 @@ StreamStrategyCtx_enter(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored)) {
     if (!current_context)
         return NULL;
 
-    current_context->stream = self->payload;
-
-    PyObject *capsule = PyCapsule_New(current_context, "ExecutionContext", NULL);
-    if (!capsule)
+    ExecutionContext *new_context = clone_execution_context(current_context);
+    if (!new_context)
         return NULL;
+
+    new_context->stream = self->payload;
+
+    PyObject *capsule = PyCapsule_New(new_context, "ExecutionContext", free_exec_context);
+    if (!capsule) {
+        free(new_context);
+        return NULL;
+    }
 
     PyObject *token = ContextVar_set(capsule);
     Py_DECREF(capsule);
-    if (!token)
+    if (!token) {
+        free(new_context);
         return NULL;
+    }
 
     self->token = token;
     Py_INCREF(self);
@@ -354,16 +391,25 @@ TransferModeCtx_enter(TransferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
     if (!current_context)
         return NULL;
 
-    current_context->transfer_mode = self->payload;
 
-    PyObject *capsule = PyCapsule_New(current_context, "ExecutionContext", NULL);
-    if (!capsule)
+    ExecutionContext *new_context = clone_execution_context(current_context);
+    if (!new_context)
         return NULL;
+
+    new_context->transfer_mode = self->payload;
+
+    PyObject *capsule = PyCapsule_New(new_context, "ExecutionContext", free_exec_context);
+    if (!capsule) {
+        free(new_context);
+        return NULL;
+    }
 
     PyObject *token = ContextVar_set(capsule);
     Py_DECREF(capsule);
-    if (!token)
+    if (!token) {
+        free(new_context);
         return NULL;
+    }
 
     self->token = token;
     Py_INCREF(self);
@@ -411,8 +457,6 @@ ExecutionContextCtx_exit(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored)
 
 void
 ExecutionContextCtx_dealloc(ExecutionContextCtx *self) {
-    // fprintf(stderr, "DEALLOC EXECUTION CONTEXT");
-    // PyObject_Free(self->payload);
     PyObject_Free(self);
 }
 
