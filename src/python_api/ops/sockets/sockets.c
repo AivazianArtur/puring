@@ -379,7 +379,7 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
-    BufferPayload *buffer_payload = get_or_create_linear_buffer(buffer_obj, 0);
+    BufferPayload *buffer_payload = get_or_create_linear_buffer(buffer_obj, bufsize);
     if (!buffer_payload)
         return NULL;
 
@@ -512,7 +512,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     struct sockaddr *addr = NULL;
     addr = _serialize_address(host, port, domain);
 
-    BufferPayload *buffer_payload = get_or_create_linear_buffer(buffer_obj, 0);
+    BufferPayload *buffer_payload = get_or_create_linear_buffer(buffer_obj, (int)bufsize);
     if (!buffer_payload)
         return NULL;
 

@@ -29,7 +29,10 @@ async def simple_socket_example():
 
     received_data_r = server_conn.recv()
     received_data = await received_data_r
-    print(f'Server received: {received_data.decode()}')
+
+    result = received_data.decode()
+    print(f'Server received: {result}')
+    assert result == message.decode()
 
     await client_sock.close()
     await server_conn.close()

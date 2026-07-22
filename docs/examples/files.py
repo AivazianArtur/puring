@@ -19,7 +19,10 @@ async def main():
     print('Bytes written:', bytes_written)
 
     read_data = await uring_file.read()
-    print('Read data:', read_data.decode())
+
+    result = read_data.decode()
+    print('Read data:', result)
+    assert result == data.decode()
 
     await uring_file.close()
     print('File closed')

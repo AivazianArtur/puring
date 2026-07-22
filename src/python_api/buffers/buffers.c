@@ -175,7 +175,7 @@ create_buffer_payload_from_data(PyObject *data) {
 }
 
 BufferPayload *
-get_or_create_linear_buffer(PyObject *buffers_obj, int size) {
+get_or_create_linear_buffer(PyObject *buffers_obj, int bufsize) {
     PayloadOrigin payload_origin;
     BufferPayload *buffer_payload = _get_buffer();
     if (!buffers_obj) {
@@ -190,10 +190,10 @@ get_or_create_linear_buffer(PyObject *buffers_obj, int size) {
     }
     if (buffers_obj) {
         payload_origin = PAYLOAD_USER;
-        serialize_linear_buffers(buffers_obj, size, buffer_payload);
+        serialize_linear_buffers(buffers_obj, 1, buffer_payload);
     } else {
         payload_origin = PAYLOAD_RUNTIME;
-        create_linear_buffers(1, size, buffer_payload);
+        create_linear_buffers(1, bufsize, buffer_payload);
     }
     buffer_payload->amount = 1;
     buffer_payload->mode = NORMAL_BUF;
