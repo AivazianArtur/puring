@@ -94,7 +94,11 @@ PuringLoop_init(
 int
 PuringLoop_traverse(PuringLoop *self, visitproc visit, void *arg) {
     if (PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_MANAGED_DICT)) {
+#if PY_VERSION_HEX >= 0x030D0000
         PyObject_VisitManagedDict((PyObject *)self, visit, arg);
+#else
+        _PyObject_VisitManagedDict((PyObject *)self, visit, arg);
+#endif
     } else {
         PyObject **dictptr = _PyObject_GetDictPtr((PyObject *)self);
         if (dictptr && *dictptr) {
@@ -113,7 +117,11 @@ PuringLoop_clear(PuringLoop *self) {
     Py_CLEAR(self->execution_context_var);
 
     if (PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_MANAGED_DICT)) {
+#if PY_VERSION_HEX >= 0x030D0000
         PyObject_ClearManagedDict((PyObject *)self);
+#else
+        _PyObject_ClearManagedDict((PyObject *)self);
+#endif
     } else {
         PyObject **dictptr = _PyObject_GetDictPtr((PyObject *)self);
         if (dictptr && *dictptr)
