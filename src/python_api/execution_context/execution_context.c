@@ -341,7 +341,7 @@ BufferModeCtx_dealloc(BufferModeCtx *self) {
 
 StreamStrategyCtx *
 StreamStrategyCtx_enter(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored)) {
-    ExecutionContext *current_context = ContextVar_get(NULL);
+    ExecutionContext const *current_context = ContextVar_get(NULL);
     if (!current_context)
         return NULL;
 
@@ -387,10 +387,9 @@ StreamStrategyCtx_dealloc(StreamStrategyCtx *self) {
 
 TransferModeCtx *
 TransferModeCtx_enter(TransferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
-    ExecutionContext *current_context = ContextVar_get(NULL);
+    ExecutionContext const *current_context = ContextVar_get(NULL);
     if (!current_context)
         return NULL;
-
 
     ExecutionContext *new_context = clone_execution_context(current_context);
     if (!new_context)
@@ -434,8 +433,12 @@ TransferModeCtx_dealloc(TransferModeCtx *self) {
 
 ExecutionContextCtx *
 ExecutionContextCtx_enter(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored)) {
-    PyObject *current_context_obj = (PyObject *)self;
-    PyObject *token = ContextVar_set(current_context_obj);
+    PyObject *capsule = PyCapsule_New(self->payload, "ExecutionContext", free_exec_context);
+    if (!capsule)
+        return NULL;
+
+    PyObject *token = ContextVar_set(capsule);
+    Py_DECREF(capsule);
     if (!token) {
         PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
         return NULL;
