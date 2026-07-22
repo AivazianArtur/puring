@@ -160,3 +160,14 @@ puring_readv_buffer_select(
     int nowait,
     const struct TimeoutParams timeout_params
 );
+
+int
+puring_read_multishot(
+    struct io_uring *ring,
+    int request_idx,
+    int fd,
+    int size,
+    int offset,
+    int bgid,
+    const struct TimeoutParams timeout_params
+);

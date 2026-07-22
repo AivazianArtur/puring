@@ -17,7 +17,8 @@ PuringLoop_timer(
     ASSERT_RING_LOOP_IS_CLOSING(loop);
 
     TimerParams timer_params = {0};
-    parse_timer_params(timer_params_obj, &timer_params);
+    StreamStrategy stream_strategy = get_stream_strategy();
+    parse_timer_params(timer_params_obj, &timer_params, stream_strategy);
 
     PyObject *future = create_future(loop);
     if (!future) {
@@ -26,7 +27,7 @@ PuringLoop_timer(
 
     int opcode = IORING_OP_TIMEOUT;
 
-    int request_idx = registry_add(loop->registry, future, NULL, opcode, NULL, NULL, NULL);
+    int request_idx = registry_add(loop->registry, future, NULL, ONESHOT, opcode, NULL, NULL, NULL, NULL);
     if (request_idx < 0) {
         Py_DECREF(future);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");

@@ -9,7 +9,7 @@
 #include "python_macroses.h"
 #include "buffer_controllers/buffer_controllers.h"
 #include "python_api/buffers/buffers.h"
-
+#include "python_api/execution_context/execution_context_enums.h"
 
 extern PyTypeObject PuringBufferModeCtxType;
 extern PyTypeObject PuringStreamStrategyCtxType;
@@ -19,12 +19,8 @@ extern PyTypeObject PuringExecutionContextCtxType;
 
 typedef struct PuringLoop PuringLoop;
 
-typedef enum StreamStrategy { ONESHOT, MULTISHOT } StreamStrategy;
-
-typedef enum TransferMode { NORMAL_TRANSFER, ZERO_COPY, BUFFER_POOL } TransferMode;
-
 typedef struct ExecutionContext {
-    PyObject_HEAD BufferMode buffer_mode;
+    BufferMode buffer_mode;
     StreamStrategy stream;
     TransferMode transfer_mode;
     BufferPayload *buffer_payload;
@@ -68,6 +64,12 @@ PuringLoop_transfer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs);
 ExecutionContextCtx *
 PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs);
 
+void
+free_exec_context(PyObject *capsule);
+
+ExecutionContext *
+clone_execution_context(const ExecutionContext *src);
+
 PyObject *
 create_buffer_mode_enum(void);
 
@@ -80,11 +82,17 @@ create_transfer_mode_enum(void);
 BufferPayload *
 _get_buffer(void);
 
+TransferMode
+get_transfer_mode(void);
+
+StreamStrategy
+get_stream_strategy(void);
+
 BufferModeCtx *
 BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-BufferModeCtx_exit(BufferModeCtx *self, PyObject *args);
+BufferModeCtx_exit(BufferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
 void
 BufferModeCtx_dealloc(BufferModeCtx *self);
@@ -93,7 +101,7 @@ StreamStrategyCtx *
 StreamStrategyCtx_enter(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-StreamStrategyCtx_exit(StreamStrategyCtx *self, PyObject *args);
+StreamStrategyCtx_exit(StreamStrategyCtx *self, PyObject *Py_UNUSED(ignored));
 
 void
 StreamStrategyCtx_dealloc(StreamStrategyCtx *self);
@@ -102,16 +110,16 @@ TransferModeCtx *
 TransferModeCtx_enter(TransferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-TransferModeCtx_exit(TransferModeCtx *self, PyObject *args);
+TransferModeCtx_exit(TransferModeCtx *self, PyObject *Py_UNUSED(ignored));
 
 void
 TransferModeCtx_dealloc(TransferModeCtx *self);
 
-void
-ExecutionContextCtx_enter(ExecutionContextCtx *self);
+ExecutionContextCtx *
+ExecutionContextCtx_enter(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored));
 
-void
-ExecutionContextCtx_exit(ExecutionContextCtx *self);
+PyObject *
+ExecutionContextCtx_exit(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored));
 
 void
 ExecutionContextCtx_dealloc(ExecutionContextCtx *self);
@@ -127,9 +135,6 @@ ContextVar_reset(PyObject *token);
 
 ExecutionContext *
 ContextVar_get(PyObject *default_val);
-
-void
-ContextVar_dealloc(void);
 
 BufferMode
 _validate_buffer_mode(BufferMode mode);

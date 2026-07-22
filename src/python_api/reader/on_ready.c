@@ -68,8 +68,7 @@ on_uring_ready(PuringLoop *self) {
                 free_buffer_payload(slot->buffer_payload, false);
                 break;
             case IORING_OP_WRITE:
-                if (slot->buffer_payload->payload_origin)
-                    result = PyLong_FromLong(cqe->res);
+                result = PyLong_FromLong(cqe->res);
 
                 if (slot->buffer_payload->mode == FIXED) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
@@ -122,32 +121,35 @@ on_uring_ready(PuringLoop *self) {
                 if (slot->socket) {
                     struct sockaddr_storage *peer_addr = (struct sockaddr_storage *)slot->addr;
 
-                    PuringSocket *conn = PyObject_New(PuringSocket, &PuringSocketType);
+                    PuringSocket *conn = PyObject_GC_New(PuringSocket, &PuringSocketType);
                     if (!conn) {
                         PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
                         PyErr_Print();
+                        free(peer_addr);
                         io_uring_cqe_seen(self->ring, cqe);
                         continue;
                     }
                     conn->sock_fd = cqe->res;
                     conn->closed = false;
                     conn->loop = slot->socket->loop;
+                    Py_INCREF(conn->loop);
+                    conn->domain = slot->socket->domain;
                     conn->state = ACCEPTING;
 
-                    memcpy(&conn->addr, (struct sockaddr *)peer_addr, sizeof(struct sockaddr_storage));
+                    conn->addr = (struct sockaddr *)peer_addr;
 
-                    free(peer_addr);
                     slot->buffer_payload = NULL;
 
+                    PyObject_GC_Track(conn);
                     result = (PyObject *)conn;
                 }
                 break;
             case IORING_OP_RECV:
                 if (slot->socket) {
-                    void *buffer = slot->buffer_payload->linear->buffer;
                     if (cqe->res == 0) {
                         result = PyBytes_FromStringAndSize(NULL, 0);
                     } else if (cqe->res > 0) {
+                        void *buffer = slot->buffer_payload->linear->buffer;
                         result = PyBytes_FromStringAndSize((char *)buffer, cqe->res);
                     }
                     if (slot->buffer_payload->mode == FIXED) {
@@ -165,23 +167,49 @@ on_uring_ready(PuringLoop *self) {
                 if (slot->buffer_payload->mode == FIXED) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
+                if (slot->stream_strategy == MULTISHOT) {
+                    unsigned bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
+                    void *buf = (char *)slot->buffer_payload->linear->buffer +
+                                (bid * slot->buffer_payload->linear->len);
+                    RecvMsgMultishotResult out = puring_recvmsg_validate_multishot(
+                        buf, cqe->res, slot->msghdr, cqe->res
+                    );
+                    if (out.is_null == true) {
+                        PyErr_SetString(PyExc_RuntimeError, "Operation result is not valid.");
+                        PyErr_Print();
+                    }
+                    if (is_puring_recvmsg_multishot_resubmit_required(cqe)) {
+                        TimeoutParams timeout_params = {0};
+                        puring_recvmsg_multishot(
+                            slot->socket->loop->ring,
+                            index,
+                            slot->socket->sock_fd,
+                            slot->buffer_payload->bgid,
+                            0,
+                            slot->msghdr,
+                            timeout_params
+                        );
+                    }
+                    result = PyBytes_FromStringAndSize(out.payload, (Py_ssize_t)out.payload_len);
+                    break;
+                }
                 free_buffer_payload(slot->buffer_payload, false);
                 break;
             case IORING_OP_SEND:
                 if (slot->buffer_payload) {
+                    if (slot->buffer_payload->mode == FIXED) {
+                        release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
+                    }
                     free_buffer_payload(slot->buffer_payload, false);
-                }
-                if (slot->buffer_payload->mode == FIXED) {
-                    release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
                 result = PyLong_FromLong(cqe->res);
                 break;
             case IORING_OP_SENDMSG:
                 if (slot->buffer_payload) {
+                    if (slot->buffer_payload->mode == FIXED) {
+                        release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
+                    }
                     free_buffer_payload(slot->buffer_payload, false);
-                }
-                if (slot->buffer_payload->mode == FIXED) {
-                    release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
                 result = PyLong_FromLong(cqe->res);
                 break;

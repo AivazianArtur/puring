@@ -1,14 +1,14 @@
+
 import sys
-
 sys.path.insert(0, '')
-
-import asyncio
 import puring
+
 
 HOST = '127.0.0.1'
 PORT = 12878
 
-async def main():
+
+async def simple_socket_example():
     server_sock = await puring.prep_socket()
     print(f'{server_sock = }')
     await server_sock.bind(HOST, PORT)
@@ -38,6 +38,3 @@ async def main():
     await server_conn.close()
     await server_sock.close()
     print('Sockets closed')
-
-
-asyncio.run(main(), loop_factory=puring.PuringLoop)

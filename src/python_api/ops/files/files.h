@@ -35,6 +35,12 @@ typedef struct PuringFile {
 PyObject *
 Puring_open(PyObject *module, PyObject *args, PyObject *kwargs);
 
+int
+PuringFile_traverse(PuringFile *self, visitproc visit, void *arg);
+
+int
+PuringFile_clear(PuringFile *self);
+
 void
 PuringFile_dealloc(PuringFile *self);
 
@@ -82,7 +88,13 @@ create_transfer_mode_enum(void);
 
 int
 read_dispatcher(
-    PuringFile *self, BufferPayload *buffer_payload, int request_idx, int size, int offset, TimeoutParams timeout_params
+    PuringFile *self,
+    BufferPayload *buffer_payload,
+    StreamStrategy stream,
+    int request_idx,
+    int size,
+    int offset,
+    TimeoutParams timeout_params
 );
 
 int

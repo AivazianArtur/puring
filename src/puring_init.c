@@ -108,21 +108,21 @@ static PyMethodDef puring_buffer_mode_ctx_methods[] = {
 
 static PyMethodDef puring_stream_strategy_ctx_methods[] = {
     {"__enter__", (PyCFunction)StreamStrategyCtx_enter, METH_NOARGS, "Entering context manager"},
-    {"__exit__", (PyCFunction)StreamStrategyCtx_exit, METH_NOARGS, "Closing context manager"},
+    {"__exit__", (PyCFunction)StreamStrategyCtx_exit, METH_VARARGS, "Closing context manager"},
 
     {NULL, NULL, 0, NULL}
 };
 
 static PyMethodDef puring_transfer_mode_ctx_methods[] = {
     {"__enter__", (PyCFunction)TransferModeCtx_enter, METH_NOARGS, "Entering context manager"},
-    {"__exit__", (PyCFunction)TransferModeCtx_exit, METH_NOARGS, "Closing context manager"},
+    {"__exit__", (PyCFunction)TransferModeCtx_exit, METH_VARARGS, "Closing context manager"},
 
     {NULL, NULL, 0, NULL}
 };
 
 static PyMethodDef puring_execution_context_ctx_methods[] = {
     {"__enter__", (PyCFunction)ExecutionContextCtx_enter, METH_NOARGS, "Entering context manager"},
-    {"__exit__", (PyCFunction)ExecutionContextCtx_exit, METH_NOARGS, "Closing context manager"},
+    {"__exit__", (PyCFunction)ExecutionContextCtx_exit, METH_VARARGS, "Closing context manager"},
 
     {NULL, NULL, 0, NULL}
 };
@@ -135,6 +135,8 @@ static PyType_Slot PuringLoop_slots[] = {
     {Py_tp_new, PuringLoop_new},
     {Py_tp_init, PuringLoop_init},
     {Py_tp_dealloc, PuringLoop_dealloc},
+    {Py_tp_traverse, PuringLoop_traverse},
+    {Py_tp_clear, PuringLoop_clear},
     {Py_tp_methods, puring_loop_methods},
     {0, NULL}
 };
@@ -143,7 +145,7 @@ static PyType_Spec PuringLoop_spec = {
     .name = "puring.src.python_api.loop.PuringLoop",
     .basicsize = sizeof(PuringLoop),
     .itemsize = 0,
-    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
     .slots = PuringLoop_slots,
 };
 
@@ -152,9 +154,11 @@ PyTypeObject PuringFileType = {
     .tp_doc = PyDoc_STR("Puring file adapter"),
     .tp_basicsize = sizeof(PuringFile),
     .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     .tp_new = PyType_GenericNew,
     .tp_init = NULL,
+    .tp_traverse = (traverseproc)PuringFile_traverse,
+    .tp_clear = (inquiry)PuringFile_clear,
     .tp_dealloc = (destructor)PuringFile_dealloc,
     .tp_methods = puring_file_methods,
 };
@@ -164,13 +168,14 @@ PyTypeObject PuringSocketType = {
     .tp_doc = PyDoc_STR("Puring socket adapter"),
     .tp_basicsize = sizeof(PuringSocket),
     .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     .tp_new = PyType_GenericNew,
     .tp_init = NULL,
+    .tp_traverse = (traverseproc)PuringSocket_traverse,
+    .tp_clear = (inquiry)PuringSocket_clear,
     .tp_dealloc = (destructor)PuringSocket_dealloc,
     .tp_methods = puring_socket_methods,
 };
-
 
 PyTypeObject PuringBufferModeCtxType = {
     .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.execution_context.BufferModeCtx",

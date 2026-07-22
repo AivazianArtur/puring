@@ -134,6 +134,7 @@ create_buffer_payload_from_data(PyObject *data) {
         PyErr_NoMemory();
         return NULL;
     }
+    memset(buffer_payload, 0, sizeof(BufferPayload));
 
     LinearBuffer *buffer = PyMem_Malloc(sizeof(LinearBuffer));
     if (!buffer) {
@@ -168,19 +169,13 @@ create_buffer_payload_from_data(PyObject *data) {
     buffer_payload->amount = 1;
     buffer_payload->linear = buffer;
 
-    const BufferPayload *current_buffer_payload = _get_buffer();
-    if (current_buffer_payload && current_buffer_payload->mode == FIXED) {
-        buffer_payload->mode = FIXED;
-    } else {
-        buffer_payload->mode = NORMAL_BUF;
-    }
-    buffer_payload->payload_origin = PAYLOAD_RUNTIME;
+    buffer_payload->payload_origin = PAYLOAD_USER;
 
     return buffer_payload;
 }
 
 BufferPayload *
-get_or_create_linear_buffer(PyObject *buffers_obj, int size) {
+get_or_create_linear_buffer(PyObject *buffers_obj, int bufsize) {
     PayloadOrigin payload_origin;
     BufferPayload *buffer_payload = _get_buffer();
     if (!buffers_obj) {
@@ -195,10 +190,10 @@ get_or_create_linear_buffer(PyObject *buffers_obj, int size) {
     }
     if (buffers_obj) {
         payload_origin = PAYLOAD_USER;
-        serialize_linear_buffers(buffers_obj, size, buffer_payload);
+        serialize_linear_buffers(buffers_obj, 1, buffer_payload);
     } else {
         payload_origin = PAYLOAD_RUNTIME;
-        create_linear_buffers(1, size, buffer_payload);
+        create_linear_buffers(1, bufsize, buffer_payload);
     }
     buffer_payload->amount = 1;
     buffer_payload->mode = NORMAL_BUF;
@@ -231,7 +226,7 @@ get_or_create_vectored_buffer(PyObject *buffers_obj, int len, int bufsize) {
     }
     create_linear_buffers(1, (int)vectored_buffers->nr_vecs, buffer_payload);
     buffer_payload->amount = (int)vectored_buffers->nr_vecs;
-    buffer_payload->mode = NORMAL_BUF;
+
     buffer_payload->payload_origin = payload_origin;
     buffer_payload->payload_type = PAYLOAD_IOVEC;
     return buffer_payload;
@@ -433,7 +428,7 @@ serialize_buffers(PyObject *buf_obj, int len, BufferPayload *payload) {
         payload->vector->iovecs[i] = (struct iovec){.iov_base = views[i].buf, .iov_len = (size_t)views[i].len};
     }
     payload->linear->views = views;
-    payload->vector->views = views;
+    payload->vector->views = NULL;
     return payload;
 }
 

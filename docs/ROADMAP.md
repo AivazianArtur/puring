@@ -25,12 +25,13 @@
         - [X] Implement `provided` and `buffer ring` buffer modes.
         - [X] Use Python application buffers as `PuringLoop` buffers - `NORMAL_BUF` buffer mode.
         - [X] Implement modes dispatching.
-    - [ ] Implement `Transfer Mode`:
-        - [ ] Zero-copy functionality.
-        - [ ] Zero-copy and normal-copy routing.
+        - [ ] Implement a memory pool for buffer creation.
+    - [X] Implement `Transfer Mode`:
+        - [X] Zero-copy functionality.
+        - [X] Zero-copy and normal-copy routing.
     - [ ] Implement `Stream Strategy` layer:
         - [ ] Multishot functionality.
-        - [ ] Multishot and one-shot(normal) routing.
+        - [X] Multishot and one-shot(normal) routing.
 - [ ] Implement `ContextManager` protocol for Files and Sockets.
 - [ ] Use `errno` in error handling.
 - [ ] Add tests for whole library:
@@ -51,6 +52,7 @@
 - [ ] Research and implement futex if needed.
 - [ ] Add poll interface (with multishot poll).
 - [ ] Add `socket.send` with `IORING_SEND_VECTORIZED` and `IORING_RECVSEND_BUNDLE` flags as separate methods.
+- [ ] Add zero-copy RX interface.
 
 ## v0.6.0 - CQE and SQE production features
 - [ ] CQE batching.

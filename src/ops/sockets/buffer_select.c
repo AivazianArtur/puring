@@ -6,8 +6,8 @@ puring_recv_buffer_select(
     int request_idx,
     int sockfd,
     size_t len,
-    int is_poll_first,
     int bgid,
+    int is_poll_first,
     SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {

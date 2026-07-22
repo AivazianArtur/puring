@@ -19,8 +19,6 @@ timer(struct io_uring *ring, TimerParams *timer_params) {
 
     int flag = 0;
     if (timer_params->is_multishot) {
-        // Implemented full interface, but not tested.
-        // TODO: Will be ready with whole multishot functionality
         flag = IORING_TIMEOUT_MULTISHOT;
     }
 

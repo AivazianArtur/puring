@@ -54,16 +54,10 @@ get_buffer_idx(BufferIdxRegistry *reg) {
 
 int
 release_buffer_idx(BufferIdxRegistry *reg, int index) {
-    fprintf(stderr, "SHALOM \n");
-    fprintf(stderr, "III %d", reg->top);
-    // fprintf(stderr, "IV %d", reg->size);
     if (reg->top + 1 >= (int)reg->size) {
-        fprintf(stderr, "SHALOM1 \n");
         return -1;
     }
-    fprintf(stderr, "SHALOM2 \n");
 
     reg->available_indices[++reg->top] = index;
-    fprintf(stderr, "SHALOM3 \n");
     return 0;
 }

@@ -12,6 +12,12 @@
 #include "macroses.h"
 #include "timer/timer.h"
 
+typedef struct RecvMsgMultishotResult {
+    void *payload;
+    size_t payload_len;
+    bool is_null;
+} RecvMsgMultishotResult;
+
 int
 prep_socket(struct io_uring *ring, int request_idx, int domain, const struct TimeoutParams timeout_params);
 
@@ -150,7 +156,19 @@ puring_recv_fixed(
 );
 
 int
-puring_send_fixed(
+puring_send_zc(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    const void *buf,
+    size_t len,
+    int is_poll_first,
+    SOCKET_STATES state,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_send_zc_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -163,7 +181,7 @@ puring_send_fixed(
 );
 
 int
-puring_sendmsg_fixed(
+puring_sendmsg_zc(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -194,12 +212,11 @@ puring_recv_buffer_select(
     int request_idx,
     int sockfd,
     size_t len,
-    int is_poll_first,
     int bgid,
+    int is_poll_first,
     SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
-
 
 int
 puring_recvmsg_buffer_select(
@@ -211,3 +228,44 @@ puring_recvmsg_buffer_select(
     SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
+
+int
+puring_accept_multishot(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    struct sockaddr *addr,
+    socklen_t *len,
+    int flags,
+    SOCKET_STATES state,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_recv_multishot(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    size_t len,
+    int bgid,
+    int is_poll_first,
+    SOCKET_STATES state,
+    const struct TimeoutParams timeout_params
+);
+
+int
+puring_recvmsg_multishot(
+    struct io_uring *ring,
+    int request_idx,
+    int sockfd,
+    int bgid,
+    int is_poll_first,
+    struct msghdr *msghdr,
+    const struct TimeoutParams timeout_params
+);
+
+RecvMsgMultishotResult
+puring_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len);
+
+bool
+is_puring_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe);

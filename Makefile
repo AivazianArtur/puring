@@ -7,6 +7,9 @@ PIP := $(VENV)/bin/pip
 PY := $(VENV)/bin/python
 VENV_STAMP := $(VENV)/.stamp
 
+EXAMPLES_DIR := docs/examples
+ASAN_LIB := /lib64/libasan.so.8
+
 PKG_MANAGER := $(shell command -v dnf 2>/dev/null | xargs basename || command -v apt 2>/dev/null | xargs basename)
 
 all: build
@@ -105,12 +108,41 @@ build: deps
 install: deps
 	$(PIP) install -e .
 
+run-examples: install
+	@echo "START RUNNING EXAMPLES[ASan]"
+	@echo "--------"
+	@fail=0; \
+	for f in $$(find $(EXAMPLES_DIR) -type f -name '*.py' | sort); do \
+		base=$$(basename $$f); \
+		case $$base in \
+			_*) echo ">>> Skipping $$f (private)"; continue ;; \
+		esac; \
+		echo ">>> Running $$f"; \
+		LD_PRELOAD=$(ASAN_LIB) \
+		PYTHONMALLOC=malloc \
+		ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 \
+		$(PY) $$f; \
+		status=$$?; \
+		if [ $$status -ne 0 ]; then \
+			echo "!!! FAILED: $$f (exit $$status)"; \
+			fail=1; \
+		fi; \
+	done; \
+	echo "--------"; \
+	if [ $$fail -ne 0 ]; then \
+		echo "One or more examples FAILED"; \
+		exit 1; \
+	else \
+		echo "All examples passed"; \
+	fi
+	@echo "========"
+
 sanitize: dev-deps sanitize-asan_ubsan sanitize-tsan sanitize-msan
 
 sanitize-asan_ubsan: dev-deps
 	@echo "START SANITIZING[ASan-UBSan]"
 	@echo "--------"
-	CFLAGS="-O0 -g3 -fsanitize=address,undefined -fno-omit-frame-pointer" \
+	CFLAGS="-O0 -g3 -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all" \
 	LDFLAGS="-fsanitize=address,undefined" \
 	$(PY) setup.py build_ext --inplace
 	@echo "========"
@@ -182,6 +214,9 @@ lint-cppcheck: dev-deps
 	--check-level=exhaustive \
 	--suppress=missingIncludeSystem \
 	--suppress=missingInclude \
+	-D"Py_RETURN_FALSE=return Py_False;" \
+	-D"Py_RETURN_TRUE=return Py_True;" \
+	-D"Py_RETURN_NONE=return Py_None;" \
 	-I ./src ./src
 	@echo "========"
 
@@ -196,6 +231,9 @@ help:
 	@echo "  make install              - build and install puring (venv)"
 	@echo "  make build                - build wheel"
 	@echo "  make clean                - clean everything"
+	@echo ""
+	@echo "── Examples ────────────────────────────────────────"
+	@echo "  make run-examples         - run all docs/examples/*.py under ASan"
 	@echo ""
 	@echo "── Sanitizers (require dev tools) ─────────────────"
 	@echo "  make sanitize             - run all sanitizers"
@@ -214,5 +252,6 @@ help:
 
 .PHONY: all deps dev-deps build install clean help check-submodule venv \
         install-python-venv install-python-dev install-dev-tools \
+        run-examples \
         sanitize sanitize-asan_ubsan sanitize-tsan sanitize-msan \
         lint lint-formatter lint-aggressive lint-cppcheck

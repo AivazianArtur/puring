@@ -4,6 +4,7 @@
 #include <Python.h>
 
 #include <string.h>
+#include "python_api/execution_context/execution_context_enums.h"
 
 #define DEFAULT_REGISTRY_SIZE 128
 
@@ -14,11 +15,13 @@ typedef struct BufferPayload BufferPayload;
 typedef struct RequestSlot {
     uint64_t user_data;
     PyObject *future;
+    StreamStrategy stream_strategy;
     BufferPayload *buffer_payload;
     int opcode;
     PuringFile *file;
     PuringSocket *socket;
     struct sockaddr_storage *addr;
+    struct msghdr *msghdr;
 } RequestSlot;
 
 typedef struct RequestRegistry {
@@ -39,10 +42,12 @@ registry_add(
     RequestRegistry *reg,
     PyObject *future,
     BufferPayload *buffer_payload,
+    StreamStrategy stream_strategy,
     int opcode,
     PuringFile *file,
     PuringSocket *socket,
-    struct sockaddr_storage *sockaddr
+    struct sockaddr_storage *sockaddr,
+    struct msghdr *msghdr
 );
 
 RequestSlot *

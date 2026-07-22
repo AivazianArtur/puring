@@ -33,6 +33,12 @@ typedef struct PuringSocket {
 PyObject *
 Puring_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
 
+int
+PuringSocket_traverse(PuringSocket *self, visitproc visit, void *arg);
+
+int
+PuringSocket_clear(PuringSocket *self);
+
 void
 PuringSocket_dealloc(PuringSocket *self);
 
@@ -79,12 +85,33 @@ _get_socket_size(int domain);
 
 int
 recv_dispatcher(
-    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+    PuringSocket *self,
+    BufferPayload *buffer_payload,
+    StreamStrategy stream_strategy,
+    int request_idx,
+    int is_poll_first,
+    TimeoutParams timeout_params
+);
+
+int
+recvmsg_dispatcher(
+    PuringSocket *self,
+    BufferPayload *buffer_payload,
+    StreamStrategy stream_strategy,
+    int request_idx,
+    int is_poll_first,
+    struct msghdr *msghdr,
+    TimeoutParams timeout_params
 );
 
 int
 send_dispatcher(
-    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+    PuringSocket *self,
+    BufferPayload *buffer_payload,
+    TransferMode transfer_mode,
+    int request_idx,
+    int is_poll_first,
+    TimeoutParams timeout_params
 );
 
 
@@ -92,7 +119,8 @@ int
 sendmsg_dispatcher(
     PuringSocket *self,
     BufferPayload *buffer_payload,
-    int offset,
+    TransferMode transfer_mode,
+    int request_idx,
     const struct sockaddr *addr,
     size_t addrlen,
     int is_poll_first,
@@ -101,6 +129,11 @@ sendmsg_dispatcher(
 
 
 int
-recvmsg_dispatcher(
-    PuringSocket *self, BufferPayload *buffer_payload, int request_idx, int is_poll_first, TimeoutParams timeout_params
+accept_dispatcher(
+    PuringSocket *self,
+    StreamStrategy stream_strategy,
+    int request_idx,
+    struct sockaddr *addr,
+    socklen_t *len,
+    TimeoutParams timeout_params
 );

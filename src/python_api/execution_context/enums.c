@@ -59,9 +59,7 @@ create_transfer_mode_enum(void) {
     if (!IntEnum)
         return NULL;
 
-    PyObject *members = Py_BuildValue(
-        "{s:i, s:i, s:i}", "NORMAL", NORMAL_TRANSFER, "ZERO_COPY", ZERO_COPY, "BUFFER_POOL", BUFFER_POOL
-    );
+    PyObject *members = Py_BuildValue("{s:i, s:i}", "NORMAL", NORMAL_TRANSFER, "ZERO_COPY", ZERO_COPY);
     if (!members) {
         Py_DECREF(IntEnum);
         return NULL;

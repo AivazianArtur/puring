@@ -1,10 +1,7 @@
 #include "loop.h"
 
 void
-fast_shutdown(
-    struct io_uring *ring,
-    RequestRegistry *reg
-) { // cppcheck-suppress unusedFunction
+fast_shutdown(struct io_uring *ring, RequestRegistry *reg) {
     ring_destroy(ring);
     registry_destroy(reg);
 }
@@ -24,6 +21,12 @@ graceful_shutdown(struct io_uring *ring, RequestRegistry *reg) {
     }
 
     registry_destroy(reg);
+    PyObject *token = ContextVar_set(Py_None);
+    if (token) {
+        Py_DECREF(token);
+    } else {
+        PyErr_Clear();
+    }
     ring_destroy(ring);
 }
 

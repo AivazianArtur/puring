@@ -91,44 +91,98 @@ PuringLoop_init(
     return 0;
 }
 
-void
-PuringLoop_dealloc(PuringLoop *self) {
+int
+PuringLoop_traverse(PuringLoop *self, visitproc visit, void *arg) {
+    if (PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_MANAGED_DICT)) {
+#if PY_VERSION_HEX >= 0x030D0000
+        PyObject_VisitManagedDict((PyObject *)self, visit, arg);
+#else
+        _PyObject_VisitManagedDict((PyObject *)self, visit, arg);
+#endif
+    } else {
+        PyObject **dictptr = _PyObject_GetDictPtr((PyObject *)self);
+        if (dictptr && *dictptr) {
+            Py_VISIT(*dictptr);
+        }
+    }
+
+    Py_VISIT(Py_TYPE(self));
+    return 0;
+}
+
+int
+PuringLoop_clear(PuringLoop *self) {
     Py_CLEAR(self->readers);
     Py_CLEAR(self->writers);
+    Py_CLEAR(self->execution_context_var);
 
-    if (self->registry) {
-        registry_destroy(self->registry);
+    if (PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_MANAGED_DICT)) {
+#if PY_VERSION_HEX >= 0x030D0000
+        PyObject_ClearManagedDict((PyObject *)self);
+#else
+        _PyObject_ClearManagedDict((PyObject *)self);
+#endif
+    } else {
+        PyObject **dictptr = _PyObject_GetDictPtr((PyObject *)self);
+        if (dictptr && *dictptr)
+            Py_CLEAR(*dictptr);
     }
+
+    return 0;
+}
+
+void
+PuringLoop_dealloc(PuringLoop *self) {
+    PyTypeObject *tp = Py_TYPE(self);
+    PyObject_GC_UnTrack(self);
+
+    PuringLoop_clear(self);
 
     if (self->wakeup_fd >= 0) {
         close(self->wakeup_fd);
         self->wakeup_fd = -1;
     }
-    Py_TYPE(self)->tp_free((PyObject *)self);
+
+    if (self->ring) {
+        free(self->ring);
+        self->ring = NULL;
+    }
+
+    if (self->registry) {
+        registry_destroy(self->registry);
+        self->registry = NULL;
+    }
+
+    freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
+    free_func(self);
+    Py_DECREF(tp);
 }
 
 PyObject *
 PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored)) {
     ASSERT_LOOP_THREAD(self);
+
     if (self->ring == NULL)
         Py_RETURN_NONE;
 
     PyObject *base = (PyObject *)Py_TYPE(self)->tp_base;
 
     PyObject *res = PyObject_CallMethod(base, "close", "O", (PyObject *)self);
-
     if (!res)
         return NULL;
-
     Py_DECREF(res);
 
     graceful_shutdown(self->ring, self->registry);
     self->ring = NULL;
     self->registry = NULL;
 
-    self->execution_context_var = NULL;
-    ContextVar_dealloc();
-
+    if (self->wakeup_fd >= 0) {
+        close(self->wakeup_fd);
+        self->wakeup_fd = -1;
+    }
+    Py_CLEAR(self->execution_context_var);
+    Py_CLEAR(self->readers);
+    Py_CLEAR(self->writers);
     Py_RETURN_NONE;
 }
 
@@ -159,7 +213,7 @@ PuringLoop_write_to_self(PuringLoop *self) {
     if (ret < 0 && errno != EAGAIN) {
         PyErr_SetFromErrno(PyExc_OSError);
         return NULL;
-    } // cppcheck-suppress missingReturn
+    }
 
     Py_RETURN_NONE;
 }
