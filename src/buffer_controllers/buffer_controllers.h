@@ -12,11 +12,11 @@
 
 #define DEFAULT_BUFFER_IDX_REGISTRY_SIZE 128
 
-typedef struct BufferIdxRegistry {
+typedef struct FixedBufferIdxRegistry {
     int *available_indices;
     int top;
     unsigned int size;
-} BufferIdxRegistry;
+} FixedBufferIdxRegistry;
 
 int
 init_fixed_mode(struct io_uring *ring, struct iovec *iovecs, unsigned nr_iovecs);
@@ -36,14 +36,14 @@ init_buf_ring_mode(struct io_uring *ring, void *addr, int len, int nentries, int
 int
 close_buf_ring_mode(struct io_uring *ring, struct io_uring_buf_ring *buffer_ring, int nentries, int bgid);
 
-BufferIdxRegistry *
-buffer_idx_registry_new(unsigned int size);
+FixedBufferIdxRegistry *
+buffer_idx_registry_create(unsigned int size);
 
 void
-buffer_idx_registry_destroy(BufferIdxRegistry *reg);
+buffer_idx_registry_destroy(FixedBufferIdxRegistry *reg);
 
 int
-get_buffer_idx(BufferIdxRegistry *reg);
+get_buffer_idx(FixedBufferIdxRegistry *reg);
 
 int
-release_buffer_idx(BufferIdxRegistry *reg, int index);
+release_buffer_idx(FixedBufferIdxRegistry *reg, int index);

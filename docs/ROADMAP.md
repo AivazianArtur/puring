@@ -19,21 +19,19 @@
 - [X] Implement GitHub CI.
 
 ## v0.4.0 - Buffer features
-- [ ] Implement `Execution Context` layer: `Buffer Mode`, `Transfer Mode` and `Stream Strategy`.
+- [X] Implement `Execution Context` layer: `Buffer Mode`, `Transfer Mode` and `Stream Strategy`.
     - [X] Implement `Buffer Mode` layer:
         - [X] Implement `fixed` buffer mode.
         - [X] Implement `provided` and `buffer ring` buffer modes.
         - [X] Use Python application buffers as `PuringLoop` buffers - `NORMAL_BUF` buffer mode.
         - [X] Implement modes dispatching.
-        - [ ] Implement a memory pool for buffer creation.
     - [X] Implement `Transfer Mode`:
         - [X] Zero-copy functionality.
         - [X] Zero-copy and normal-copy routing.
-    - [ ] Implement `Stream Strategy` layer:
-        - [ ] Multishot functionality.
+    - [X] Implement `Stream Strategy` layer:
+        - [X] Multishot functionality.
         - [X] Multishot and one-shot(normal) routing.
 - [ ] Implement `ContextManager` protocol for Files and Sockets.
-- [ ] Use `errno` in error handling.
 - [ ] Add tests for whole library:
     - [ ] Python-layer.
     - [ ] C-layer.

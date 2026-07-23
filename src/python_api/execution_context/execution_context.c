@@ -260,7 +260,7 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
             free(new_context);
             return NULL;
         };
-        BufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_new(0);
+        FixedBufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_create(0);
         if (!buffer_idx_registry) {
             free(new_context);
             return NULL;
