@@ -68,6 +68,8 @@ static PyMethodDef puring_socket_methods[] = {
     {"sendmsg", (PyCFunction)PuringSocket_sendmsg, METH_VARARGS | METH_KEYWORDS, "Sendmsg"},
     {"recvmsg", (PyCFunction)PuringSocket_recvmsg, METH_VARARGS | METH_KEYWORDS, "Recvmsg"},
 
+    {"__aenter__", (PyCFunction)PuringSocket_aenter, METH_NOARGS, "Entering async context manager"},
+    {"__aexit__", (PyCFunction)PuringSocket_aexit, METH_VARARGS | METH_KEYWORDS, "Closing async context manager"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -96,6 +98,9 @@ static PyMethodDef puring_file_methods[] = {
      METH_VARARGS | METH_KEYWORDS,
      "Flush file buffer to file with in fdatasync mode"},
     {"splice", (PyCFunction)PuringFile_splice, METH_VARARGS | METH_KEYWORDS, "Splicing two file pipes"},
+
+    {"__aenter__", (PyCFunction)PuringFile_aenter, METH_NOARGS, "Entering async context manager"},
+    {"__aexit__", (PyCFunction)PuringFile_aexit, METH_VARARGS | METH_KEYWORDS, "Closing async context manager"},
     {NULL, NULL, 0, NULL}
 };
 

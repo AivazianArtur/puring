@@ -41,6 +41,12 @@ PuringFile_traverse(PuringFile *self, visitproc visit, void *arg);
 int
 PuringFile_clear(PuringFile *self);
 
+PyObject *
+PuringFile_aenter(PuringFile *self, PyObject *Py_UNUSED(ignored));
+
+PyObject *
+PuringFile_aexit(PuringFile *self, PyObject *args, PyObject *kwargs);
+
 void
 PuringFile_dealloc(PuringFile *self);
 
@@ -85,6 +91,9 @@ PyObject *
 create_statx_mask_enum(void);
 PyObject *
 create_transfer_mode_enum(void);
+
+PyObject *
+_raise_file_exception_group(PyObject *body_exc_type, PyObject *body_exc_val, PyObject *body_exc_tb);
 
 int
 read_dispatcher(

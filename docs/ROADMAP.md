@@ -31,7 +31,7 @@
     - [X] Implement `Stream Strategy` layer:
         - [X] Multishot functionality.
         - [X] Multishot and one-shot(normal) routing.
-- [ ] Implement `ContextManager` protocol for Files and Sockets.
+- [X] Implement `ContextManager` protocol for Files and Sockets.
 - [ ] Add tests for whole library:
     - [ ] Python-layer.
     - [ ] C-layer.

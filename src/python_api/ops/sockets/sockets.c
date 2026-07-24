@@ -1,4 +1,4 @@
-#include "sockets.h"
+#include "python_api/ops/sockets/sockets.h"
 
 PyObject *
 Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
@@ -72,6 +72,64 @@ int
 PuringSocket_clear(PuringSocket *self) {
     Py_CLEAR(self->loop);
     return 0;
+}
+
+PyObject *
+PuringSocket_aenter(PuringSocket *self, PyObject *Py_UNUSED(ignored)) {
+    PyObject *future = create_future(self->loop);
+    if (!future)
+        return NULL;
+
+    PyObject *res_call = PyObject_CallMethod(future, "set_result", "O", self);
+    Py_XDECREF(res_call);
+    return future;
+}
+
+PyObject *
+PuringSocket_aexit(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+    PyObject *exc_type = NULL;
+    PyObject *exc_val = NULL;
+    PyObject *exc_tb = NULL;
+
+    static const char *kwlist[] = {"exc_type", "exc_val", "exc_tb", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOO", (char **)kwlist, &exc_type, &exc_val, &exc_tb))
+        return NULL;
+
+    int had_exception = (exc_type != Py_None);
+
+    TimeoutParams timeout_params = {0};
+    PyObject *future = create_future(self->loop);
+    if (!future) {
+        if (had_exception) {
+            return _raise_socket_exception_group(exc_type, exc_val, exc_tb);
+        }
+        return NULL;
+    }
+
+    int opcode = IORING_OP_CLOSE;
+    int request_idx = registry_add(self->loop->registry, future, NULL, ONESHOT, opcode, NULL, self, NULL, NULL);
+    if (request_idx < 0) {
+        Py_DECREF(future);
+        if (had_exception) {
+            return _raise_socket_exception_group(exc_type, exc_val, exc_tb);
+        }
+        PyErr_SetString(PyExc_RuntimeError, "Registry is full");
+        return NULL;
+    }
+
+    self->closed = 1;
+
+    int result = puring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
+    PyObject *validated_result = _check_sockets_result(result, self, request_idx, future);
+    if (!validated_result) {
+        self->closed = 0;
+        if (had_exception) {
+            return _raise_socket_exception_group(exc_type, exc_val, exc_tb);
+        }
+        return NULL;
+    }
+    return validated_result;
 }
 
 void
