@@ -8,6 +8,7 @@ PY := $(VENV)/bin/python
 VENV_STAMP := $(VENV)/.stamp
 
 EXAMPLES_DIR := docs/examples
+TESTS_DIR := tests
 ASAN_LIB := /lib64/libasan.so.8
 
 PKG_MANAGER := $(shell command -v dnf 2>/dev/null | xargs basename || command -v apt 2>/dev/null | xargs basename)
@@ -24,10 +25,10 @@ check-submodule:
 		exit 1; \
 	fi
 
-$(VENV_STAMP):
-	@echo "Creating virtualenv..."
+$(VENV_STAMP): Makefile
+	@echo "Creating/updating virtualenv..."
 	$(PYTHON) -m venv $(VENV)
-	$(PIP) install --upgrade pip setuptools wheel build
+	$(PIP) install --upgrade pip setuptools wheel build pytest
 	touch $(VENV_STAMP)
 
 venv: install-python-venv $(VENV_STAMP)
@@ -165,6 +166,33 @@ sanitize-msan: dev-deps
 	$(PY) setup.py build_ext --inplace
 	@echo "========"
 
+test: install
+	@echo "START TESTING[plain]"
+	@echo "--------"
+	$(PY) -m pytest $(TESTS_DIR) -v
+	@echo "========"
+
+test-debug: dev-deps
+	@echo "START TESTING[PURING_DEBUG + ASan-UBSan]"
+	@echo "--------"
+	CFLAGS="-O0 -g3 -DPURING_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all" \
+	LDFLAGS="-fsanitize=address,undefined" \
+	$(PY) setup.py build_ext --inplace
+	LD_PRELOAD=$(ASAN_LIB) \
+	PYTHONMALLOC=malloc \
+	ASAN_OPTIONS=detect_leaks=0:abort_on_error=1 \
+	UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1 \
+	$(PY) -m pytest $(TESTS_DIR) -v
+	@echo "========"
+
+test-refleak: install
+	@echo "START TESTING[refleak hunt]"
+	@echo "--------"
+	$(PY) -m pytest $(TESTS_DIR) -v
+	@echo "!!! For real refleak detection, rebuild CPython with --with-pydebug"
+	@echo "!!! and run: python -m test.regrtest -R 3:2 -m puring.tests"
+	@echo "========"
+
 lint: dev-deps lint-formatter lint-aggressive lint-cppcheck
 
 lint-formatter: dev-deps
@@ -235,6 +263,11 @@ help:
 	@echo "── Examples ────────────────────────────────────────"
 	@echo "  make run-examples         - run all docs/examples/*.py under ASan"
 	@echo ""
+	@echo "── Tests ───────────────────────────────────────────"
+	@echo "  make test                 - run pytest against tests/ (plain build)"
+	@echo "  make test-debug           - build with -DPURING_DEBUG + ASan/UBSan, run tests"
+	@echo "  make test-refleak         - repeated runs to help catch refcount leaks"
+	@echo ""
 	@echo "── Sanitizers (require dev tools) ─────────────────"
 	@echo "  make sanitize             - run all sanitizers"
 	@echo "  make sanitize-asan_ubsan  - AddressSanitizer + UBSan"
@@ -254,4 +287,5 @@ help:
         install-python-venv install-python-dev install-dev-tools \
         run-examples \
         sanitize sanitize-asan_ubsan sanitize-tsan sanitize-msan \
+        test test-debug test-refleak \
         lint lint-formatter lint-aggressive lint-cppcheck

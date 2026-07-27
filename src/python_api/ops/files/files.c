@@ -26,7 +26,7 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
 
     static const char *kwlist[] = {"path", "dirfd", "flags", "resolve", "mode", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|iKKKO", (char **)kwlist, &py_path_obj, &dfd, &timeout_params_obj, &flags, &resolve, &mode
+            args, kwargs, "O|iKKKO", (char **)kwlist, &py_path_obj, &dfd, &flags, &resolve, &mode, &timeout_params_obj
         )) {
         Py_DECREF(file);
         return NULL;
