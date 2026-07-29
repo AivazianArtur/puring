@@ -18,7 +18,7 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
 
     const char *path = NULL;
     int dfd = AT_FDCWD;
-    PyObject *py_path_obj = NULL;
+    PyObject *path_obj = NULL;
     PyObject *timeout_params_obj = NULL;
     int flags = 0;
     int resolve = 0;
@@ -26,25 +26,27 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
 
     static const char *kwlist[] = {"path", "dirfd", "flags", "resolve", "mode", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|iKKKO", (char **)kwlist, &py_path_obj, &dfd, &flags, &resolve, &mode, &timeout_params_obj
+            args, kwargs, "O|iiiiO", (char **)kwlist, &path_obj, &dfd, &flags, &resolve, &mode, &timeout_params_obj
         )) {
         Py_DECREF(file);
         return NULL;
     }
 
-    if (!PyUnicode_Check(py_path_obj)) {
+    PyObject *decoded_path = PyOS_FSPath(path_obj);
+    Py_DECREF(path_obj);
+    if (decoded_path == NULL) {
         Py_DECREF(file);
-        PyErr_SetString(PyExc_TypeError, "Path must be a str");
         return NULL;
     }
 
-    path = PyUnicode_AsUTF8(py_path_obj);
+    path = PyUnicode_AsUTF8(decoded_path);
+    Py_DECREF(decoded_path);
     if (!path) {
         Py_DECREF(file);
         PyErr_SetString(PyExc_TypeError, "Failed to convert path to UTF-8");
         return NULL;
     }
-
+    // TODO: valudate flags, resolve, mode
     TimeoutParams timeout_params = {0};
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
