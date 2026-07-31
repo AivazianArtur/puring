@@ -132,7 +132,6 @@ static PyMethodDef puring_execution_context_ctx_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-
 PyTypeObject *PuringLoopType = NULL;
 
 static PyType_Slot PuringLoop_slots[] = {
@@ -233,48 +232,43 @@ PyTypeObject PuringExecutionContextCtxType = {
 static int
 puring_module_exec(PyObject *m) {
     PyObject *asyncio = PyImport_ImportModule("asyncio");
-    if (!asyncio) {
+    if (!asyncio)
         return -1;
-    }
 
     PyObject *base = PyObject_GetAttrString(asyncio, "BaseEventLoop");
     Py_DECREF(asyncio);
-    if (!base) {
+    if (!base)
         return -1;
-    }
 
     PyObject *bases = PyTuple_Pack(1, base);
     Py_DECREF(base);
-    if (!bases) {
+    if (!bases)
         return -1;
-    }
 
     PyObject *type = PyType_FromSpecWithBases(&PuringLoop_spec, bases);
     Py_DECREF(bases);
-    if (!type) {
+    if (!type)
         return -1;
-    }
 
     PuringLoopType = (PyTypeObject *)type;
 
-    if (PyType_Ready(&PuringSocketType) < 0) {
+    if (PyType_Ready(&PuringSocketType) < 0)
         return -1;
-    }
-    if (PyType_Ready(&PuringFileType) < 0) {
+
+    if (PyType_Ready(&PuringFileType) < 0)
         return -1;
-    }
-    if (PyType_Ready(&PuringBufferModeCtxType) < 0) {
+
+    if (PyType_Ready(&PuringBufferModeCtxType) < 0)
         return -1;
-    }
-    if (PyType_Ready(&PuringStreamStrategyCtxType) < 0) {
+
+    if (PyType_Ready(&PuringStreamStrategyCtxType) < 0)
         return -1;
-    }
-    if (PyType_Ready(&PuringTransferModeCtxType) < 0) {
+
+    if (PyType_Ready(&PuringTransferModeCtxType) < 0)
         return -1;
-    }
-    if (PyType_Ready(&PuringExecutionContextCtxType) < 0) {
+
+    if (PyType_Ready(&PuringExecutionContextCtxType) < 0)
         return -1;
-    }
 
     if (PyModule_AddObjectRef(m, "PuringLoop", type) < 0) {
         return -1;
@@ -299,54 +293,53 @@ puring_module_exec(PyObject *m) {
     }
 
     PyObject *resolve_flags = create_resolve_enum();
-    if (!resolve_flags) {
+    if (!resolve_flags)
         return -1;
-    }
     if (PyModule_AddObject(m, "ResolveFlags", resolve_flags) < 0) {
         Py_DECREF(resolve_flags);
         return -1;
     }
 
     PyObject *statx_flags = create_statx_flags_enum();
-    if (!statx_flags) {
+    if (!statx_flags)
         return -1;
-    }
+
     if (PyModule_AddObject(m, "StatxFlags", statx_flags) < 0) {
         Py_DECREF(statx_flags);
         return -1;
     }
 
     PyObject *statx_mask = create_statx_mask_enum();
-    if (!statx_mask) {
+    if (!statx_mask)
         return -1;
-    }
+
     if (PyModule_AddObject(m, "StatxMask", statx_mask) < 0) {
         Py_DECREF(statx_mask);
         return -1;
     }
 
     PyObject *buffer_mode = create_buffer_mode_enum();
-    if (!buffer_mode) {
+    if (!buffer_mode)
         return -1;
-    }
+
     if (PyModule_AddObject(m, "BUFFER_MODE", buffer_mode) < 0) {
         Py_DECREF(buffer_mode);
         return -1;
     }
 
     PyObject *stream_strategy = create_stream_strategy_enum();
-    if (!stream_strategy) {
+    if (!stream_strategy)
         return -1;
-    }
+
     if (PyModule_AddObject(m, "STREAM_STRATEGY", stream_strategy) < 0) {
         Py_DECREF(stream_strategy);
         return -1;
     }
 
     PyObject *transfer_mode = create_transfer_mode_enum();
-    if (!transfer_mode) {
+    if (!transfer_mode)
         return -1;
-    }
+
     if (PyModule_AddObject(m, "TRANSFER_MODE", transfer_mode) < 0) {
         Py_DECREF(transfer_mode);
         return -1;

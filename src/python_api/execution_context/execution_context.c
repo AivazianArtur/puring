@@ -173,10 +173,16 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
+    execution_context_ctx->loop = self;
+    Py_INCREF(self);
+    execution_context_ctx->buffer_payload = buffer_payload;
+    execution_context_ctx->token = NULL;
+    execution_context_ctx->payload = NULL;
+
     ExecutionContext *execution_context = malloc(sizeof(ExecutionContext));
     if (!execution_context) {
         PyErr_NoMemory();
-        free(execution_context_ctx);
+        Py_DECREF(execution_context_ctx);
         return NULL;
     }
 
@@ -444,6 +450,7 @@ ExecutionContextCtx_enter(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored
         return NULL;
     }
     self->token = token;
+    Py_INCREF(self);
     return self;
 }
 

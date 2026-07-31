@@ -41,6 +41,9 @@ registry_new(unsigned int size) {
 
 void
 registry_destroy(RequestRegistry *reg) {
+    if (!reg)
+        return;
+
     if (reg->slots) {
         for (unsigned int i = 0; i < reg->size; i++) {
             if (reg->slots[i].future) {
@@ -68,6 +71,7 @@ registry_destroy(RequestRegistry *reg) {
     reg->available_indices = NULL;
     reg->size = 0;
     reg->top = -1;
+    free(reg);
 }
 
 int
@@ -128,6 +132,9 @@ registry_get(RequestRegistry *reg, int index) {
 
 void
 registry_remove(RequestRegistry *reg, int index) {
+    if (reg->top >= (int)reg->size - 1) {
+        abort();
+    }
     if (index < 0 || index >= (int)(reg->size))
         return;
 
@@ -139,7 +146,7 @@ registry_remove(RequestRegistry *reg, int index) {
     }
 
     if (slot->buffer_payload) {
-        Py_DECREF(slot->buffer_payload);
+        free_buffer_payload(slot->buffer_payload, false);
         slot->buffer_payload = NULL;
     }
 

@@ -512,7 +512,7 @@ free_buffer_payload(BufferPayload *payload, bool force) {
         PyMem_Free(payload->vector);
     }
 
-    PyMem_Free(payload);
+    free(payload);
 }
 
 BufferMetadata

@@ -716,13 +716,14 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_RECVMSG;
 
-    struct msghdr msghdr;
-    if (stream_strategy == MULTISHOT) {
-        memset(&msghdr, 0, sizeof(msghdr));
-    }
+    struct msghdr *msghdr = malloc(sizeof(struct msghdr));
+    ;
+    // if (stream_strategy == MULTISHOT) {
+    //     msghdr =
+    // }
 
     int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, stream_strategy, opcode, NULL, self, NULL, &msghdr
+        self->loop->registry, future, buffer_payload, stream_strategy, opcode, NULL, self, NULL, msghdr
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -731,7 +732,7 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     int result = recvmsg_dispatcher(
-        self, buffer_payload, stream_strategy, request_idx, is_poll_first, &msghdr, timeout_params
+        self, buffer_payload, stream_strategy, request_idx, is_poll_first, msghdr, timeout_params
     );
     return _check_sockets_result(result, self, request_idx, future);
 }

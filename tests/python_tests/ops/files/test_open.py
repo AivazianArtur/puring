@@ -7,8 +7,8 @@ import puring
 import pytest
 
 from pathlib import Path
-from tests.pyhon_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.pyhon_tests.tests_utils.runner import puring_test
+from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
+from tests.python_tests.tests_utils.runner import puring_test
 
 @pytest_parametrize(
     (

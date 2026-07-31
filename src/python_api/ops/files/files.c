@@ -33,7 +33,6 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *decoded_path = PyOS_FSPath(path_obj);
-    Py_DECREF(path_obj);
     if (decoded_path == NULL) {
         Py_DECREF(file);
         return NULL;
@@ -194,7 +193,6 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     Py_ssize_t size = (Py_ssize_t)size_i;
 
-
     BufferPayload *buffer_payload = get_or_create_linear_buffer(NULL, size_i);
     if (!buffer_payload) {
         Py_DECREF(future);
@@ -226,7 +224,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    PyObject *buffers_obj;
+    PyObject *buffers_obj = NULL;
     PyObject *timeout_params_obj = NULL;
     int nowait = 0;
     int offset = -1;
@@ -390,7 +388,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    PyObject *buffers_obj;
+    PyObject *buffers_obj = NULL;
 
     int flags = 0;
     int offset = 0;
@@ -458,7 +456,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
 
     static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "Oy|iiO", (char **)kwlist, &iovecs_buf, &flags, &offset, &timeout_params_obj
+            args, kwargs, "w*y|iiO", (char **)kwlist, &iovecs_buf, &flags, &offset, &timeout_params_obj
         ))) {
         return NULL;
     }

@@ -144,12 +144,8 @@ PuringLoop_dealloc(PuringLoop *self) {
     }
 
     if (self->ring) {
-        free(self->ring);
+        graceful_shutdown(self->ring, self->registry);
         self->ring = NULL;
-    }
-
-    if (self->registry) {
-        registry_destroy(self->registry);
         self->registry = NULL;
     }
 

@@ -30,5 +30,6 @@ async def main():
 
 with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
     runner.run(main())
+
 # asyncio.run(main(), loop_factory=puring.PuringLoop)
 os.remove(TEMPFILE)

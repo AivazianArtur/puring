@@ -58,6 +58,7 @@ on_uring_ready(PuringLoop *self) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
                 free_buffer_payload(slot->buffer_payload, false);
+                slot->buffer_payload = NULL;
                 break;
             case IORING_OP_READV:
                 if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
@@ -66,6 +67,7 @@ on_uring_ready(PuringLoop *self) {
                     );
                 }
                 free_buffer_payload(slot->buffer_payload, false);
+                slot->buffer_payload = NULL;
                 break;
             case IORING_OP_WRITE:
                 result = PyLong_FromLong(cqe->res);
@@ -74,10 +76,12 @@ on_uring_ready(PuringLoop *self) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
                 free_buffer_payload(slot->buffer_payload, true);
+                slot->buffer_payload = NULL;
                 break;
             case IORING_OP_WRITEV:
                 if (slot->buffer_payload) {
                     free_buffer_payload(slot->buffer_payload, false);
+                    slot->buffer_payload = NULL;
                 }
                 break;
             case IORING_OP_OPENAT2:
@@ -156,6 +160,7 @@ on_uring_ready(PuringLoop *self) {
                         release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                     }
                     free_buffer_payload(slot->buffer_payload, false);
+                    slot->buffer_payload = NULL;
                 }
                 break;
             case IORING_OP_RECVMSG:
@@ -194,6 +199,7 @@ on_uring_ready(PuringLoop *self) {
                     break;
                 }
                 free_buffer_payload(slot->buffer_payload, false);
+                slot->buffer_payload = NULL;
                 break;
             case IORING_OP_SEND:
                 if (slot->buffer_payload) {
@@ -201,6 +207,7 @@ on_uring_ready(PuringLoop *self) {
                         release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                     }
                     free_buffer_payload(slot->buffer_payload, false);
+                    slot->buffer_payload = NULL;
                 }
                 result = PyLong_FromLong(cqe->res);
                 break;
@@ -210,6 +217,7 @@ on_uring_ready(PuringLoop *self) {
                         release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                     }
                     free_buffer_payload(slot->buffer_payload, false);
+                    slot->buffer_payload = NULL;
                 }
                 result = PyLong_FromLong(cqe->res);
                 break;
@@ -219,6 +227,7 @@ on_uring_ready(PuringLoop *self) {
                     slot->socket->state = state;
                     result = PyLong_FromLong(cqe->res);
                 } else if (slot->file) {
+                    slot->file->closed = true;
                     result = PyLong_FromLong(cqe->res);
                 }
                 break;
