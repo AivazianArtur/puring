@@ -15,6 +15,8 @@ on_uring_ready(PuringLoop *self) {
 
         PyObject *result = NULL;
         PyObject *exc = NULL;
+        VectoredBuffer *vec;
+        Py_ssize_t remaining;
 
         if (cqe->res < 0) {
             exc = PyObject_CallFunction(PyExc_OSError, "i", -cqe->res);
@@ -61,10 +63,21 @@ on_uring_ready(PuringLoop *self) {
                 slot->buffer_payload = NULL;
                 break;
             case IORING_OP_READV:
-                if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
-                    result = PyBytes_FromStringAndSize(
-                        PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res
-                    );
+                vec = slot->buffer_payload->vector;
+                remaining = cqe->res;
+
+                result = PyBytes_FromStringAndSize(NULL, remaining);
+                if (result) {
+                    char *dst = PyBytes_AS_STRING(result);
+                    for (uint32_t i = 0; i < vec->nr_vecs && remaining > 0; i++) {
+                        size_t chunk = vec->iovecs[i].iov_len;
+                        if ((Py_ssize_t)chunk > remaining) {
+                            chunk = (size_t)remaining;
+                        }
+                        memcpy(dst, vec->iovecs[i].iov_base, chunk);
+                        dst += chunk;
+                        remaining -= (Py_ssize_t)chunk;
+                    }
                 }
                 free_buffer_payload(slot->buffer_payload, false);
                 slot->buffer_payload = NULL;
@@ -79,6 +92,7 @@ on_uring_ready(PuringLoop *self) {
                 slot->buffer_payload = NULL;
                 break;
             case IORING_OP_WRITEV:
+                result = PyLong_FromLong(cqe->res);
                 if (slot->buffer_payload) {
                     free_buffer_payload(slot->buffer_payload, false);
                     slot->buffer_payload = NULL;
@@ -164,14 +178,12 @@ on_uring_ready(PuringLoop *self) {
                 }
                 break;
             case IORING_OP_RECVMSG:
-                if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
-                    result = PyBytes_FromStringAndSize(
-                        PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res
-                    );
-                }
+                vec = slot->buffer_payload->vector;
+
                 if (slot->buffer_payload->mode == FIXED) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
+
                 if (slot->stream_strategy == MULTISHOT) {
                     unsigned bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
                     void *buf = (char *)slot->buffer_payload->linear->buffer +
@@ -198,6 +210,22 @@ on_uring_ready(PuringLoop *self) {
                     result = PyBytes_FromStringAndSize(out.payload, (Py_ssize_t)out.payload_len);
                     break;
                 }
+
+                remaining = cqe->res;
+                result = PyBytes_FromStringAndSize(NULL, remaining);
+                if (result) {
+                    char *dst = PyBytes_AS_STRING(result);
+                    for (uint32_t i = 0; i < vec->nr_vecs && remaining > 0; i++) {
+                        size_t chunk = vec->iovecs[i].iov_len;
+                        if ((Py_ssize_t)chunk > remaining) {
+                            chunk = (size_t)remaining;
+                        }
+                        memcpy(dst, vec->iovecs[i].iov_base, chunk);
+                        dst += chunk;
+                        remaining -= (Py_ssize_t)chunk;
+                    }
+                }
+
                 free_buffer_payload(slot->buffer_payload, false);
                 slot->buffer_payload = NULL;
                 break;

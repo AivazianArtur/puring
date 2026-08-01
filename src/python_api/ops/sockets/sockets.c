@@ -646,7 +646,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     addr = _serialize_address(host, port, domain);
     socklen_t addrlen = _get_socket_size(domain);
 
-    BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj, 0, 0);
+    BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj);
     if (!buffer_payload)
         return NULL;
 
@@ -701,7 +701,7 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj, 0, 0);
+    BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj);
     if (!buffer_payload)
         return NULL;
 

@@ -110,18 +110,42 @@ create_buffer_payload_from_pybuffer(Py_buffer *iovecs_buf) {
         PyErr_NoMemory();
         return NULL;
     }
+    memset(buffer_payload, 0, sizeof(BufferPayload));
+
+    uint32_t nr_vecs = (uint32_t)((size_t)iovecs_buf->len / sizeof(struct iovec));
+
     VectoredBuffer *vec = PyMem_Malloc(sizeof(VectoredBuffer));
     if (!vec) {
         free(buffer_payload);
         PyErr_NoMemory();
         return NULL;
     }
+
+    vec->iovecs = PyMem_Malloc(sizeof(struct iovec) * (size_t)nr_vecs);
+    if (!vec->iovecs) {
+        PyMem_Free(vec);
+        free(buffer_payload);
+        PyErr_NoMemory();
+        return NULL;
+    }
+    memcpy(vec->iovecs, iovecs_buf->buf, sizeof(struct iovec) * (size_t)nr_vecs);
+    vec->nr_vecs = nr_vecs;
+
+    Py_buffer *views = PyMem_Malloc(sizeof(Py_buffer));
+    if (!views) {
+        PyMem_Free(vec->iovecs);
+        PyMem_Free(vec);
+        free(buffer_payload);
+        PyErr_NoMemory();
+        return NULL;
+    }
+    views[0] = *iovecs_buf;
+    vec->views = views;
+
     buffer_payload->payload_type = PAYLOAD_IOVEC;
-    buffer_payload->amount = (int)iovecs_buf->len;
+    buffer_payload->amount = 1;
     buffer_payload->linear = NULL;
     buffer_payload->vector = vec;
-    buffer_payload->vector->iovecs = (struct iovec *)iovecs_buf->buf;
-    buffer_payload->vector->nr_vecs = (unsigned int)(iovecs_buf->len) / sizeof(struct iovec);
     buffer_payload->mode = NORMAL_BUF;
     buffer_payload->payload_origin = PAYLOAD_USER;
     return buffer_payload;
@@ -203,7 +227,7 @@ get_or_create_linear_buffer(PyObject *buffers_obj, int bufsize) {
 }
 
 BufferPayload *
-get_or_create_vectored_buffer(PyObject *buffers_obj, int len, int bufsize) {
+get_or_create_vectored_buffer(PyObject *buffers_obj) {
     const VectoredBuffer *vectored_buffers;
     PayloadOrigin payload_origin;
     BufferPayload *buffer_payload = _get_buffer();
@@ -214,19 +238,26 @@ get_or_create_vectored_buffer(PyObject *buffers_obj, int len, int bufsize) {
     }
 
     buffer_payload = malloc(sizeof(BufferPayload));
-    if (!buffer_payload) {
+    if (!buffer_payload)
         return NULL;
-    }
+    memset(buffer_payload, 0, sizeof(BufferPayload));
+
+    create_linear_buffers(1, (int)vectored_buffers->nr_vecs, buffer_payload);
+
     if (buffers_obj) {
         payload_origin = PAYLOAD_USER;
         vectored_buffers = serialize_vectored_buffers(buffers_obj, buffer_payload);
     } else {
         payload_origin = PAYLOAD_RUNTIME;
-        vectored_buffers = create_vectored_buffers(len, bufsize, buffer_payload);
+        vectored_buffers = create_vectored_buffers(1, 1024, buffer_payload);
     }
-    create_linear_buffers(1, (int)vectored_buffers->nr_vecs, buffer_payload);
-    buffer_payload->amount = (int)vectored_buffers->nr_vecs;
+    if (!vectored_buffers) {
+        free(buffer_payload);
+        return NULL;
+    }
 
+    buffer_payload->amount = (int)vectored_buffers->nr_vecs;
+    buffer_payload->mode = NORMAL_BUF;
     buffer_payload->payload_origin = payload_origin;
     buffer_payload->payload_type = PAYLOAD_IOVEC;
     return buffer_payload;
@@ -278,7 +309,7 @@ serialize_linear_buffers(PyObject *buffers_obj, int len, BufferPayload *payload)
             PyMem_Free(buffers);
             return NULL;
         }
-        if (PyObject_GetBuffer(item, &views[i], PyBUF_WRITABLE) < 0) {
+        if (PyObject_GetBuffer(item, &views[i], PyBUF_CONTIG_RO) < 0) {
             Py_DECREF(item);
             for (Py_ssize_t j = 0; j < i; j++)
                 PyBuffer_Release(&views[j]);
@@ -331,13 +362,18 @@ create_vectored_buffers(int len, int bufsize, BufferPayload *payload) {
 
 VectoredBuffer *
 serialize_vectored_buffers(PyObject *buffers_obj, BufferPayload *payload) {
-    Py_ssize_t nr_vecs = PySequence_Fast_GET_SIZE(buffers_obj);
+    PyObject *fast = PySequence_Fast(buffers_obj, "buffers must be a sequence");
+    if (!fast)
+        return NULL;
+
+    Py_ssize_t nr_vecs = PySequence_Fast_GET_SIZE(fast);
     int len = (int)nr_vecs;
     Py_buffer *views = PyMem_Malloc(sizeof(Py_buffer) * (size_t)len);
     VectoredBuffer *vec = PyMem_Malloc(sizeof(VectoredBuffer));
     if (!views || !vec) {
         PyMem_Free(views);
         PyMem_Free(vec);
+        Py_DECREF(fast);
         PyErr_NoMemory();
         return NULL;
     }
@@ -345,36 +381,29 @@ serialize_vectored_buffers(PyObject *buffers_obj, BufferPayload *payload) {
     if (!vec->iovecs) {
         PyMem_Free(views);
         PyMem_Free(vec);
+        Py_DECREF(fast);
         PyErr_NoMemory();
         return NULL;
     }
     vec->nr_vecs = (uint32_t)len;
 
     for (Py_ssize_t i = 0; i < len; i++) {
-        PyObject *item = PySequence_GetItem(buffers_obj, i);
-        if (!item) {
+        PyObject *item = PySequence_Fast_GET_ITEM(fast, i);
+        if (PyObject_GetBuffer(item, &views[i], PyBUF_CONTIG_RO) < 0) {
             for (Py_ssize_t j = 0; j < i; j++)
                 PyBuffer_Release(&views[j]);
             PyMem_Free(views);
             PyMem_Free(vec->iovecs);
             PyMem_Free(vec);
-            return NULL;
-        }
-        if (PyObject_GetBuffer(item, &views[i], PyBUF_WRITABLE) < 0) {
-            Py_DECREF(item);
-            for (Py_ssize_t j = 0; j < i; j++)
-                PyBuffer_Release(&views[j]);
-            PyMem_Free(views);
-            PyMem_Free(vec->iovecs);
-            PyMem_Free(vec);
+            Py_DECREF(fast);
             return NULL;
         }
         vec->iovecs[i] = (struct iovec){.iov_base = views[i].buf, .iov_len = (size_t)views[i].len};
-        Py_DECREF(item);
     }
     payload->vector = vec;
     payload->linear = NULL;
     vec->views = views;
+    Py_DECREF(fast);
     return vec;
 }
 
@@ -418,7 +447,7 @@ serialize_buffers(PyObject *buf_obj, int len, BufferPayload *payload) {
             free_buffer_payload(payload, true);
             return NULL;
         }
-        if (PyObject_GetBuffer(item, &views[i], PyBUF_WRITABLE) < 0) {
+        if (PyObject_GetBuffer(item, &views[i], PyBUF_CONTIG_RO) < 0) {
             Py_DECREF(item);
             free_buffer_payload(payload, true);
             return NULL;
@@ -496,7 +525,7 @@ free_buffer_payload(BufferPayload *payload, bool force) {
     }
 
     if (payload->vector) {
-        if (payload->payload_origin == PAYLOAD_RUNTIME && !payload->linear) {
+        if (payload->payload_origin == PAYLOAD_RUNTIME) {
             for (uint32_t i = 0; i < payload->vector->nr_vecs; i++) {
                 PyMem_Free(payload->vector->iovecs[i].iov_base);
             }

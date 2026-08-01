@@ -74,19 +74,6 @@ async def test_readv_raw__non_contiguous_buffer_raises_error(temp_file_path):
 
 
 @puring_test
-async def test_readv_raw__offset_int_currently_raises_type_error(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path)
-
-    buf = bytearray(16)
-    iovecs = _build_iovecs([buf])
-
-    with pytest.raises(expected_exception=TypeError):
-        uring_file.readv_raw(iovecs=iovecs, offset=0)
-
-    await uring_file.close()
-
-
-@puring_test
 async def test_readv_raw__closed_file_raises_error(temp_file_path):
     uring_file = await puring.open_file(path=temp_file_path)
     await uring_file.close()
@@ -142,7 +129,7 @@ async def test_readv_raw__full_roundtrip(temp_file_path):
     uring_file = await puring.open_file(path=temp_file_path)
 
     buf1 = bytearray(500)
-    buf2 = bytearray(524)
+    buf2 = bytearray(500)
     iovecs = _build_iovecs([buf1, buf2])
 
     await uring_file.readv_raw(iovecs=iovecs)

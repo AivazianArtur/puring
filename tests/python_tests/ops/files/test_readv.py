@@ -108,7 +108,6 @@ async def test_readv__closed_file_raises_error(temp_file_path):
 @puring_test
 async def test_readv__success(temp_file_path, buffers, offset, nowait):
     uring_file = await puring.open_file(path=temp_file_path)
-
     kwargs = {}
     if buffers is not None:
         kwargs['buffers'] = buffers
@@ -127,7 +126,7 @@ async def test_readv__full_roundtrip(temp_file_path):
     uring_file = await puring.open_file(path=temp_file_path)
 
     buf1 = bytearray(500)
-    buf2 = bytearray(524)
+    buf2 = bytearray(500)
     await uring_file.readv(buffers=[buf1, buf2])
     await uring_file.close()
 

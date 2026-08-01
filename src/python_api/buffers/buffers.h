@@ -70,7 +70,7 @@ BufferPayload *
 get_or_create_linear_buffer(PyObject *buffers_obj, int bufsize);
 
 BufferPayload *
-get_or_create_vectored_buffer(PyObject *buffers_obj, int len, int bufsize);
+get_or_create_vectored_buffer(PyObject *buffers_obj);
 
 LinearBuffer *
 create_linear_buffers(int len, int bufsize, BufferPayload *payload);
