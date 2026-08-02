@@ -89,8 +89,6 @@ PyObject *
 create_statx_flags_enum(void);
 PyObject *
 create_statx_mask_enum(void);
-PyObject *
-create_transfer_mode_enum(void);
 
 PyObject *
 _raise_file_exception_group(PyObject *body_exc_type, PyObject *body_exc_val, PyObject *body_exc_tb);

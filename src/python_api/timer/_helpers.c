@@ -33,6 +33,7 @@ parse_timer_params(PyObject *obj, TimerParams *out, StreamStrategy stream_strate
         }
         return 1;
     }
+    PyErr_SetString(PyExc_TypeError, "timer_params requires int fields: sec, nsec, count");
     return -1;
 }
 

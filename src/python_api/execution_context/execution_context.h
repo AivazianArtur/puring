@@ -79,6 +79,9 @@ create_stream_strategy_enum(void);
 PyObject *
 create_transfer_mode_enum(void);
 
+PyObject *
+create_payload_type_enum(void);
+
 BufferPayload *
 _get_buffer(void);
 

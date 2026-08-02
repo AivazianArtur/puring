@@ -1,7 +1,7 @@
 #include "timer.h"
 
 int
-timer(struct io_uring *ring, TimerParams *timer_params) {
+timer(struct io_uring *ring, int request_idx, TimerParams *timer_params) {
     if (!timer_params) {
         fprintf(stderr, "To required params\n");
         return -1;
@@ -13,8 +13,8 @@ timer(struct io_uring *ring, TimerParams *timer_params) {
     }
 
     struct __kernel_timespec ts = {
-        .tv_sec = (*timer_params).sec,
-        .tv_nsec = (*timer_params).nsec,
+        .tv_sec = timer_params->sec,
+        .tv_nsec = timer_params->nsec,
     };
 
     int flag = 0;
@@ -22,7 +22,10 @@ timer(struct io_uring *ring, TimerParams *timer_params) {
         flag = IORING_TIMEOUT_MULTISHOT;
     }
 
-    io_uring_prep_timeout(sqe, &ts, (unsigned int)((*timer_params).count), (unsigned int)flag);
+    io_uring_prep_timeout(sqe, &ts, (unsigned int)timer_params->count, (unsigned int)flag);
+
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
 
     int result = io_uring_submit(ring);
     if (result < 0) {

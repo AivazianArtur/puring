@@ -345,6 +345,14 @@ puring_module_exec(PyObject *m) {
         return -1;
     }
 
+    PyObject *payload_type = create_payload_type_enum();
+    if (!payload_type)
+        return -1;
+
+    if (PyModule_AddObject(m, "PAYLOAD_TYPE", payload_type) < 0) {
+        Py_DECREF(payload_type);
+        return -1;
+    }
     return 0;
 }
 

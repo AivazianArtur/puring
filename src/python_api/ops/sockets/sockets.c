@@ -726,10 +726,6 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     int opcode = IORING_OP_RECVMSG;
 
     struct msghdr *msghdr = malloc(sizeof(struct msghdr));
-    ;
-    // if (stream_strategy == MULTISHOT) {
-    //     msghdr =
-    // }
 
     int request_idx = registry_add(
         self->loop->registry, future, buffer_payload, stream_strategy, opcode, NULL, self, NULL, msghdr

@@ -18,7 +18,9 @@ on_uring_ready(PuringLoop *self) {
         VectoredBuffer *vec;
         Py_ssize_t remaining;
 
-        if (cqe->res < 0) {
+        bool timeout_expired = (slot->opcode == IORING_OP_TIMEOUT && cqe->res == -ETIME);
+
+        if (cqe->res < 0 && !timeout_expired) {
             exc = PyObject_CallFunction(PyExc_OSError, "i", -cqe->res);
             if (exc) {
                 PyObject_CallMethod(slot->future, "set_exception", "O", exc);
@@ -268,6 +270,10 @@ on_uring_ready(PuringLoop *self) {
                     slot->file->closed = true;
                     result = PyLong_FromLong(cqe->res);
                 }
+                break;
+            case IORING_OP_TIMEOUT:
+                result = Py_None;
+                Py_INCREF(result);
                 break;
             default:
                 result = PyLong_FromLong(cqe->res);
