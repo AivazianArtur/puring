@@ -17,9 +17,10 @@ Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs
     PyObject_GC_Track(sock);
 
     int domain = AF_INET;
+    int socktype = SOCK_STREAM;
     PyObject *timeout_params_obj = NULL;
-    static const char *kwlist[] = {"domain", "timeout_params", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", (char **)kwlist, &domain, &timeout_params_obj)) {
+    static const char *kwlist[] = {"domain", "socktype", "timeout_params", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", (char **)kwlist, &domain, &socktype, &timeout_params_obj)) {
         Py_DECREF(sock);
         return NULL;
     }
@@ -44,7 +45,7 @@ Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs
         return NULL;
     }
 
-    int result = prep_socket(running_loop->ring, request_idx, domain, timeout_params);
+    int result = prep_socket(running_loop->ring, request_idx, domain, socktype, timeout_params);
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");
@@ -352,9 +353,8 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
-    if (!future) {
+    if (!future)
         return NULL;
-    }
 
     int opcode = IORING_OP_CLOSE;
     int request_idx = registry_add(self->loop->registry, future, NULL, ONESHOT, opcode, NULL, self, NULL, NULL);
@@ -363,9 +363,13 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-
+    self->closed = true;
     int result = puring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
-    return _check_sockets_result(result, self, request_idx, future);
+    PyObject *validated_result = _check_sockets_result(result, self, request_idx, future);
+    if (!validated_result) {
+        self->closed = false;
+    }
+    return validated_result;
 }
 
 PyObject *
@@ -476,18 +480,21 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *data = NULL;
     const char *host;
     int port;
-    char domain;
+    int domain;
     int is_poll_first = 0;
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"data", "host", "port", "domain", "is_poll_first", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "Osis|pO", (char **)kwlist, &data, &host, &port, &domain, &is_poll_first, &timeout_params_obj
+            args, kwargs, "Osii|pO", (char **)kwlist, &data, &host, &port, &domain, &is_poll_first, &timeout_params_obj
         ))) {
         return NULL;
     }
 
     struct sockaddr *addr = NULL;
     addr = _serialize_address(host, port, domain);
+    if (!addr) 
+        return NULL;
+
     socklen_t addrlen = _get_socket_size(domain);
 
     TimeoutParams timeout_params = {0};
@@ -542,55 +549,62 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     const char *host;
     int port;
-    char domain;
+    int domain;
     unsigned int bufsize = 1024;
     PyObject *buffer_obj = NULL;
     int is_poll_first = 0;
-
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {
         "bufsize", "buffer", "host", "port", "domain", "is_poll_first", "timeout_params", NULL
     };
     if (!(PyArg_ParseTupleAndKeywords(
-            args,
-            kwargs,
-            "|iOsispO",
-            (char **)kwlist,
-            &bufsize,
-            &buffer_obj,
-            &host,
-            &port,
-            &domain,
-            &is_poll_first,
-            &timeout_params_obj
+            args, kwargs, "|iOsiipO", (char **)kwlist,
+            &bufsize, &buffer_obj, &host, &port, &domain, &is_poll_first, &timeout_params_obj
         ))) {
         return NULL;
     }
 
-    struct sockaddr *addr = NULL;
-    addr = _serialize_address(host, port, domain);
+    struct sockaddr *addr = _serialize_address(host, port, domain);
+    if (!addr)
+        return NULL;
+
+    socklen_t addrlen = _get_socket_size(domain);
 
     BufferPayload *buffer_payload = get_or_create_linear_buffer(buffer_obj, (int)bufsize);
-    if (!buffer_payload)
+    if (!buffer_payload) {
+        free(addr);
         return NULL;
+    }
+
+    struct msghdr *msg = malloc(sizeof(struct msghdr) + sizeof(struct iovec));
+    if (!msg) {
+        free_buffer_payload(buffer_payload, false);
+        free(addr);
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    TimeoutParams timeout_params = {0};
+    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
         free_buffer_payload(buffer_payload, false);
         free(addr);
+        free(msg);
         return NULL;
     }
-    TimeoutParams timeout_params = {0};
 
     int opcode = IORING_OP_RECVMSG;
-
     int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, ONESHOT, opcode, NULL, self, NULL, NULL
+        self->loop->registry, future, buffer_payload, ONESHOT, opcode, NULL, self,
+        (struct sockaddr_storage *)addr, msg
     );
     if (request_idx < 0) {
         Py_DECREF(future);
         free_buffer_payload(buffer_payload, false);
         free(addr);
+        free(msg);
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
@@ -602,12 +616,12 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         buffer_payload->linear->buffer,
         buffer_payload->linear->len,
         addr,
-        // addrlen,
+        addrlen,
         is_poll_first,
+        msg,
         timeout_params
     );
 
-    free(addr);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -620,31 +634,26 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    PyObject *buffers_obj;
-    const char *host;
-    int port;
-    char domain;
+    PyObject *buffers_obj = NULL;
+    const char *host = NULL;
+    int port = 0;
+    int domain = 0;
     int is_poll_first = 0;
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"buffers", "host", "port", "domain", "is_poll_first", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args,
-            kwargs,
-            "|OsispO",
-            (char **)kwlist,
-            &buffers_obj,
-            &host,
-            &port,
-            &domain,
-            &is_poll_first,
-            &timeout_params_obj
+            args, kwargs, "O|siipO", (char **)kwlist, &buffers_obj, &host, &port, &domain, &is_poll_first, &timeout_params_obj
         ))) {
         return NULL;
     }
 
     struct sockaddr *addr = NULL;
-    addr = _serialize_address(host, port, domain);
-    socklen_t addrlen = _get_socket_size(domain);
+    if (host) {
+        addr = _serialize_address(host, port, domain);
+        if (!addr)
+            return NULL;
+    }
+    socklen_t addrlen = addr ? _get_socket_size(domain) : 0;
 
     BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj);
     if (!buffer_payload)

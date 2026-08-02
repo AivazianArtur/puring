@@ -19,7 +19,7 @@ typedef struct RecvMsgMultishotResult {
 } RecvMsgMultishotResult;
 
 int
-prep_socket(struct io_uring *ring, int request_idx, int domain, const struct TimeoutParams timeout_params);
+prep_socket(struct io_uring *ring, int request_idx, int domain, int type, const struct TimeoutParams timeout_params);
 
 int
 puring_bind(
@@ -113,8 +113,9 @@ puring_recvfrom(
     void *buf,
     size_t len,
     struct sockaddr *addr,
-    // socklen_t addrlen,
+    socklen_t addrlen,
     int is_poll_first,
+    struct msghdr *msg,
     const struct TimeoutParams timeout_params
 );
 

@@ -242,8 +242,6 @@ get_or_create_vectored_buffer(PyObject *buffers_obj) {
         return NULL;
     memset(buffer_payload, 0, sizeof(BufferPayload));
 
-    create_linear_buffers(1, (int)vectored_buffers->nr_vecs, buffer_payload);
-
     if (buffers_obj) {
         payload_origin = PAYLOAD_USER;
         vectored_buffers = serialize_vectored_buffers(buffers_obj, buffer_payload);

@@ -1,7 +1,7 @@
 #include "sockets.h"
 
 int
-prep_socket(struct io_uring *ring, int request_idx, int domain, const struct TimeoutParams timeout_params) {
+prep_socket(struct io_uring *ring, int request_idx, int domain, int type, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     if (!(domain == AF_INET || domain == AF_INET6)) {
@@ -9,7 +9,7 @@ prep_socket(struct io_uring *ring, int request_idx, int domain, const struct Tim
         return -2;
     }
 
-    io_uring_prep_socket(sqe, domain, SOCK_STREAM, 0, 0);
+    io_uring_prep_socket(sqe, domain, type, 0, 0);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -33,10 +33,6 @@ puring_bind(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-    if (!(state == NEW)) {
-        fprintf(stderr, "Wrong socket status - should be `NEW`\n");
-        return -2;
-    }
 
     io_uring_prep_bind(sqe, fd, addr, addrlen);
 
@@ -63,10 +59,6 @@ puring_connect(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-    if (!(state == NEW || state == BOUND)) {
-        fprintf(stderr, "Wrong socket status - should be `NEW` or `BOUND`.\n");
-        return -2;
-    }
 
     io_uring_prep_connect(sqe, fd, addr, addrlen);
 
@@ -91,10 +83,6 @@ puring_listen(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-    if (!(state == BOUND)) {
-        fprintf(stderr, "Wrong socket status - should be `BOUND`.\n");
-        return -2;
-    }
 
     io_uring_prep_listen(sqe, fd, backlog);
 
@@ -121,10 +109,6 @@ puring_accept(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-    if (!(state == LISTENING)) {
-        fprintf(stderr, "Wrong socket status - should be `LISTENING`.\n");
-        return -2;
-    }
 
     io_uring_prep_accept(sqe, sockfd, addr, len, flags);
 
@@ -168,10 +152,6 @@ puring_send(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-    if (!(state == CONNECTED)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
-        return -2;
-    }
 
     int flags = 0;
     if (is_poll_first) {
@@ -203,10 +183,6 @@ puring_recv(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-    if (!(state == CONNECTED || state == ACCEPTING)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
-        return -2;
-    }
 
     int flags = 0;
     if (is_poll_first) {
@@ -266,34 +242,33 @@ puring_recvfrom(
     void *buf,
     size_t len,
     struct sockaddr *addr,
-    // socklen_t addrlen,
+    socklen_t addrlen,
     int is_poll_first,
+    struct msghdr *msg,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
-    struct msghdr msg;
-    struct iovec iov;
+    struct iovec *iov = (struct iovec *)(msg + 1);
 
-    memset(&msg, 0, sizeof(msg));
+    memset(msg, 0, sizeof(*msg));
+    msg->msg_name = addr;
+    msg->msg_namelen = addrlen;
 
-    msg.msg_name = addr;
-    msg.msg_namelen = sizeof(addr);
+    iov->iov_base = buf;
+    iov->iov_len = len;
+    msg->msg_iov = iov;
+    msg->msg_iovlen = 1;
 
-    iov.iov_base = buf;
-    iov.iov_len = len;
-    msg.msg_iov = &iov;
-    msg.msg_iovlen = 1;
-
-    msg.msg_control = NULL;
-    msg.msg_controllen = 0;
+    msg->msg_control = NULL;
+    msg->msg_controllen = 0;
 
     int flags = 0;
     if (is_poll_first) {
         flags |= IORING_RECVSEND_POLL_FIRST;
     }
 
-    io_uring_prep_recvmsg(sqe, sockfd, &msg, (unsigned int)flags);
+    io_uring_prep_recvmsg(sqe, sockfd, msg, (unsigned int)flags);
 
     void *rings_data_pointer = (void *)(uintptr_t)request_idx;
     io_uring_sqe_set_data(sqe, rings_data_pointer);
@@ -333,7 +308,7 @@ puring_sendmsg(
     msg.msg_control = NULL;
     msg.msg_controllen = 0;
 
-    int flags = -1;
+    int flags = 0;
     if (is_poll_first) {
         flags |= IORING_RECVSEND_POLL_FIRST;
     }

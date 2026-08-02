@@ -13,10 +13,6 @@ puring_recv_fixed(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-    if (!(state == CONNECTED || state == ACCEPTING)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
-        return -2;
-    }
 
     int flags = 0;
     if (is_poll_first) {

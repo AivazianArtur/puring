@@ -13,11 +13,6 @@ puring_recv_buffer_select(
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
-    if (!(state == CONNECTED || state == ACCEPTING)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
-        return -2;
-    }
-
     int flags = 0;
     if (is_poll_first) {
         flags |= IORING_RECVSEND_POLL_FIRST;
@@ -51,11 +46,6 @@ puring_recvmsg_buffer_select(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-
-    if (!(state == CONNECTED || state == ACCEPTING)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED`.\n");
-        return -2;
-    }
 
     struct msghdr msg;
     memset(&msg, 0, sizeof(msg));

@@ -12,10 +12,6 @@ puring_accept_multishot(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-    if (!(state == LISTENING)) {
-        fprintf(stderr, "Wrong socket status - should be `LISTENING`.\n");
-        return -2;
-    }
 
     io_uring_prep_multishot_accept(sqe, sockfd, addr, len, flags);
 
@@ -42,11 +38,6 @@ puring_recv_multishot(
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
-
-    if (!(state == CONNECTED || state == ACCEPTING)) {
-        fprintf(stderr, "Wrong socket status - should be `CONNECTED` or `ACCEPTING`.\n");
-        return -2;
-    }
 
     int flags = 0;
     if (is_poll_first)

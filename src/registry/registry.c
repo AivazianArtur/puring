@@ -51,7 +51,8 @@ registry_destroy(RequestRegistry *reg) {
             }
 
             if (reg->slots[i].buffer_payload) {
-                Py_DECREF(reg->slots[i].buffer_payload);
+                free_buffer_payload(reg->slots[i].buffer_payload, true);
+                reg->slots[i].buffer_payload = NULL;
             }
             if (reg->slots[i].socket) {
                 Py_DECREF(reg->slots[i].socket);
@@ -102,8 +103,6 @@ registry_add(
     Py_INCREF(future);
 
     slot->buffer_payload = buffer_payload;
-    if (buffer_payload != NULL)
-        Py_INCREF(buffer_payload);
 
     slot->socket = socket;
     slot->file = file;
