@@ -11,6 +11,67 @@ VENV_STAMP := $(VENV)/.stamp
 
 EXAMPLES_DIR := docs/examples
 TESTS_DIR := tests
+# --- C-level tests (tests/c_tests) ---
+CTESTS_DIR := tests/c_tests
+CTESTS_FILES_BIN := $(CTESTS_DIR)/test_files_bin
+CTESTS_SOCKETS_BIN := $(CTESTS_DIR)/test_sockets_bin
+CTESTS_BUFFERS_BIN := $(CTESTS_DIR)/test_buffer_controllers_bin
+CTESTS_REGISTRY_BIN := $(CTESTS_DIR)/test_registry_bin
+
+SRC := src
+
+CTESTS_DEPS := \
+	$(SRC)/ops/files/files.c \
+	$(SRC)/ops/files/buffer_select.c \
+	$(SRC)/ops/files/fixed.c \
+	$(SRC)/ops/files/multishot.c \
+	$(SRC)/ring/ring.c \
+	$(SRC)/queue_events/sqe/sqe.c \
+	$(SRC)/timer/timer.c
+
+CTESTS_SOCKETS_DEPS := \
+	$(SRC)/ops/sockets/sockets.c \
+	$(SRC)/ops/sockets/buffer_select.c \
+	$(SRC)/ops/sockets/fixed.c \
+	$(SRC)/ops/sockets/multishot.c \
+	$(SRC)/ops/sockets/zerocopy.c \
+	$(SRC)/ring/ring.c \
+	$(SRC)/queue_events/sqe/sqe.c \
+	$(SRC)/timer/timer.c
+
+CTESTS_BUFFERS_DEPS := \
+	$(SRC)/buffer_controllers/buffer_index.c \
+	$(SRC)/buffer_controllers/buffer_modes.c \
+	$(SRC)/ring/ring.c \
+	$(SRC)/queue_events/sqe/sqe.c \
+	$(SRC)/timer/timer.c
+
+CTESTS_REGISTRY_DEPS := \
+	$(SRC)/registry/registry.c \
+	$(SRC)/python_api/buffers/buffers.c \
+	$(SRC)/python_api/execution_context/execution_context.c \
+	$(SRC)/python_api/execution_context/contextvar.c \
+	$(SRC)/buffer_controllers/buffer_index.c \
+	$(SRC)/buffer_controllers/buffer_modes.c \
+	$(SRC)/ring/ring.c \
+	$(SRC)/queue_events/sqe/sqe.c \
+	$(SRC)/timer/timer.c
+
+CTESTS_INCLUDES := \
+    -D_GNU_SOURCE \
+    -I $(SRC) \
+    -I $(SRC)/python_api \
+    -I $(SRC)/python_api/buffers \
+    -I $(SRC)/python_api/execution_context \
+    -I $(SRC)/registry \
+    -I $(SRC)/buffer_controllers \
+    -I $(SRC)/ring \
+    -I $(SRC)/queue_events/sqe \
+    -I $(SRC)/timer \
+    -isystem requirements/liburing/include \
+    -isystem requirements/liburing/src/include \
+    -isystem requirements/liburing/src \
+    -isystem requirements/liburing
 
 ASAN_LIB := $(shell \
 	if command -v ldconfig >/dev/null 2>&1; then \
@@ -129,7 +190,7 @@ build: deps
 install: deps
 	$(PIP) install -e .
 
-sanitize: dev-deps run-examples test-asan
+sanitize: dev-deps run-examples test-python-asan test-c-files-asan test-c-sockets-asan test-c-buffers-asan test-c-registry-asan
 
 run-examples: dev-deps
 	@echo "START RUNNING EXAMPLES[ASan]"
@@ -167,13 +228,13 @@ run-examples: dev-deps
 	@echo "========"
 
 
-test: install
+test-python: install
 	@echo "START TESTING[plain]"
 	@echo "--------"
 	$(PY) -m pytest $(TESTS_DIR) -vv
 	@echo "========"
 
-test-asan: dev-deps
+test-python-asan: dev-deps
 	@echo "START TESTING[ASan-UBSan]"
 	@echo "--------"
 
@@ -189,7 +250,7 @@ test-asan: dev-deps
 
 	@echo "========"
 
-test-asan-one: dev-deps
+test-python-asan-one: dev-deps
 	@if [ -z "$(TEST)" ]; then \
 		echo "Usage: make test-asan-one TEST=tests/...::test_name"; \
 		exit 1; \
@@ -209,6 +270,120 @@ test-asan-one: dev-deps
 	PYTHONMALLOC=malloc \
 	$(PY) -X faulthandler -m pytest "$(TEST)" -vv -s
 
+	@echo "========"
+
+build-c-tests-files: $(LIBURING_LIB)
+	@echo "Building C-level file ops tests..."
+	$(CC) -std=c11 -O0 -g3 $(CTESTS_INCLUDES) \
+		$(CTESTS_DIR)/test_files.c $(CTESTS_DEPS) $(LIBURING_LIB) \
+		-o $(CTESTS_FILES_BIN)
+
+build-c-tests-sockets: $(LIBURING_LIB)
+	@echo "Building C-level socket ops tests..."
+	$(CC) -std=c11 -O0 -g3 $(CTESTS_INCLUDES) \
+		$(CTESTS_DIR)/test_sockets.c $(CTESTS_SOCKETS_DEPS) $(LIBURING_LIB) \
+		-o $(CTESTS_SOCKETS_BIN)
+
+build-c-tests-buffers: $(LIBURING_LIB)
+	@echo "Building C-level buffer controller tests..."
+	$(CC) -std=c11 -O0 -g3 $(CTESTS_INCLUDES) \
+		$(CTESTS_DIR)/test_buffer_controllers.c $(CTESTS_BUFFERS_DEPS) $(LIBURING_LIB) \
+		-o $(CTESTS_BUFFERS_BIN)
+
+build-c-tests-registry: $(LIBURING_LIB)
+	@echo "Building C-level registry tests..."
+	$(CC) -std=c11 -O0 -g3 $(CTESTS_INCLUDES) $(PYTHON_CFLAGS) \
+		$(CTESTS_DIR)/test_registry.c $(CTESTS_REGISTRY_DEPS) $(LIBURING_LIB) \
+		$(PYTHON_LDFLAGS) \
+		-o $(CTESTS_REGISTRY_BIN)
+
+test-c-files: build-c-tests-files
+	@echo "START TESTING[C, files.c]"
+	@echo "--------"
+	@./$(CTESTS_FILES_BIN); status=$$?; rm -f $(CTESTS_FILES_BIN); exit $$status
+	@echo "========"
+
+test-c-files-asan: $(LIBURING_LIB)
+	@echo "START TESTING[C, files.c, ASan-UBSan]"
+	@echo "--------"
+	$(CC) -std=c11 $(ASAN_CFLAGS) $(CTESTS_INCLUDES) \
+		$(CTESTS_DIR)/test_files.c $(CTESTS_DEPS) $(LIBURING_LIB) \
+		$(ASAN_LDFLAGS) -o $(CTESTS_FILES_BIN)_asan
+
+	@ASAN_OPTIONS="$(ASAN_OPTIONS)" \
+	UBSAN_OPTIONS="$(UBSAN_OPTIONS)" \
+	LD_PRELOAD=$(ASAN_LIB):$$LD_PRELOAD \
+	./$(CTESTS_FILES_BIN)_asan; status=$$?; rm -f $(CTESTS_FILES_BIN)_asan; exit $$status
+	@echo "========"
+
+test-c-sockets: build-c-tests-sockets
+	@echo "START TESTING[C, sockets.c]"
+	@echo "--------"
+	@./$(CTESTS_SOCKETS_BIN); status=$$?; rm -f $(CTESTS_SOCKETS_BIN); exit $$status
+	@echo "========"
+
+test-c-sockets-asan: $(LIBURING_LIB)
+	@echo "START TESTING[C, sockets.c, ASan-UBSan]"
+	@echo "--------"
+	$(CC) -std=c11 $(ASAN_CFLAGS) $(CTESTS_INCLUDES) \
+		$(CTESTS_DIR)/test_sockets.c $(CTESTS_SOCKETS_DEPS) $(LIBURING_LIB) \
+		$(ASAN_LDFLAGS) -o $(CTESTS_SOCKETS_BIN)_asan
+
+	@ASAN_OPTIONS="$(ASAN_OPTIONS)" \
+	UBSAN_OPTIONS="$(UBSAN_OPTIONS)" \
+	LD_PRELOAD=$(ASAN_LIB):$$LD_PRELOAD \
+	./$(CTESTS_SOCKETS_BIN)_asan; status=$$?; rm -f $(CTESTS_SOCKETS_BIN)_asan; exit $$status
+	@echo "========"
+
+test-c-buffers: build-c-tests-buffers
+	@echo "START TESTING[C, buffer_controllers.c]"
+	@echo "--------"
+	@./$(CTESTS_BUFFERS_BIN); status=$$?; rm -f $(CTESTS_BUFFERS_BIN); exit $$status
+	@echo "========"
+
+test-c-buffers-asan: $(LIBURING_LIB)
+	@echo "START TESTING[C, buffer_controllers.c, ASan-UBSan]"
+	@echo "--------"
+	$(CC) -std=c11 $(ASAN_CFLAGS) $(CTESTS_INCLUDES) \
+		$(CTESTS_DIR)/test_buffer_controllers.c $(CTESTS_BUFFERS_DEPS) $(LIBURING_LIB) \
+		$(ASAN_LDFLAGS) -o $(CTESTS_BUFFERS_BIN)_asan
+
+	@ASAN_OPTIONS="$(ASAN_OPTIONS)" \
+	UBSAN_OPTIONS="$(UBSAN_OPTIONS)" \
+	LD_PRELOAD=$(ASAN_LIB):$$LD_PRELOAD \
+	./$(CTESTS_BUFFERS_BIN)_asan; status=$$?; rm -f $(CTESTS_BUFFERS_BIN)_asan; exit $$status
+	@echo "========"
+
+PYTHON_CFLAGS := $(shell $(PY)-config --cflags 2>/dev/null || python3-config --cflags)
+PYTHON_LDFLAGS := $(shell $(PY)-config --ldflags --embed 2>/dev/null || python3-config --ldflags --embed)
+test-c-registry: build-c-tests-registry
+	@echo "START TESTING[C, registry.c]"
+	@echo "--------"
+	@./$(CTESTS_REGISTRY_BIN); status=$$?; rm -f $(CTESTS_REGISTRY_BIN); exit $$status
+	@echo "========"
+
+test-c-registry-asan: $(LIBURING_LIB)
+	@echo "START TESTING[C, registry.c, ASan-UBSan]"
+	@echo "--------"
+	$(CC) -std=c11 $(ASAN_CFLAGS) $(CTESTS_INCLUDES) $(PYTHON_CFLAGS) \
+		$(CTESTS_DIR)/test_registry.c $(CTESTS_REGISTRY_DEPS) $(LIBURING_LIB) \
+		$(ASAN_LDFLAGS) $(PYTHON_LDFLAGS) \
+		-o $(CTESTS_REGISTRY_BIN)_asan
+
+	@ASAN_OPTIONS="$(ASAN_OPTIONS)" \
+	UBSAN_OPTIONS="$(UBSAN_OPTIONS)" \
+	LD_PRELOAD=$(ASAN_LIB):$$LD_PRELOAD \
+	./$(CTESTS_REGISTRY_BIN)_asan; status=$$?; rm -f $(CTESTS_REGISTRY_BIN)_asan; exit $$status
+	@echo "========"
+
+test-all: test-python test-c-files test-c-sockets test-c-buffers test-c-registry
+	@echo "========"
+	@echo "All tests (Python + C) passed"
+	@echo "========"
+
+test-all-asan: test-python-asan test-c-files-asan test-c-sockets-asan test-c-buffers-asan test-c-registry-asan
+	@echo "========"
+	@echo "All tests (Python + C) passed under ASan/UBSan"
 	@echo "========"
 
 lint: dev-deps lint-formatter lint-aggressive lint-cppcheck
@@ -288,14 +463,27 @@ help:
 	@echo "  make run-examples         - run all docs/examples/*.py under ASan"
 	@echo ""
 	@echo "── Tests ───────────────────────────────────────────"
-	@echo "  make test                 - run pytest"
-	@echo "  make test-asan            - ASan + UBSan tests"
-	@echo ""
+	@echo "  make test-python                 - run pytest (Python only)"
+	@echo "  make test-python-asan            - ASan + UBSan pytest suite (Python only)"
+	@echo "  make test-python-asan-one TEST=path::name - run a single pytest test under ASan"
+	@echo "  make test-c-files               - run C-level tests on ops/files/files.c (plain)"
+	@echo "  make test-c-files-asan          - run C-level tests on ops/files/files.c under ASan + UBSan"
+	@echo "  make test-c-sockets             - run C-level tests on ops/sockets/sockets.c (plain)"
+	@echo "  make test-c-sockets-asan        - run C-level tests on ops/sockets/sockets.c under ASan + UBSan"
+	@echo "  make test-c-buffers             - run C-level tests on buffer_controllers/*.c (plain)"
+	@echo "  make test-c-buffers-asan        - run C-level tests on buffer_controllers/*.c under ASan + UBSan"
+	@echo "  make test-c-registry            - run C-level tests on registry/registry.c (plain)"
+	@echo "  make test-c-registry-asan       - run C-level tests on registry/registry.c under ASan + UBSan"
+	@echo "  make test-all             - run Python + C tests together (plain)"
+	@echo "  make test-all-asan        - run Python + C tests together under ASan + UBSan"
 	@echo "── Sanitizers ─────────────────────────────────────"
 	@echo "  ASAN_LIB=$(ASAN_LIB)"
 
-
 .PHONY: all deps dev-deps build install clean help check-submodule venv \
         install-python-venv install-python-dev install-dev-tools \
-        run-examples sanitize test test-asan test-asan-one \
+        run-examples sanitize test-python test-python-asan test-python-asan-one \
+        build-c-tests-files build-c-tests-sockets build-c-tests-buffers build-c-tests-registry \
+        test-c-files test-c-files-asan test-c-sockets test-c-sockets-asan \
+        test-c-buffers test-c-buffers-asan test-c-registry test-c-registry-asan \
+        test-all test-all-asan \
         lint lint-formatter lint-aggressive lint-cppcheck

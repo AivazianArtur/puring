@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Python.h"
-
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "liburing.h"
 

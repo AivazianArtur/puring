@@ -25,7 +25,7 @@ def temp_file_path(tmp_path):
 )
 @puring_test
 async def test_writev__validation_error(temp_file_path, buffers):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
 
     with pytest.raises(expected_exception=TypeError):
         uring_file.writev(buffers=buffers)
@@ -35,7 +35,7 @@ async def test_writev__validation_error(temp_file_path, buffers):
 
 @puring_test
 async def test_writev__closed_file_raises_error(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
     await uring_file.close()
 
     with pytest.raises(expected_exception=BrokenPipeError):
@@ -51,7 +51,7 @@ async def test_writev__closed_file_raises_error(temp_file_path):
 )
 @puring_test
 async def test_writev__success(temp_file_path, chunks):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
 
     total_len = sum(len(c) for c in chunks)
     written = await uring_file.writev(buffers=chunks)
@@ -66,7 +66,7 @@ async def test_writev__success(temp_file_path, chunks):
 
 @puring_test
 async def test_writev__with_offset(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
 
     chunks = [b'AAA', b'BBB']
     written = await uring_file.writev(buffers=chunks, offset=20)

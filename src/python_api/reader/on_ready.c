@@ -212,9 +212,7 @@ on_uring_ready(PuringLoop *self) {
                 }
 
                 if (slot->buffer_payload->payload_type == PAYLOAD_LINEAR) {
-                    result = PyBytes_FromStringAndSize(
-                        (char *)slot->buffer_payload->linear->buffer, cqe->res
-                    );
+                    result = PyBytes_FromStringAndSize((char *)slot->buffer_payload->linear->buffer, cqe->res);
                     if (slot->addr) {
                         free(slot->addr);
                         slot->addr = NULL;

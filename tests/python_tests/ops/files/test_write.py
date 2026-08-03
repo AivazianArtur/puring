@@ -26,7 +26,7 @@ def temp_file_path(tmp_path):
 )
 @puring_test
 async def test_write__validation_error(temp_file_path, offset):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
 
     with pytest.raises(expected_exception=TypeError):
         uring_file.write(data=b'hello', offset=offset)
@@ -36,7 +36,7 @@ async def test_write__validation_error(temp_file_path, offset):
 
 @puring_test
 async def test_write__closed_file_raises_error(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
     await uring_file.close()
 
     with pytest.raises(expected_exception=BrokenPipeError):
@@ -45,7 +45,7 @@ async def test_write__closed_file_raises_error(temp_file_path):
 
 @puring_test
 async def test_write__success(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
 
     data = b'hello world'
     written = await uring_file.write(data=data)
@@ -60,7 +60,7 @@ async def test_write__success(temp_file_path):
 
 @puring_test
 async def test_write__with_offset(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
 
     data = b'PATCHED'
     written = await uring_file.write(data=data, offset=10)
@@ -76,7 +76,7 @@ async def test_write__with_offset(temp_file_path):
 
 @puring_test
 async def test_write__bytearray_input(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=0)
+    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
 
     data = bytearray(b'from bytearray')
     written = await uring_file.write(data=data)

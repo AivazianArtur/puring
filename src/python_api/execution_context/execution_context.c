@@ -114,7 +114,7 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     StreamStrategy stream_strategy = ONESHOT;
     TransferMode transfer_mode = NORMAL_TRANSFER;
     PayloadType payload_type_obj = PAYLOAD_LINEAR;
-    PyObject *buffers_obj;
+    PyObject *buffers_obj = NULL;
     int amount = 3;
     int bufsize = 1024;
 
@@ -266,7 +266,9 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
             PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize fixed buffers");
             return NULL;
         };
-        FixedBufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_create((unsigned int)self->buffer_payload->amount);
+        FixedBufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_create(
+            (unsigned int)self->buffer_payload->amount
+        );
         if (!buffer_idx_registry) {
             ContextVar_reset(token);
             Py_DECREF(token);

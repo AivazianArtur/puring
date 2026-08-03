@@ -15,7 +15,7 @@ open_file(
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
-    if (!flags) {
+    if (flags == -1) {
         flags = O_RDWR | O_CREAT;
     }
 

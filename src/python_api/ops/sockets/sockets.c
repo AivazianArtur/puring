@@ -492,7 +492,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     struct sockaddr *addr = NULL;
     addr = _serialize_address(host, port, domain);
-    if (!addr) 
+    if (!addr)
         return NULL;
 
     socklen_t addrlen = _get_socket_size(domain);
@@ -558,8 +558,17 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         "bufsize", "buffer", "host", "port", "domain", "is_poll_first", "timeout_params", NULL
     };
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "|iOsiipO", (char **)kwlist,
-            &bufsize, &buffer_obj, &host, &port, &domain, &is_poll_first, &timeout_params_obj
+            args,
+            kwargs,
+            "|iOsiipO",
+            (char **)kwlist,
+            &bufsize,
+            &buffer_obj,
+            &host,
+            &port,
+            &domain,
+            &is_poll_first,
+            &timeout_params_obj
         ))) {
         return NULL;
     }
@@ -597,8 +606,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_RECVMSG;
     int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, ONESHOT, opcode, NULL, self,
-        (struct sockaddr_storage *)addr, msg
+        self->loop->registry, future, buffer_payload, ONESHOT, opcode, NULL, self, (struct sockaddr_storage *)addr, msg
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -642,7 +650,16 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *timeout_params_obj = NULL;
     static const char *kwlist[] = {"buffers", "host", "port", "domain", "is_poll_first", "timeout_params", NULL};
     if (!(PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|siipO", (char **)kwlist, &buffers_obj, &host, &port, &domain, &is_poll_first, &timeout_params_obj
+            args,
+            kwargs,
+            "O|siipO",
+            (char **)kwlist,
+            &buffers_obj,
+            &host,
+            &port,
+            &domain,
+            &is_poll_first,
+            &timeout_params_obj
         ))) {
         return NULL;
     }

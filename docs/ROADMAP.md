@@ -63,16 +63,16 @@
 - [ ] Persistent log of CQ and SQ entry for backuping.
 - [ ] Explore event loop tick cycles variants.
 
-## v0.6.1 - Community & Contribution
+## v0.7.0 - Additional functionality
+- [ ] Ancillary data support for sockets scatter-gather.
+- [ ] Support io_uring_prep_cmd_sock.
+
+## Other - Community & Contribution
 - [ ] Document everything.
 - [ ] Add contribution support:
     - [ ] Write contribution guidelines.
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
-
-## v0.7.0 - Additional functionality
-- [ ] Ancillary data support for sockets scatter-gather.
-- [ ] Support io_uring_prep_cmd_sock.
 
 ### Note
 This roadmap is expected to evolve as our understanding deepens and the project matures.

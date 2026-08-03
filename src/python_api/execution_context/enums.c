@@ -82,7 +82,15 @@ create_payload_type_enum(void) {
     if (!IntEnum)
         return NULL;
 
-    PyObject *members = Py_BuildValue("{s:i, s:i, s:i}", "LINEAR", PAYLOAD_LINEAR, "IOVEC", PAYLOAD_IOVEC, "LINEAR_AND_IOVEC", PAYLOAD_LINEAR_AND_IOVEC);
+    PyObject *members = Py_BuildValue(
+        "{s:i, s:i, s:i}",
+        "LINEAR",
+        PAYLOAD_LINEAR,
+        "IOVEC",
+        PAYLOAD_IOVEC,
+        "LINEAR_AND_IOVEC",
+        PAYLOAD_LINEAR_AND_IOVEC
+    );
     if (!members) {
         Py_DECREF(IntEnum);
         return NULL;

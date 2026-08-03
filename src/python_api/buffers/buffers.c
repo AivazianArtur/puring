@@ -560,7 +560,7 @@ _get_buffer_metadata(
     if (payload_type == PAYLOAD_TYPE_NO_VAL)
         payload_type = PAYLOAD_LINEAR;
 
-    if (buffers_obj == NULL) {
+    if (buffers_obj == NULL || !buffers_obj) {
         payload_origin = PAYLOAD_RUNTIME;
     } else {
         if (!PySequence_Check(buffers_obj)) {

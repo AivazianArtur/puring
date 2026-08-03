@@ -20,7 +20,7 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
     int dfd = AT_FDCWD;
     PyObject *path_obj = NULL;
     PyObject *timeout_params_obj = NULL;
-    int flags = 0;
+    int flags = -1;
     int resolve = 0;
     int mode = 0644;
 
