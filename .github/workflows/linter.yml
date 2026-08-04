@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_call:
  
 jobs:
   linter-formatter:
@@ -13,10 +14,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Install clang-format
-        run: sudo apt update && sudo apt install -y clang-format
+          
+      - name: Install dependencies
+        run: make dev-deps
+        
       - name: Run clang-format
-        run: cd src && find . \( -name "*.c" -o -name "*.h" \) -exec clang-format -i {} \;
+        run: make lint-formatter
  
   linter-aggressive_flags:
     runs-on: ubuntu-latest
@@ -24,40 +27,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          
+      - name: Install dependencies (Base)
+        run: make dev-deps
+        
       - name: Install LLVM 21
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 21
-          sudo apt install -y clang-21 python3-dev
-      - name: Build liburing
-        run: cd requirements/liburing && make
-      - name: Build with aggressive flags
-        run: |
-          CC=clang-21 CFLAGS="-O0 -g3 \
-          -Wall \
-          -Wextra \
-          -Werror \
-          -Wshadow \
-          -Wconversion \
-          -Wcast-align \
-          -Wstrict-prototypes \
-          -Wmissing-prototypes \
-          -Wpointer-arith \
-          -Wformat=2 \
-          -Wundef \
-          -Wwrite-strings \
-          -Wswitch-enum \
-          -Wunreachable-code \
-          -Wdouble-promotion \
-          -Wfloat-equal \
-          -fstack-protector-strong \
-          -fno-omit-frame-pointer \
-          -isystem requirements/liburing/include \
-          -isystem requirements/liburing/src/include \
-          -isystem requirements/liburing/src \
-          -isystem requirements/liburing" \
-          python3 setup.py build_ext --inplace
+          
+      - name: Run aggressive linting with Clang 21
+        run: make lint-aggressive CC=clang-21
  
   linter-cppcheck:
     runs-on: ubuntu-latest
@@ -65,18 +46,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Install cppcheck
-        run: sudo apt update && sudo apt install -y cppcheck
+          
+      - name: Install dependencies
+        run: make dev-deps
+        
       - name: Run cppcheck
-        run: |
-          mkdir -p cpp-check-results
-          cppcheck \
-          --cppcheck-build-dir=cpp-check-results \
-          --enable=all \
-          --inconclusive \
-          --force \
-          --inline-suppr \
-          --check-level=exhaustive \
-          --suppress=missingIncludeSystem \
-          --suppress=missingInclude \
-          -I ./src ./src
+        run: make lint-cppcheck

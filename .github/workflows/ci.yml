@@ -8,5 +8,9 @@ jobs:
   linter:
     uses: ./.github/workflows/linter.yml
 
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   sanitizers:
     uses: ./.github/workflows/sanitizers.yml
+  
