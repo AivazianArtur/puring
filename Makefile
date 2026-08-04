@@ -1,4 +1,4 @@
-# Tested on Fedora 43 and WSL2 for Windows10
+# Tested on Fedora 43
 
 LIBURING_DIR := requirements/liburing
 LIBURING_LIB := $(LIBURING_DIR)/src/liburing.a
@@ -49,8 +49,6 @@ CTESTS_BUFFERS_DEPS := \
 CTESTS_REGISTRY_DEPS := \
 	$(SRC)/registry/registry.c \
 	$(SRC)/python_api/buffers/buffers.c \
-	$(SRC)/python_api/execution_context/execution_context.c \
-	$(SRC)/python_api/execution_context/contextvar.c \
 	$(SRC)/buffer_controllers/buffer_index.c \
 	$(SRC)/buffer_controllers/buffer_modes.c \
 	$(SRC)/ring/ring.c \
@@ -292,8 +290,10 @@ build-c-tests-buffers: $(LIBURING_LIB)
 
 build-c-tests-registry: $(LIBURING_LIB)
 	@echo "Building C-level registry tests..."
-	$(CC) -std=c11 -O0 -g3 $(CTESTS_INCLUDES) $(PYTHON_CFLAGS) \
+	$(CC) -std=c11 -O0 -g3 -ffunction-sections -fdata-sections \
+		$(CTESTS_INCLUDES) $(PYTHON_CFLAGS) \
 		$(CTESTS_DIR)/test_registry.c $(CTESTS_REGISTRY_DEPS) $(LIBURING_LIB) \
+		-Wl,--gc-sections \
 		$(PYTHON_LDFLAGS) \
 		-o $(CTESTS_REGISTRY_BIN)
 
@@ -365,9 +365,10 @@ test-c-registry: build-c-tests-registry
 test-c-registry-asan: $(LIBURING_LIB)
 	@echo "START TESTING[C, registry.c, ASan-UBSan]"
 	@echo "--------"
-	$(CC) -std=c11 $(ASAN_CFLAGS) $(CTESTS_INCLUDES) $(PYTHON_CFLAGS) \
+	$(CC) -std=c11 $(ASAN_CFLAGS) -ffunction-sections -fdata-sections \
+		$(CTESTS_INCLUDES) $(PYTHON_CFLAGS) \
 		$(CTESTS_DIR)/test_registry.c $(CTESTS_REGISTRY_DEPS) $(LIBURING_LIB) \
-		$(ASAN_LDFLAGS) $(PYTHON_LDFLAGS) \
+		$(ASAN_LDFLAGS) -Wl,--gc-sections $(PYTHON_LDFLAGS) \
 		-o $(CTESTS_REGISTRY_BIN)_asan
 
 	@ASAN_OPTIONS="$(ASAN_OPTIONS)" \

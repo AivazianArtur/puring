@@ -131,11 +131,11 @@ registry_get(RequestRegistry *reg, int index) {
 
 void
 registry_remove(RequestRegistry *reg, int index) {
+    if (index < 0 || index >= (int)(reg->size))
+        return;
     if (reg->top >= (int)reg->size - 1) {
         abort();
     }
-    if (index < 0 || index >= (int)(reg->size))
-        return;
 
     RequestSlot *slot = &reg->slots[index];
 

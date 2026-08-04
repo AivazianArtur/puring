@@ -17,7 +17,7 @@
  */
 static PyObject *
 make_future(void) {
-    return PyLong_FromLong(0);
+    return PyList_New(0);
 }
 
 /* ---------- registry_new ---------- */
@@ -91,9 +91,8 @@ static void
 test_registry_add__increfs_file_and_socket_when_present(void) {
     RequestRegistry *reg = registry_new(2);
     PyObject *future = make_future();
-    PyObject *fake_file = PyLong_FromLong(1);
-    PyObject *fake_socket = PyLong_FromLong(2);
-
+    PyObject *fake_file = PyList_New(0);
+    PyObject *fake_socket = PyList_New(0);
     Py_ssize_t file_before = Py_REFCNT(fake_file);
     Py_ssize_t socket_before = Py_REFCNT(fake_socket);
 
@@ -249,9 +248,8 @@ static void
 test_registry_destroy__releases_pending_slots(void) {
     RequestRegistry *reg = registry_new(4);
     PyObject *future = make_future();
-    PyObject *fake_file = PyLong_FromLong(1);
-    PyObject *fake_socket = PyLong_FromLong(2);
-
+    PyObject *fake_file = PyList_New(0);
+    PyObject *fake_socket = PyList_New(0);
     Py_ssize_t future_before = Py_REFCNT(future);
     Py_ssize_t file_before = Py_REFCNT(fake_file);
     Py_ssize_t socket_before = Py_REFCNT(fake_socket);
