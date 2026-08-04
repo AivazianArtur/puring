@@ -10,3 +10,6 @@ jobs:
 
   sanitizers:
     uses: ./.github/workflows/sanitizers.yml
+
+  tests:
+    uses: ./.github/workflows/tests.yml
