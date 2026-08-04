@@ -114,7 +114,7 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
     StreamStrategy stream_strategy = ONESHOT;
     TransferMode transfer_mode = NORMAL_TRANSFER;
     PayloadType payload_type_obj = PAYLOAD_LINEAR;
-    PyObject *buffers_obj;
+    PyObject *buffers_obj = NULL;
     int amount = 3;
     int bufsize = 1024;
 
@@ -173,10 +173,16 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
+    execution_context_ctx->loop = self;
+    Py_INCREF(self);
+    execution_context_ctx->buffer_payload = buffer_payload;
+    execution_context_ctx->token = NULL;
+    execution_context_ctx->payload = NULL;
+
     ExecutionContext *execution_context = malloc(sizeof(ExecutionContext));
     if (!execution_context) {
         PyErr_NoMemory();
-        free(execution_context_ctx);
+        Py_DECREF(execution_context_ctx);
         return NULL;
     }
 
@@ -231,13 +237,12 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
     if (!current_context)
         return NULL;
 
-    current_context->buffer_mode = self->payload;
-
     ExecutionContext *new_context = clone_execution_context(current_context);
     if (!new_context)
         return NULL;
 
     new_context->buffer_mode = self->payload;
+    new_context->buffer_payload = self->buffer_payload;
 
     PyObject *capsule = PyCapsule_New(new_context, "ExecutionContext", free_exec_context);
     if (!capsule)
@@ -256,13 +261,18 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
         if (init_fixed_mode(
                 self->loop->ring, self->buffer_payload->vector->iovecs, self->buffer_payload->vector->nr_vecs
             ) < 0) {
+            ContextVar_reset(token);
+            Py_DECREF(token);
             PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize fixed buffers");
-            free(new_context);
             return NULL;
         };
-        BufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_new(0);
+        FixedBufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_create(
+            (unsigned int)self->buffer_payload->amount
+        );
         if (!buffer_idx_registry) {
-            free(new_context);
+            ContextVar_reset(token);
+            Py_DECREF(token);
+            PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize provided buffers");
             return NULL;
         }
 
@@ -279,6 +289,8 @@ BufferModeCtx_enter(BufferModeCtx *self, PyObject *Py_UNUSED(ignored)) {
                 self->buffer_payload->bgid
             ) < 0) {
             PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize provided buffers");
+            ContextVar_reset(token);
+            Py_DECREF(token);
             return NULL;
         }
         break;
@@ -444,6 +456,7 @@ ExecutionContextCtx_enter(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored
         return NULL;
     }
     self->token = token;
+    Py_INCREF(self);
     return self;
 }
 

@@ -25,7 +25,6 @@ typedef struct PuringSocket {
         int sock_fd;
     PuringLoop *loop;
     int domain;
-    SOCKET_STATES state;
     struct sockaddr *addr;
     bool closed;
 } PuringSocket;
@@ -38,6 +37,12 @@ PuringSocket_traverse(PuringSocket *self, visitproc visit, void *arg);
 
 int
 PuringSocket_clear(PuringSocket *self);
+
+PyObject *
+PuringSocket_aenter(PuringSocket *self, PyObject *Py_UNUSED(ignored));
+
+PyObject *
+PuringSocket_aexit(PuringSocket *self, PyObject *args, PyObject *kwargs);
 
 void
 PuringSocket_dealloc(PuringSocket *self);
@@ -74,14 +79,6 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
 PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs);
-
-PyObject *
-_check_sockets_result(int result, PuringSocket *socket, int request_idx, PyObject *future);
-struct sockaddr *
-_serialize_address(const char *host, int port, int domain);
-socklen_t
-_get_socket_size(int domain);
-
 
 int
 recv_dispatcher(
@@ -137,3 +134,15 @@ accept_dispatcher(
     socklen_t *len,
     TimeoutParams timeout_params
 );
+
+PyObject *
+_check_sockets_result(int result, PuringSocket *socket, int request_idx, PyObject *future);
+
+struct sockaddr_storage *
+_serialize_address(const char *host, int port, int domain);
+
+socklen_t
+_get_socket_size(int domain);
+
+PyObject *
+_raise_socket_exception_group(PyObject *body_exc_type, PyObject *body_exc_val, PyObject *body_exc_tb);

@@ -15,8 +15,12 @@ on_uring_ready(PuringLoop *self) {
 
         PyObject *result = NULL;
         PyObject *exc = NULL;
+        VectoredBuffer *vec;
+        Py_ssize_t remaining;
 
-        if (cqe->res < 0) {
+        bool timeout_expired = (slot->opcode == IORING_OP_TIMEOUT && cqe->res == -ETIME);
+
+        if (cqe->res < 0 && !timeout_expired) {
             exc = PyObject_CallFunction(PyExc_OSError, "i", -cqe->res);
             if (exc) {
                 PyObject_CallMethod(slot->future, "set_exception", "O", exc);
@@ -58,14 +62,27 @@ on_uring_ready(PuringLoop *self) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
                 free_buffer_payload(slot->buffer_payload, false);
+                slot->buffer_payload = NULL;
                 break;
             case IORING_OP_READV:
-                if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
-                    result = PyBytes_FromStringAndSize(
-                        PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res
-                    );
+                vec = slot->buffer_payload->vector;
+                remaining = cqe->res;
+
+                result = PyBytes_FromStringAndSize(NULL, remaining);
+                if (result) {
+                    char *dst = PyBytes_AS_STRING(result);
+                    for (uint32_t i = 0; i < vec->nr_vecs && remaining > 0; i++) {
+                        size_t chunk = vec->iovecs[i].iov_len;
+                        if ((Py_ssize_t)chunk > remaining) {
+                            chunk = (size_t)remaining;
+                        }
+                        memcpy(dst, vec->iovecs[i].iov_base, chunk);
+                        dst += chunk;
+                        remaining -= (Py_ssize_t)chunk;
+                    }
                 }
                 free_buffer_payload(slot->buffer_payload, false);
+                slot->buffer_payload = NULL;
                 break;
             case IORING_OP_WRITE:
                 result = PyLong_FromLong(cqe->res);
@@ -74,10 +91,13 @@ on_uring_ready(PuringLoop *self) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
                 free_buffer_payload(slot->buffer_payload, true);
+                slot->buffer_payload = NULL;
                 break;
             case IORING_OP_WRITEV:
+                result = PyLong_FromLong(cqe->res);
                 if (slot->buffer_payload) {
                     free_buffer_payload(slot->buffer_payload, false);
+                    slot->buffer_payload = NULL;
                 }
                 break;
             case IORING_OP_OPENAT2:
@@ -91,29 +111,21 @@ on_uring_ready(PuringLoop *self) {
                 if (slot->socket) {
                     PuringSocket *sock = (PuringSocket *)slot->socket;
                     sock->sock_fd = cqe->res;
-                    SOCKET_STATES state = NEW;
-                    sock->state = state;
                     result = (PyObject *)slot->socket;
                 }
                 break;
             case IORING_OP_BIND:
                 if (slot->socket) {
-                    SOCKET_STATES state = BOUND;
-                    slot->socket->state = state;
                     result = PyLong_FromLong(cqe->res);
                 }
                 break;
             case IORING_OP_CONNECT:
                 if (slot->socket) {
-                    SOCKET_STATES state = CONNECTED;
-                    slot->socket->state = state;
                     result = PyLong_FromLong(cqe->res);
                 }
                 break;
             case IORING_OP_LISTEN:
                 if (slot->socket) {
-                    SOCKET_STATES state = LISTENING;
-                    slot->socket->state = state;
                     result = PyLong_FromLong(cqe->res);
                 }
                 break;
@@ -134,7 +146,6 @@ on_uring_ready(PuringLoop *self) {
                     conn->loop = slot->socket->loop;
                     Py_INCREF(conn->loop);
                     conn->domain = slot->socket->domain;
-                    conn->state = ACCEPTING;
 
                     conn->addr = (struct sockaddr *)peer_addr;
 
@@ -156,17 +167,14 @@ on_uring_ready(PuringLoop *self) {
                         release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                     }
                     free_buffer_payload(slot->buffer_payload, false);
+                    slot->buffer_payload = NULL;
                 }
                 break;
             case IORING_OP_RECVMSG:
-                if (slot->buffer_payload->vector->iovecs && PyBytes_Check(slot->buffer_payload->vector->iovecs)) {
-                    result = PyBytes_FromStringAndSize(
-                        PyBytes_AS_STRING(slot->buffer_payload->vector->iovecs), cqe->res
-                    );
-                }
                 if (slot->buffer_payload->mode == FIXED) {
                     release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                 }
+
                 if (slot->stream_strategy == MULTISHOT) {
                     unsigned bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
                     void *buf = (char *)slot->buffer_payload->linear->buffer +
@@ -193,7 +201,33 @@ on_uring_ready(PuringLoop *self) {
                     result = PyBytes_FromStringAndSize(out.payload, (Py_ssize_t)out.payload_len);
                     break;
                 }
+
+                if (slot->buffer_payload->payload_type == PAYLOAD_LINEAR) {
+                    result = PyBytes_FromStringAndSize((char *)slot->buffer_payload->linear->buffer, cqe->res);
+                    if (slot->addr) {
+                        free(slot->addr);
+                        slot->addr = NULL;
+                    }
+                } else {
+                    vec = slot->buffer_payload->vector;
+                    remaining = cqe->res;
+                    result = PyBytes_FromStringAndSize(NULL, remaining);
+                    if (result) {
+                        char *dst = PyBytes_AS_STRING(result);
+                        for (uint32_t i = 0; i < vec->nr_vecs && remaining > 0; i++) {
+                            size_t chunk = vec->iovecs[i].iov_len;
+                            if ((Py_ssize_t)chunk > remaining) {
+                                chunk = (size_t)remaining;
+                            }
+                            memcpy(dst, vec->iovecs[i].iov_base, chunk);
+                            dst += chunk;
+                            remaining -= (Py_ssize_t)chunk;
+                        }
+                    }
+                }
+
                 free_buffer_payload(slot->buffer_payload, false);
+                slot->buffer_payload = NULL;
                 break;
             case IORING_OP_SEND:
                 if (slot->buffer_payload) {
@@ -201,6 +235,7 @@ on_uring_ready(PuringLoop *self) {
                         release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                     }
                     free_buffer_payload(slot->buffer_payload, false);
+                    slot->buffer_payload = NULL;
                 }
                 result = PyLong_FromLong(cqe->res);
                 break;
@@ -210,17 +245,22 @@ on_uring_ready(PuringLoop *self) {
                         release_buffer_idx(slot->buffer_payload->idx_registry, slot->buffer_payload->buf_idx);
                     }
                     free_buffer_payload(slot->buffer_payload, false);
+                    slot->buffer_payload = NULL;
                 }
                 result = PyLong_FromLong(cqe->res);
                 break;
             case IORING_OP_CLOSE:
                 if (slot->socket) {
-                    SOCKET_STATES state = CLOSED;
-                    slot->socket->state = state;
+                    slot->socket->closed = true;
                     result = PyLong_FromLong(cqe->res);
                 } else if (slot->file) {
+                    slot->file->closed = true;
                     result = PyLong_FromLong(cqe->res);
                 }
+                break;
+            case IORING_OP_TIMEOUT:
+                result = Py_None;
+                Py_INCREF(result);
                 break;
             default:
                 result = PyLong_FromLong(cqe->res);

@@ -1,8 +1,8 @@
 #include "buffer_controllers/buffer_controllers.h"
 
-BufferIdxRegistry *
-buffer_idx_registry_new(unsigned int size) {
-    BufferIdxRegistry *registry = malloc(sizeof(BufferIdxRegistry));
+FixedBufferIdxRegistry *
+buffer_idx_registry_create(unsigned int size) {
+    FixedBufferIdxRegistry *registry = malloc(sizeof(FixedBufferIdxRegistry));
     if (!registry) {
         perror("Cant allocate memory while creating buffer index registry for fixed mode");
         return NULL;
@@ -30,7 +30,7 @@ buffer_idx_registry_new(unsigned int size) {
 }
 
 void
-buffer_idx_registry_destroy(BufferIdxRegistry *reg) {
+buffer_idx_registry_destroy(FixedBufferIdxRegistry *reg) {
     if (reg->available_indices) {
         free(reg->available_indices);
     }
@@ -41,7 +41,7 @@ buffer_idx_registry_destroy(BufferIdxRegistry *reg) {
 }
 
 int
-get_buffer_idx(BufferIdxRegistry *reg) {
+get_buffer_idx(FixedBufferIdxRegistry *reg) {
     if (reg->top < 0) {
         return -1;
     }
@@ -53,7 +53,7 @@ get_buffer_idx(BufferIdxRegistry *reg) {
 }
 
 int
-release_buffer_idx(BufferIdxRegistry *reg, int index) {
+release_buffer_idx(FixedBufferIdxRegistry *reg, int index) {
     if (reg->top + 1 >= (int)reg->size) {
         return -1;
     }

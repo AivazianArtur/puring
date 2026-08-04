@@ -70,3 +70,34 @@ create_transfer_mode_enum(void) {
     Py_DECREF(members);
     return result;
 }
+
+PyObject *
+create_payload_type_enum(void) {
+    PyObject *enum_module = PyImport_ImportModule("enum");
+    if (!enum_module)
+        return NULL;
+
+    PyObject *IntEnum = PyObject_GetAttrString(enum_module, "IntEnum");
+    Py_DECREF(enum_module);
+    if (!IntEnum)
+        return NULL;
+
+    PyObject *members = Py_BuildValue(
+        "{s:i, s:i, s:i}",
+        "LINEAR",
+        PAYLOAD_LINEAR,
+        "IOVEC",
+        PAYLOAD_IOVEC,
+        "LINEAR_AND_IOVEC",
+        PAYLOAD_LINEAR_AND_IOVEC
+    );
+    if (!members) {
+        Py_DECREF(IntEnum);
+        return NULL;
+    }
+
+    PyObject *result = PyObject_CallFunction(IntEnum, "sO", "PAYLOAD_TYPE", members);
+    Py_DECREF(IntEnum);
+    Py_DECREF(members);
+    return result;
+}

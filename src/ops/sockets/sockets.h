@@ -19,7 +19,7 @@ typedef struct RecvMsgMultishotResult {
 } RecvMsgMultishotResult;
 
 int
-prep_socket(struct io_uring *ring, int request_idx, int domain, const struct TimeoutParams timeout_params);
+prep_socket(struct io_uring *ring, int request_idx, int domain, int type, const struct TimeoutParams timeout_params);
 
 int
 puring_bind(
@@ -28,7 +28,6 @@ puring_bind(
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -39,19 +38,11 @@ puring_connect(
     int fd,
     struct sockaddr *addr,
     socklen_t addrlen,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
 int
-puring_listen(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    int backlog,
-    SOCKET_STATES state,
-    const struct TimeoutParams timeout_params
-);
+puring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params);
 
 int
 puring_accept(
@@ -61,7 +52,6 @@ puring_accept(
     struct sockaddr *addr,
     socklen_t *len,
     int flags,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -76,7 +66,6 @@ puring_send(
     const void *buf,
     size_t len,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -88,7 +77,6 @@ puring_recv(
     void *buf,
     size_t len,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -113,8 +101,9 @@ puring_recvfrom(
     void *buf,
     size_t len,
     struct sockaddr *addr,
-    // socklen_t addrlen,
+    socklen_t addrlen,
     int is_poll_first,
+    struct msghdr *msg,
     const struct TimeoutParams timeout_params
 );
 
@@ -151,7 +140,6 @@ puring_recv_fixed(
     size_t len,
     int is_poll_first,
     int buf_index,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -163,7 +151,6 @@ puring_send_zc(
     const void *buf,
     size_t len,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -176,7 +163,6 @@ puring_send_zc_fixed(
     size_t len,
     int is_poll_first,
     int buf_index,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -214,7 +200,6 @@ puring_recv_buffer_select(
     size_t len,
     int bgid,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -225,7 +210,6 @@ puring_recvmsg_buffer_select(
     int sockfd,
     int is_poll_first,
     int bgid,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -237,7 +221,6 @@ puring_accept_multishot(
     struct sockaddr *addr,
     socklen_t *len,
     int flags,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 
@@ -249,7 +232,6 @@ puring_recv_multishot(
     size_t len,
     int bgid,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 );
 

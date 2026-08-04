@@ -5,8 +5,6 @@
 
 #include "liburing.h"
 
-typedef enum SOCKET_STATES { NEW, BOUND, LISTENING, CONNECTED, ACCEPTING, CLOSED } SOCKET_STATES;
-
 #define SQE_WITH_OPTIONAL_TIMEOUT(ring, timeout_params)                                                                \
     struct io_uring_sqe *sqe = create_sqe(ring);                                                                       \
     if (sqe == NULL) {                                                                                                 \

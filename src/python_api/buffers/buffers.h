@@ -40,10 +40,10 @@ typedef struct BufferPayload {
     LinearBuffer *linear;
     VectoredBuffer *vector;
 
-    BufferIdxRegistry *idx_registry;    // FIXED mode only
-    int buf_idx;                        // FIXED mode only
-    int bgid;                           // PROVIDED and BUF_RING modes only
-    struct io_uring_buf_ring *buf_ring; // BUF_RING mode only
+    FixedBufferIdxRegistry *idx_registry; // FIXED mode only
+    int buf_idx;                          // FIXED mode only
+    int bgid;                             // PROVIDED and BUF_RING modes only
+    struct io_uring_buf_ring *buf_ring;   // BUF_RING mode only
 } BufferPayload;
 
 typedef struct BufferMetadata {
@@ -70,7 +70,7 @@ BufferPayload *
 get_or_create_linear_buffer(PyObject *buffers_obj, int bufsize);
 
 BufferPayload *
-get_or_create_vectored_buffer(PyObject *buffers_obj, int len, int bufsize);
+get_or_create_vectored_buffer(PyObject *buffers_obj);
 
 LinearBuffer *
 create_linear_buffers(int len, int bufsize, BufferPayload *payload);

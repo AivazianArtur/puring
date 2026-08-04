@@ -4,69 +4,42 @@ static PyObject *execution_context_var = NULL;
 
 PyObject *
 ContextVar_init(void) {
-    if (execution_context_var != NULL) {
+    if (execution_context_var == NULL) {
+        PyObject *contextvars = PyImport_ImportModule("contextvars");
+        if (!contextvars)
+            return NULL;
+        PyObject *ContextVar = PyObject_GetAttrString(contextvars, "ContextVar");
+        Py_DECREF(contextvars);
+        if (!ContextVar)
+            return NULL;
+        execution_context_var = PyObject_CallFunction(ContextVar, "s", "execution_context");
+        Py_DECREF(ContextVar);
+        if (!execution_context_var)
+            return NULL;
+    } else {
         Py_INCREF(execution_context_var);
-        return execution_context_var;
     }
-
-    PyObject *contextvars = PyImport_ImportModule("contextvars");
-    if (!contextvars)
-        return NULL;
-
-    PyObject *ContextVar = PyObject_GetAttrString(contextvars, "ContextVar");
-    Py_DECREF(contextvars);
-
-    if (!ContextVar)
-        return NULL;
-
-    execution_context_var = PyObject_CallFunction(ContextVar, "s", "execution_context");
-
-    Py_DECREF(ContextVar);
-
-    if (!execution_context_var)
-        return NULL;
 
     ExecutionContext *execution_context = malloc(sizeof(ExecutionContext));
     if (!execution_context) {
         PyErr_NoMemory();
-        Py_CLEAR(execution_context_var);
-        execution_context_var = NULL;
         return NULL;
     }
-
     execution_context->buffer_mode = NORMAL_BUF;
     execution_context->stream = ONESHOT;
     execution_context->transfer_mode = NORMAL_TRANSFER;
     execution_context->buffer_payload = NULL;
 
     PyObject *capsule = PyCapsule_New(execution_context, "ExecutionContext", free_exec_context);
-
     if (!capsule) {
         free(execution_context);
-        Py_CLEAR(execution_context_var);
-        execution_context_var = NULL;
         return NULL;
     }
 
-    PyObject *method_name = PyUnicode_FromString("set");
-    if (!method_name) {
-        Py_DECREF(capsule);
-        Py_CLEAR(execution_context_var);
-        execution_context_var = NULL;
-        return NULL;
-    }
-
-    PyObject *token = PyObject_CallMethodObjArgs(execution_context_var, method_name, capsule, NULL);
-
-    Py_DECREF(method_name);
+    PyObject *token = PyObject_CallMethod(execution_context_var, "set", "O", capsule);
     Py_DECREF(capsule);
-
-    if (!token) {
-        Py_CLEAR(execution_context_var);
-        execution_context_var = NULL;
+    if (!token)
         return NULL;
-    }
-
     Py_DECREF(token);
     return execution_context_var;
 }

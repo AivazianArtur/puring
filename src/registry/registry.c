@@ -41,6 +41,9 @@ registry_new(unsigned int size) {
 
 void
 registry_destroy(RequestRegistry *reg) {
+    if (!reg)
+        return;
+
     if (reg->slots) {
         for (unsigned int i = 0; i < reg->size; i++) {
             if (reg->slots[i].future) {
@@ -48,7 +51,8 @@ registry_destroy(RequestRegistry *reg) {
             }
 
             if (reg->slots[i].buffer_payload) {
-                Py_DECREF(reg->slots[i].buffer_payload);
+                free_buffer_payload(reg->slots[i].buffer_payload, true);
+                reg->slots[i].buffer_payload = NULL;
             }
             if (reg->slots[i].socket) {
                 Py_DECREF(reg->slots[i].socket);
@@ -68,6 +72,7 @@ registry_destroy(RequestRegistry *reg) {
     reg->available_indices = NULL;
     reg->size = 0;
     reg->top = -1;
+    free(reg);
 }
 
 int
@@ -98,8 +103,6 @@ registry_add(
     Py_INCREF(future);
 
     slot->buffer_payload = buffer_payload;
-    if (buffer_payload != NULL)
-        Py_INCREF(buffer_payload);
 
     slot->socket = socket;
     slot->file = file;
@@ -130,6 +133,9 @@ void
 registry_remove(RequestRegistry *reg, int index) {
     if (index < 0 || index >= (int)(reg->size))
         return;
+    if (reg->top >= (int)reg->size - 1) {
+        abort();
+    }
 
     RequestSlot *slot = &reg->slots[index];
 
@@ -139,7 +145,7 @@ registry_remove(RequestRegistry *reg, int index) {
     }
 
     if (slot->buffer_payload) {
-        Py_DECREF(slot->buffer_payload);
+        free_buffer_payload(slot->buffer_payload, false);
         slot->buffer_payload = NULL;
     }
 

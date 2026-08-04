@@ -1,4 +1,4 @@
-#include "files.h"
+#include "python_api/ops/files/files.h"
 
 int
 read_dispatcher(
@@ -31,7 +31,7 @@ read_dispatcher(
     case BUF_RING:
         if (stream == MULTISHOT) {
             result = puring_read_multishot(
-                self->loop->ring, request_idx, self->fd, size, offset, buffer_payload->bgid, timeout_params
+                self->loop->ring, request_idx, self->fd, offset, buffer_payload->bgid, timeout_params
             );
         } else {
             result = puring_read_buffer_select(

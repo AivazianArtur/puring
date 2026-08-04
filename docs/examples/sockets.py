@@ -40,4 +40,6 @@ async def main():
     print('Sockets closed')
 
 
-asyncio.run(main(), loop_factory=puring.PuringLoop)
+# asyncio.run(main(), loop_factory=puring.PuringLoop)
+with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
+    runner.run(main())

@@ -1,7 +1,7 @@
 #include "timer.h"
 
 int
-timer(struct io_uring *ring, TimerParams *timer_params) {
+timer(struct io_uring *ring, int request_idx, TimerParams *timer_params) {
     if (!timer_params) {
         fprintf(stderr, "To required params\n");
         return -1;
@@ -13,8 +13,8 @@ timer(struct io_uring *ring, TimerParams *timer_params) {
     }
 
     struct __kernel_timespec ts = {
-        .tv_sec = (*timer_params).sec,
-        .tv_nsec = (*timer_params).nsec,
+        .tv_sec = timer_params->sec,
+        .tv_nsec = timer_params->nsec,
     };
 
     int flag = 0;
@@ -22,7 +22,10 @@ timer(struct io_uring *ring, TimerParams *timer_params) {
         flag = IORING_TIMEOUT_MULTISHOT;
     }
 
-    io_uring_prep_timeout(sqe, &ts, (unsigned int)((*timer_params).count), (unsigned int)flag);
+    io_uring_prep_timeout(sqe, &ts, (unsigned int)timer_params->count, (unsigned int)flag);
+
+    void *rings_data_pointer = (void *)(uintptr_t)request_idx;
+    io_uring_sqe_set_data(sqe, rings_data_pointer);
 
     int result = io_uring_submit(ring);
     if (result < 0) {
@@ -34,12 +37,13 @@ timer(struct io_uring *ring, TimerParams *timer_params) {
 
 int
 timeout(struct io_uring *ring, struct io_uring_sqe *sqe, const TimeoutParams *timeout_params) {
-    if (timeout_params == NULL) {
+    if (timeout_params == NULL ||
+        (timeout_params->sec == 0 && timeout_params->nsec == 0 && !timeout_params->is_required)) {
         return 0;
     }
     sqe->flags |= IOSQE_IO_LINK;
 
-    const struct io_uring_sqe *timeout_sqe = io_uring_get_sqe(ring);
+    struct io_uring_sqe *timeout_sqe = io_uring_get_sqe(ring);
     if (!timeout_sqe) {
         fprintf(stderr, "SQE for timeout is not available\n");
 
@@ -51,10 +55,10 @@ timeout(struct io_uring *ring, struct io_uring_sqe *sqe, const TimeoutParams *ti
     }
 
     struct __kernel_timespec ts = {
-        .tv_sec = (*timeout_params).sec,
-        .tv_nsec = (*timeout_params).nsec,
+        .tv_sec = timeout_params->sec,
+        .tv_nsec = timeout_params->nsec,
     };
 
-    io_uring_prep_link_timeout(sqe, &ts, 0);
+    io_uring_prep_link_timeout(timeout_sqe, &ts, 0);
     return 0;
 }

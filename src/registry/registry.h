@@ -4,9 +4,11 @@
 #include <Python.h>
 
 #include <string.h>
+#include <stdbool.h>
 #include "python_api/execution_context/execution_context_enums.h"
+#include "python_api/buffers/buffers.h"
 
-#define DEFAULT_REGISTRY_SIZE 128
+#define DEFAULT_REGISTRY_SIZE 1024 * 10
 
 typedef struct PuringSocket PuringSocket;
 typedef struct PuringFile PuringFile;

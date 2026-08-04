@@ -19,24 +19,23 @@
 - [X] Implement GitHub CI.
 
 ## v0.4.0 - Buffer features
-- [ ] Implement `Execution Context` layer: `Buffer Mode`, `Transfer Mode` and `Stream Strategy`.
+- [X] Implement `Execution Context` layer: `Buffer Mode`, `Transfer Mode` and `Stream Strategy`.
     - [X] Implement `Buffer Mode` layer:
         - [X] Implement `fixed` buffer mode.
         - [X] Implement `provided` and `buffer ring` buffer modes.
         - [X] Use Python application buffers as `PuringLoop` buffers - `NORMAL_BUF` buffer mode.
         - [X] Implement modes dispatching.
-        - [ ] Implement a memory pool for buffer creation.
     - [X] Implement `Transfer Mode`:
         - [X] Zero-copy functionality.
         - [X] Zero-copy and normal-copy routing.
-    - [ ] Implement `Stream Strategy` layer:
-        - [ ] Multishot functionality.
+    - [X] Implement `Stream Strategy` layer:
+        - [X] Multishot functionality.
         - [X] Multishot and one-shot(normal) routing.
-- [ ] Implement `ContextManager` protocol for Files and Sockets.
-- [ ] Use `errno` in error handling.
-- [ ] Add tests for whole library:
-    - [ ] Python-layer.
-    - [ ] C-layer.
+- [X] Implement `ContextManager` protocol for Files and Sockets.
+- [X] Add initial tests for whole library:
+    - [X] Python-layer.
+    - [X] C-layer.
+- [ ] Add initial documentation.
 - [ ] Publish library on PyPI (`pip` installable).
 
 ## v0.5.0 - Async Runtime & Architecture
@@ -44,36 +43,37 @@
 - [ ] Each thread must own it`s own Rings
 - [ ] Multiring support.
 - [ ] Support all awaitable operations.
-- [ ] Support modern Python async interfaces (`Runners`).
 - [ ] Configurable ring parameters.
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
-- [ ] `Batcher` and `Chainer` OOP interface.
 - [ ] Implement `dir` object completely.
 - [ ] Research and implement futex if needed.
 - [ ] Add poll interface (with multishot poll).
 - [ ] Add `socket.send` with `IORING_SEND_VECTORIZED` and `IORING_RECVSEND_BUNDLE` flags as separate methods.
 - [ ] Add zero-copy RX interface.
+- [ ] Add Multishot timer, signals.
 
 ## v0.6.0 - CQE and SQE production features
-- [ ] CQE batching.
+- [ ] Batching and chaining.
+    - [ ] CQE batching.
+    - [ ] `Batcher` and `Chainer` OOP interface.
+    - [ ] Support linked SQEs for chained operations.
 - [ ] SQPOLL.
 - [ ] FASTPOLL.
-- [ ] Support linked SQEs for chained operations.
 - [ ] Support `IOSQE_CQE_SKIP_SUCCESS` and `IOSQE_BUFFER_SELECT`.
 - [ ] Keep file descriptors registered (`io_uring_register_files`).
 - [ ] Persistent log of CQ and SQ entry for backuping.
 - [ ] Explore event loop tick cycles variants.
 
-## v0.6.1 - Community & Contribution
+## v0.7.0 - Additional functionality
+- [ ] Ancillary data support for sockets scatter-gather.
+- [ ] Support io_uring_prep_cmd_sock.
+
+## Other - Community & Contribution
 - [ ] Document everything.
 - [ ] Add contribution support:
     - [ ] Write contribution guidelines.
     - [ ] Add repository badges.
     - [ ] Enable GitHub issue tracking.
-
-## v0.7.0 - Additional functionality
-- [ ] Ancillary data support for sockets scatter-gather.
-- [ ] Support io_uring_prep_cmd_sock.
 
 ### Note
 This roadmap is expected to evolve as our understanding deepens and the project matures.

@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Python.h"
-
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "liburing.h"
 
@@ -23,7 +22,7 @@ typedef struct TimeoutParams {
 } TimeoutParams;
 
 int
-timer(struct io_uring *ring, TimerParams *timer_params);
+timer(struct io_uring *ring, int request_idx, TimerParams *timer_params);
 
 int
 timeout(struct io_uring *ring, struct io_uring_sqe *sqe, const TimeoutParams *timeout_params);
