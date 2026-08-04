@@ -32,9 +32,10 @@
         - [X] Multishot functionality.
         - [X] Multishot and one-shot(normal) routing.
 - [X] Implement `ContextManager` protocol for Files and Sockets.
-- [ ] Add tests for whole library:
-    - [ ] Python-layer.
-    - [ ] C-layer.
+- [X] Add initial tests for whole library:
+    - [X] Python-layer.
+    - [X] C-layer.
+- [ ] Add initial documentation.
 - [ ] Publish library on PyPI (`pip` installable).
 
 ## v0.5.0 - Async Runtime & Architecture
