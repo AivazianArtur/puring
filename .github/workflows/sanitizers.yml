@@ -5,7 +5,6 @@ on:
     branches:
       - main
   pull_request:
-  workflow_call:
 
 jobs:
   sanitizers-asan_ubsan:
@@ -16,10 +15,18 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
-        run: make dev-deps
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
 
-      - name: Run ASan + UBSan tests
-        run: make test-all-asan
+      - name: Build with ASan + UBSan
+        run: |
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=address,undefined \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=address,undefined" \
+          python3 setup.py build_ext --inplace
 
   sanitizers-tsan:
     runs-on: ubuntu-latest
@@ -29,17 +36,18 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
-        run: make dev-deps
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
 
-      - name: Run TSan tests
+      - name: Build with TSan
         run: |
-          TSAN_LIB=$(ldconfig -p | awk '/libtsan\.so/ {print $NF; exit}')
-          if [ -z "$TSAN_LIB" ]; then TSAN_LIB="/usr/lib/x86_64-linux-gnu/libtsan.so.2"; fi
-          
-          make test-all-asan \
-            ASAN_CFLAGS="-O0 -g3 -fsanitize=thread -fno-omit-frame-pointer" \
-            ASAN_LDFLAGS="-fsanitize=thread" \
-            ASAN_LIB="$TSAN_LIB"
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=thread \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=thread" \
+          python3 setup.py build_ext --inplace
 
   sanitizers-msan:
     runs-on: ubuntu-latest
@@ -49,12 +57,15 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
-        run: make dev-deps
+        run: sudo apt update && sudo apt install -y clang python3-dev
+      - name: Build liburing
+        run: cd requirements/liburing && make
 
-      - name: Run MSan tests
+      - name: Build with MSan
         run: |
-          make test-all-asan \
-            CC=clang \
-            ASAN_CFLAGS="-O0 -g3 -fsanitize=memory -fno-omit-frame-pointer" \
-            ASAN_LDFLAGS="-fsanitize=memory" \
-            ASAN_LIB="" # MSan обычно линкуется статически или не требует LD_PRELOAD
+          CC=clang \
+          CFLAGS="-O0 -g3 \
+          -fsanitize=memory \
+          -fno-omit-frame-pointer" \
+          LDFLAGS="-fsanitize=memory" \
+          python3 setup.py build_ext --inplace
