@@ -3,12 +3,21 @@ import sys
 
 sys.path.insert(0, '')
 
+from pathlib import Path
+
 import puring
 import pytest
 
-from pathlib import Path
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
 from tests.python_tests.tests_utils.runner import puring_test
+
+
+@pytest.fixture
+def temp_file_path(tmp_path):
+    path = tmp_path / 'open_test_file.bin'
+    path.write_bytes(b'\x00' * 100)
+    return path
+
 
 @pytest_parametrize(
     (
@@ -93,8 +102,8 @@ async def test_open__validation_error(
     resolve,
     mode,
 ):
-    with pytest.raises(expected_exception=TypeError):
-        puring.open_file(
+    with pytest.raises(TypeError):
+        await puring.open_file(
             path=path,
             dirfd=dirfd,
             flags=flags,
@@ -105,166 +114,147 @@ async def test_open__validation_error(
 
 @puring_test
 async def test_open__no_req_params():
-    with pytest.raises(expected_exception=TypeError) as err:
-        puring.open_file(
+    with pytest.raises(TypeError) as err:
+        await puring.open_file(
             dirfd=0,
             flags=0,
             resolve=puring.ResolveFlags.NO_XDEV,
             mode=0,
         )
-        assert "function missing required argument 'path'" in err.match
+
+    assert "function missing required argument 'path'" in str(err.value)
 
 
 @pytest_parametrize(
-    (
-        'path',
-        'dirfd',
-        'flags',
-        'resolve',
-        'mode',
-    ),
+    ('flags', 'resolve', 'mode'),
     (
         pytest_param(
-            path='example_path/',
-            dirfd=0,
-            flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
-            mode=1,
-            id='path_str',
-        ),
-        pytest_param(
-            path=Path('/example_path'),
-            dirfd=0,
-            flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
-            mode=1,
-            id='path_pathlib',
-        ),
-        pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
             flags=None,
             resolve=None,
             mode=None,
             id='only_required_param',
         ),
         pytest_param(
-            path=Path('/example_path'),
-            dirfd=0,
-            flags=None,
-            resolve=None,
-            mode=None,
-            id='only_dirfd',
-        ),
-        pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
             flags=0,
-            resolve=None,
-            mode=None,
-            id='only_flags',
-        ),
-        pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
-            flags=None,
             resolve=puring.ResolveFlags.NO_XDEV,
-            mode=None,
-            id='only_resolve',
-        ),
-        pytest_param(
-            path=Path('/example_path'),
-            dirfd=0,
-            flags=None,
-            resolve=None,
             mode=0,
-            id='only_mode',
+            id='resolve_default',
         ),
         pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
-            flags=None,
+            flags=0,
             resolve=puring.ResolveFlags.NO_MAGICLINKS,
-            mode=None,
+            mode=0,
             id='resolve_flag_NO_MAGICLINKS',
         ),
         pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
-            flags=None,
+            flags=0,
             resolve=puring.ResolveFlags.NO_SYMLINKS,
-            mode=None,
+            mode=0,
             id='resolve_flag_NO_SYMLINKS',
         ),
         pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
-            flags=None,
+            flags=0,
             resolve=puring.ResolveFlags.BENEATH,
-            mode=None,
+            mode=0,
             id='resolve_flag_BENEATH',
         ),
         pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
-            flags=None,
+            flags=0,
             resolve=puring.ResolveFlags.IN_ROOT,
-            mode=None,
+            mode=0,
             id='resolve_flag_IN_ROOT',
         ),
         pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
-            flags=None,
+            flags=0,
             resolve=puring.ResolveFlags.CACHED,
-            mode=None,
+            mode=0,
             id='resolve_flag',
         ),
         pytest_param(
-            path=Path('/example_path'),
-            dirfd=0,
-            flags=os.O_CREAT | os.O_RDWR,
+            flags=os.O_RDONLY,
             resolve=puring.ResolveFlags.NO_XDEV,
-            mode=0o644,
-            id='realistic_flags_and_octal_mode',
+            mode=0,
+            id='realistic_flags',
         ),
         pytest_param(
-            path=Path('/example_path'),
-            dirfd=None,
-            flags=None,
+            flags=os.O_RDONLY,
             resolve=puring.ResolveFlags.NO_XDEV | puring.ResolveFlags.CACHED,
-            mode=None,
+            mode=0,
             id='resolve_flags_combined',
         ),
-        pytest_param(
-            path=Path('/example_path'),
-            dirfd=-100,  # AT_FDCWD
-            flags=None,
-            resolve=None,
-            mode=None,
-            id='dirfd_negative_value',
-        ),
-
     ),
 )
 @puring_test
 async def test_open__success(
-    path,
-    dirfd,
+    temp_file_path,
     flags,
     resolve,
     mode,
 ):
-    args = [
-        arg for arg in [path, dirfd, flags, resolve, mode] if arg is not None
-    ]
-    assert puring.open_file(*args)
+    dirfd = None
+
+    kwargs = {'path': str(temp_file_path)}
+
+    if resolve is not None:
+        dirfd = os.open(
+            temp_file_path.parent,
+            os.O_RDONLY | os.O_DIRECTORY,
+        )
+
+        kwargs['path'] = temp_file_path.name
+        kwargs['dirfd'] = dirfd
+        kwargs['resolve'] = resolve
+
+    if flags is not None:
+        kwargs['flags'] = flags
+
+    if mode is not None:
+        kwargs['mode'] = mode
+
+    try:
+        uring_file = await puring.open_file(**kwargs)
+        assert uring_file
+        await uring_file.close()
+    finally:
+        if dirfd is not None:
+            os.close(dirfd)
+
+@pytest_parametrize(
+    ('path'),
+    (
+        pytest_param(
+            path='example_path/',
+            id='path_str',
+        ),
+        pytest_param(
+            path=Path('/example_path'),
+            id='path_pathlib',
+        ),
+    ),
+)
+@puring_test
+async def test_open__path_types_success(temp_file_path, path):
+    if isinstance(path, str):
+        path = str(temp_file_path)
+
+    elif isinstance(path, Path):
+        path = temp_file_path
+
+    uring_file = await puring.open_file(
+        path=path,
+    )
+
+    assert uring_file
+
+    await uring_file.close()
 
 
 @puring_test
-async def test_open__resolve_flag_out_of_enum_range_currently_succeeds():
-    # It will break once we will add proper validation
-    assert puring.open_file(
-        path='/example_path',
-        resolve=99999,
+async def test_open__dirfd_negative_value(temp_file_path):
+    uring_file = await puring.open_file(
+        path=temp_file_path,
+        dirfd=-100,  # AT_FDCWD
     )
+
+    assert uring_file
+    await uring_file.close()

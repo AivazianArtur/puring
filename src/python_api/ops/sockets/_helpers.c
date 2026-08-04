@@ -17,40 +17,36 @@ _check_sockets_result(int result, PuringSocket *socket, int request_idx, PyObjec
     return future;
 }
 
-struct sockaddr *
+struct sockaddr_storage *
 _serialize_address(const char *host, int port, int domain) {
-    struct sockaddr *addr;
-    if (domain == AF_INET) {
-        struct sockaddr_in *temp_addr = malloc(sizeof(*temp_addr));
-        if (!temp_addr) {
-            PyErr_NoMemory();
-            return NULL;
-        }
+    struct sockaddr_storage *addr = malloc(sizeof(struct sockaddr_storage));
+    if (!addr) {
+        PyErr_NoMemory();
+        return NULL;
+    }
 
+    memset(addr, 0, sizeof(*addr));
+
+    if (domain == AF_INET) {
+        struct sockaddr_in *temp_addr = (struct sockaddr_in *)addr;
         temp_addr->sin_family = AF_INET;
         temp_addr->sin_port = htons((uint16_t)port);
-        if (inet_pton(AF_INET, host, &temp_addr->sin_addr) != 1) {
-            free(temp_addr);
-            PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IP address");
+        if (host && inet_pton(AF_INET, host, &temp_addr->sin_addr) != 1) {
+            free(addr);
+            PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IPv4 address");
             return NULL;
         }
-        addr = (struct sockaddr *)temp_addr;
     } else if (domain == AF_INET6) {
-        struct sockaddr_in6 *temp_addr = malloc(sizeof(*temp_addr));
-        if (!temp_addr) {
-            PyErr_NoMemory();
-            return NULL;
-        }
-
+        struct sockaddr_in6 *temp_addr = (struct sockaddr_in6 *)addr;
         temp_addr->sin6_family = AF_INET6;
         temp_addr->sin6_port = htons((uint16_t)port);
-        if (inet_pton(AF_INET6, host, &temp_addr->sin6_addr) != 1) {
-            free(temp_addr);
-            PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IP address");
+        if (host && inet_pton(AF_INET6, host, &temp_addr->sin6_addr) != 1) {
+            free(addr);
+            PyErr_SetString(PyExc_ConnectionRefusedError, "Invalid IPv6 address");
             return NULL;
         }
-        addr = (struct sockaddr *)temp_addr;
     } else {
+        free(addr);
         return NULL;
     }
     return addr;

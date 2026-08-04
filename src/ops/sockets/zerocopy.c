@@ -8,7 +8,6 @@ puring_send_zc(
     const void *buf,
     size_t len,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
@@ -38,7 +37,6 @@ puring_send_zc_fixed(
     size_t len,
     int is_poll_first,
     int buf_index,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);

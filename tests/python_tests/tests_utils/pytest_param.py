@@ -52,7 +52,7 @@ def pytest_parametrize(
     new_arg_values = []
     for arg_value in argvalues:
         if isinstance(arg_value, KwargsParameterSet):
-            arg_value = arg_value.to_parameter_set(argnames)  # noqa: PLW2901
+            arg_value = arg_value.to_parameter_set(argnames)
         new_arg_values.append(arg_value)
 
     return pytest.mark.parametrize(

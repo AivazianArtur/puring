@@ -25,7 +25,6 @@ typedef struct PuringSocket {
         int sock_fd;
     PuringLoop *loop;
     int domain;
-    SOCKET_STATES state;
     struct sockaddr *addr;
     bool closed;
 } PuringSocket;
@@ -139,7 +138,7 @@ accept_dispatcher(
 PyObject *
 _check_sockets_result(int result, PuringSocket *socket, int request_idx, PyObject *future);
 
-struct sockaddr *
+struct sockaddr_storage *
 _serialize_address(const char *host, int port, int domain);
 
 socklen_t

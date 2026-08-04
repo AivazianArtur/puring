@@ -17,7 +17,7 @@ def temp_file_path(tmp_path):
 
 
 @pytest_parametrize(
-    ('offset',),
+    ('offset'),
     (
         pytest_param(
             offset='not_an_int',
@@ -55,11 +55,7 @@ async def test_readv__closed_file_raises_error(temp_file_path):
 
 
 @pytest_parametrize(
-    (
-        'buffers',
-        'offset',
-        'nowait',
-    ),
+    ('buffers', 'offset', 'nowait'),
     (
         pytest_param(
             buffers=None,

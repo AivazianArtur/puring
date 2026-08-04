@@ -45,9 +45,12 @@ Puring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_TypeError, "Failed to convert path to UTF-8");
         return NULL;
     }
-    // TODO: valudate flags, resolve, mode
+
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0) {
+        Py_DECREF(file);
+        return NULL;
+    }
 
     PyObject *future = create_future(running_loop);
     if (!future) {
@@ -180,7 +183,8 @@ PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future)
@@ -216,7 +220,8 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -268,6 +273,9 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
         )) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     BufferPayload *buffer_payload;
     buffer_payload = _get_buffer();
@@ -276,9 +284,6 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
     if (!buffer_payload)
         return NULL;
-
-    TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -310,16 +315,19 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *iovecs_obj = NULL;
-    int flags = 0;
+    int nowait = 0;
     int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
-    static const char *kwlist[] = {"iovecs", "offset", "flags", "timeout_params", NULL};
+    static const char *kwlist[] = {"iovecs", "offset", "nowait", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-            args, kwargs, "O|iiO", (char **)kwlist, &iovecs_obj, &offset, &flags, &timeout_params_obj
+            args, kwargs, "O|iiO", (char **)kwlist, &iovecs_obj, &offset, &nowait, &timeout_params_obj
         )) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     Py_buffer iovecs_buf;
     if (PyObject_GetBuffer(iovecs_obj, &iovecs_buf, PyBUF_WRITABLE | PyBUF_STRIDES) < 0) {
@@ -337,9 +345,6 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_ValueError, "iovecs must be contiguous");
         return NULL;
     }
-
-    TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     BufferPayload *buffer_payload = create_buffer_payload_from_pybuffer(&iovecs_buf);
     if (!buffer_payload)
@@ -369,7 +374,7 @@ PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         buffer_payload->vector->iovecs,
         (unsigned)buffer_payload->vector->nr_vecs,
         offset,
-        flags,
+        nowait,
         timeout_params
     );
 
@@ -394,7 +399,8 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future)
@@ -441,13 +447,13 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
         ))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj);
     if (!buffer_payload)
         return NULL;
-
-    TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -504,9 +510,12 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    if (PyObject_GetBuffer(buffers_obj, &iovecs_buf, PyBUF_SIMPLE) < 0) {
+    TimeoutParams timeout_params = {0};
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
         return NULL;
-    }
+
+    if (PyObject_GetBuffer(buffers_obj, &iovecs_buf, PyBUF_SIMPLE) < 0)
+        return NULL;
 
     if ((size_t)iovecs_buf.len % sizeof(struct iovec) != 0) {
         PyBuffer_Release(&iovecs_buf);
@@ -525,9 +534,6 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
         PyBuffer_Release(&iovecs_buf);
         return NULL;
     }
-
-    TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -576,7 +582,8 @@ PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -610,7 +617,8 @@ PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -663,7 +671,8 @@ PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {

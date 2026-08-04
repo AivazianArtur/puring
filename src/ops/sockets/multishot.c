@@ -8,7 +8,6 @@ puring_accept_multishot(
     struct sockaddr *addr,
     socklen_t *len,
     int flags,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
@@ -34,7 +33,6 @@ puring_recv_multishot(
     size_t len,
     int bgid,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);

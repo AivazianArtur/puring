@@ -52,11 +52,21 @@ parse_timeout_params(PyObject *obj, TimeoutParams *out) {
     PyObject *nsec_obj = PyDict_GetItemString(obj, "nsec");
     PyObject *is_required_obj = PyDict_GetItemString(obj, "is_required");
 
-    if ((sec_obj && PyLong_Check(sec_obj)) && (nsec_obj && PyLong_Check(nsec_obj)) &&
-        (is_required_obj && PyBool_Check(is_required_obj))) {
-        out->sec = (int)PyLong_AsLong(sec_obj);
-        out->nsec = (int)PyLong_AsLong(nsec_obj);
-        out->is_required = PyObject_IsTrue(is_required_obj);
+    if (!sec_obj || !PyLong_Check(sec_obj)) {
+        PyErr_SetString(PyExc_TypeError, "timeout_params['sec'] is required and must be an int");
+        return -1;
     }
-    return 1;
+    if (!nsec_obj || !PyLong_Check(nsec_obj)) {
+        PyErr_SetString(PyExc_TypeError, "timeout_params['nsec'] is required and must be an int");
+        return -1;
+    }
+    if (!is_required_obj || !PyBool_Check(is_required_obj)) {
+        PyErr_SetString(PyExc_TypeError, "timeout_params['is_required'] is required and must be a bool");
+        return -1;
+    }
+
+    out->sec = (int)PyLong_AsLong(sec_obj);
+    out->nsec = (int)PyLong_AsLong(nsec_obj);
+    out->is_required = PyObject_IsTrue(is_required_obj);
+    return 0;
 }

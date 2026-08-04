@@ -8,7 +8,6 @@ puring_recv_buffer_select(
     size_t len,
     int bgid,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
@@ -42,7 +41,6 @@ puring_recvmsg_buffer_select(
     int sockfd,
     int is_poll_first,
     int bgid,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);

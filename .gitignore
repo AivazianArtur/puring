@@ -4,6 +4,7 @@ dist/
 .venv/
 .vscode/
 .idea/
+.pytest_cache/
 __pycache__/
 *.pyc
 *.pyo

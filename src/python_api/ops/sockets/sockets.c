@@ -24,9 +24,11 @@ Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs
         Py_DECREF(sock);
         return NULL;
     }
-
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0) {
+        Py_DECREF(sock);
+        return NULL;
+    }
 
     PyObject *future = create_future(running_loop);
     if (!future) {
@@ -166,15 +168,15 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si|O", (char **)kwlist, &host, &port, &timeout_params_obj)) {
         return NULL;
     }
-
-    struct sockaddr *addr = _serialize_address(host, port, self->domain);
-    if (!addr) {
-        return NULL;
-    }
-    socklen_t addrlen = _get_socket_size(self->domain);
-
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
+
+    struct sockaddr_storage *addr = _serialize_address(host, port, self->domain);
+    if (!addr)
+        return NULL;
+
+    socklen_t addrlen = _get_socket_size(self->domain);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -192,7 +194,9 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = puring_bind(self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, timeout_params);
+    int result = puring_bind(
+        self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, addrlen, timeout_params
+    );
 
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);
@@ -214,15 +218,15 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "si|O", (char **)kwlist, &host, &port, &timeout_params_obj)) {
         return NULL;
     }
-
-    struct sockaddr *addr = _serialize_address(host, port, self->domain);
-    if (!addr) {
-        return NULL;
-    }
-    socklen_t addrlen = _get_socket_size(self->domain);
-
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
+
+    struct sockaddr_storage *addr = _serialize_address(host, port, self->domain);
+    if (!addr)
+        return NULL;
+
+    socklen_t addrlen = _get_socket_size(self->domain);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -240,7 +244,7 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     }
 
     int result = puring_connect(
-        self->loop->ring, request_idx, self->sock_fd, addr, addrlen, self->state, timeout_params
+        self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, addrlen, timeout_params
     );
     free(addr);
     return _check_sockets_result(result, self, request_idx, future);
@@ -262,9 +266,9 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i|O", (char **)kwlist, &backlog, &timeout_params_obj))) {
         return NULL;
     }
-
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -279,7 +283,7 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = puring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, self->state, timeout_params);
+    int result = puring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
@@ -297,9 +301,9 @@ PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char **)kwlist, &timeout_params_obj))) {
         return NULL;
     }
-
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -348,9 +352,9 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|O", (char **)kwlist, &timeout_params_obj))) {
         return NULL;
     }
-
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     PyObject *future = create_future(self->loop);
     if (!future)
@@ -391,7 +395,8 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     BufferPayload *buffer_payload = create_buffer_payload_from_data(data);
     if (!buffer_payload)
@@ -439,7 +444,8 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     BufferPayload *buffer_payload = get_or_create_linear_buffer(buffer_obj, bufsize);
     if (!buffer_payload)
@@ -489,16 +495,16 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         ))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
-    struct sockaddr *addr = NULL;
+    struct sockaddr_storage *addr = NULL;
     addr = _serialize_address(host, port, domain);
     if (!addr)
         return NULL;
 
     socklen_t addrlen = _get_socket_size(domain);
-
-    TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     BufferPayload *buffer_payload = create_buffer_payload_from_data(data);
     if (!buffer_payload) {
@@ -529,7 +535,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         self->sock_fd,
         buffer_payload->linear->buffer,
         (unsigned)buffer_payload->linear->len,
-        addr,
+        (struct sockaddr *)addr,
         addrlen,
         is_poll_first,
         timeout_params
@@ -572,8 +578,11 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         ))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
-    struct sockaddr *addr = _serialize_address(host, port, domain);
+    struct sockaddr_storage *addr = _serialize_address(host, port, domain);
     if (!addr)
         return NULL;
 
@@ -593,9 +602,6 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
-
     PyObject *future = create_future(self->loop);
     if (!future) {
         free_buffer_payload(buffer_payload, false);
@@ -606,7 +612,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     int opcode = IORING_OP_RECVMSG;
     int request_idx = registry_add(
-        self->loop->registry, future, buffer_payload, ONESHOT, opcode, NULL, self, (struct sockaddr_storage *)addr, msg
+        self->loop->registry, future, buffer_payload, ONESHOT, opcode, NULL, self, addr, msg
     );
     if (request_idx < 0) {
         Py_DECREF(future);
@@ -623,7 +629,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         self->sock_fd,
         buffer_payload->linear->buffer,
         buffer_payload->linear->len,
-        addr,
+        (struct sockaddr *)addr,
         addrlen,
         is_poll_first,
         msg,
@@ -663,8 +669,11 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         ))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
-    struct sockaddr *addr = NULL;
+    struct sockaddr_storage *addr = NULL;
     if (host) {
         addr = _serialize_address(host, port, domain);
         if (!addr)
@@ -677,9 +686,6 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
 
     TransferMode transfer_mode = get_transfer_mode();
-
-    TimeoutParams timeout_params = {0};
-    parse_timeout_params(timeout_params_obj, &timeout_params);
 
     PyObject *future = create_future(self->loop);
     if (!future) {
@@ -700,7 +706,14 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     int result = sendmsg_dispatcher(
-        self, buffer_payload, transfer_mode, request_idx, addr, addrlen, is_poll_first, timeout_params
+        self,
+        buffer_payload,
+        transfer_mode,
+        request_idx,
+        (struct sockaddr *)addr,
+        addrlen,
+        is_poll_first,
+        timeout_params
     );
 
     free(addr);
@@ -726,6 +739,9 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         ))) {
         return NULL;
     }
+    TimeoutParams timeout_params = {0};
+    if (parse_timeout_params(timeout_params_obj, &timeout_params) < 0)
+        return NULL;
 
     BufferPayload *buffer_payload = get_or_create_vectored_buffer(buffers_obj);
     if (!buffer_payload)
@@ -738,7 +754,6 @@ PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         free_buffer_payload(buffer_payload, false);
         return NULL;
     }
-    TimeoutParams timeout_params = {0};
 
     int opcode = IORING_OP_RECVMSG;
 

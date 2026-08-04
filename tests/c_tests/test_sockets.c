@@ -51,7 +51,7 @@ test_bind_listen_connect_accept__full_flow(void) {
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = 0;
 
-    int bret = puring_bind(&ring, 1, listen_fd, (struct sockaddr *)&addr, sizeof(addr), NEW, NO_TO);
+    int bret = puring_bind(&ring, 1, listen_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
     TEST_ASSERT(bret == 1, "puring_bind submit should succeed");
     int bres = wait_one_cqe(&ring);
     TEST_ASSERT(bres == 0, "bind should succeed");
@@ -59,20 +59,20 @@ test_bind_listen_connect_accept__full_flow(void) {
     socklen_t alen = sizeof(addr);
     TEST_ASSERT(getsockname(listen_fd, (struct sockaddr *)&addr, &alen) == 0, "getsockname failed");
 
-    int lret = puring_listen(&ring, 2, listen_fd, 1, NEW, NO_TO);
+    int lret = puring_listen(&ring, 2, listen_fd, 1, NO_TO);
     TEST_ASSERT(lret == 1, "puring_listen submit should succeed");
     int lres = wait_one_cqe(&ring);
     TEST_ASSERT(lres == 0, "listen should succeed");
 
     struct sockaddr_storage peer = {0};
     socklen_t peerlen = sizeof(peer);
-    int aret = puring_accept(&ring, 3, listen_fd, (struct sockaddr *)&peer, &peerlen, 0, NEW, NO_TO);
+    int aret = puring_accept(&ring, 3, listen_fd, (struct sockaddr *)&peer, &peerlen, 0, NO_TO);
     TEST_ASSERT(aret == 1, "puring_accept submit should succeed");
 
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
     TEST_ASSERT(client_fd >= 0, "posix socket() for client failed");
 
-    int cret = puring_connect(&ring, 4, client_fd, (struct sockaddr *)&addr, sizeof(addr), NEW, NO_TO);
+    int cret = puring_connect(&ring, 4, client_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
     TEST_ASSERT(cret == 1, "puring_connect submit should succeed");
 
     int accepted_fd = -1;
@@ -116,7 +116,7 @@ test_puring_connect__refused_on_closed_port(void) {
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
     TEST_ASSERT(client_fd >= 0, "posix socket() failed");
 
-    int ret = puring_connect(&ring, 1, client_fd, (struct sockaddr *)&addr, sizeof(addr), NEW, NO_TO);
+    int ret = puring_connect(&ring, 1, client_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
     TEST_ASSERT(ret == 1, "submit should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -137,13 +137,13 @@ test_puring_send_recv__roundtrip(void) {
     TEST_ASSERT(make_tcp_pair(&cfd, &sfd) == 0, "make_tcp_pair failed");
 
     const char *msg = "hello over io_uring";
-    int sret = puring_send(&ring, 1, cfd, msg, strlen(msg), 0, CONNECTED, NO_TO);
+    int sret = puring_send(&ring, 1, cfd, msg, strlen(msg), 0, NO_TO);
     TEST_ASSERT(sret == 1, "puring_send submit should succeed");
     int sres = wait_one_cqe(&ring);
     TEST_ASSERT(sres == (int)strlen(msg), "send should report full length");
 
     char buf[64] = {0};
-    int rret = puring_recv(&ring, 2, sfd, buf, sizeof(buf), 0, CONNECTED, NO_TO);
+    int rret = puring_recv(&ring, 2, sfd, buf, sizeof(buf), 0, NO_TO);
     TEST_ASSERT(rret == 1, "puring_recv submit should succeed");
     int rres = wait_one_cqe(&ring);
     TEST_ASSERT(rres == (int)strlen(msg), "recv should report exactly the sent length");
@@ -164,7 +164,7 @@ test_puring_recv__peer_closed_returns_zero(void) {
     close(cfd);
 
     char buf[16];
-    int ret = puring_recv(&ring, 1, sfd, buf, sizeof(buf), 0, CONNECTED, NO_TO);
+    int ret = puring_recv(&ring, 1, sfd, buf, sizeof(buf), 0, NO_TO);
     TEST_ASSERT(ret == 1, "submit should succeed");
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 0, "recv on peer-closed socket should return 0 (EOF)");
@@ -275,7 +275,7 @@ test_puring_recv_fixed__success(void) {
     const char *msg = "fixed recv works";
     TEST_ASSERT(write(cfd, msg, strlen(msg)) == (ssize_t)strlen(msg), "write failed");
 
-    int ret = puring_recv_fixed(&ring, 1, sfd, recv_buf, strlen(msg), 0, /*buf_index=*/0, CONNECTED, NO_TO);
+    int ret = puring_recv_fixed(&ring, 1, sfd, recv_buf, strlen(msg), 0, /*buf_index=*/0, NO_TO);
     TEST_ASSERT(ret == 1, "puring_recv_fixed submit should succeed");
     int res = wait_one_cqe(&ring);
     printf("recv_fixed res = %d\n", res);
@@ -305,7 +305,7 @@ test_puring_recv_buffer_select__success(void) {
     const char *msg = "buffer select recv";
     TEST_ASSERT(write(cfd, msg, strlen(msg)) == (ssize_t)strlen(msg), "write failed");
 
-    int ret = puring_recv_buffer_select(&ring, 1, sfd, sizeof(pool), bgid, 0, CONNECTED, NO_TO);
+    int ret = puring_recv_buffer_select(&ring, 1, sfd, sizeof(pool), bgid, 0, NO_TO);
     TEST_ASSERT(ret == 1, "puring_recv_buffer_select submit should succeed");
 
     struct io_uring_cqe *cqe;
@@ -340,7 +340,7 @@ test_puring_accept_multishot__accepts_two_connections(void) {
 
     struct sockaddr_storage peer = {0};
     socklen_t peerlen = sizeof(peer);
-    int ret = puring_accept_multishot(&ring, 1, listen_fd, (struct sockaddr *)&peer, &peerlen, 0, NEW, NO_TO);
+    int ret = puring_accept_multishot(&ring, 1, listen_fd, (struct sockaddr *)&peer, &peerlen, 0, NO_TO);
     TEST_ASSERT(ret == 1, "puring_accept_multishot submit should succeed");
 
     int c1 = socket(AF_INET, SOCK_STREAM, 0);
@@ -395,7 +395,7 @@ test_puring_recv_multishot__receives_two_messages(void) {
     }
     io_uring_buf_ring_advance(buf_ring, (int)nr_bufs);
 
-    int ret = puring_recv_multishot(&ring, 1, sfd, /*len=*/0, bgid, 0, CONNECTED, NO_TO);
+    int ret = puring_recv_multishot(&ring, 1, sfd, /*len=*/0, bgid, 0, NO_TO);
     TEST_ASSERT(ret == 1, "puring_recv_multishot submit should succeed");
 
     const char *msg1 = "first";
@@ -443,7 +443,7 @@ test_puring_send_zc__two_completions(void) {
     TEST_ASSERT(make_tcp_pair(&cfd, &sfd) == 0, "make_tcp_pair failed");
 
     const char *msg = "zerocopy send";
-    int ret = puring_send_zc(&ring, 1, cfd, msg, strlen(msg), 0, CONNECTED, NO_TO);
+    int ret = puring_send_zc(&ring, 1, cfd, msg, strlen(msg), 0, NO_TO);
     TEST_ASSERT(ret == 1, "puring_send_zc submit should succeed");
 
     struct io_uring_cqe *cqe1;

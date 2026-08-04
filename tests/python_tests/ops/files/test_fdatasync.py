@@ -19,7 +19,7 @@ def temp_file_path(tmp_path):
 async def test_fdatasync__success(temp_file_path):
     uring_file = await puring.open_file(path=temp_file_path)
 
-    assert uring_file.fdatasync()
+    assert await uring_file.fdatasync() == 0
 
     await uring_file.close()
 
@@ -30,7 +30,7 @@ async def test_fdatasync__after_write(temp_file_path):
 
     await uring_file.write(data=b'abcdef')
 
-    assert uring_file.fdatasync()
+    assert await uring_file.fdatasync() == 0
 
     await uring_file.close()
 
@@ -52,4 +52,4 @@ async def test_fdatasync__closed_file_raises_error(temp_file_path):
     await uring_file.close()
 
     with pytest.raises(BrokenPipeError):
-        uring_file.fdatasync()
+        await uring_file.fdatasync()

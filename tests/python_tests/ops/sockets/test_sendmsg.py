@@ -11,7 +11,7 @@ from tests.python_tests.tests_utils.socket_pair import make_connected_pair
 
 
 @pytest_parametrize(
-    ('buffers',),
+    ('buffers'),
     (
         pytest_param(buffers=123, id='buffers_wrong_type_int'),
         pytest_param(buffers=None, id='buffers_wrong_type_none'),

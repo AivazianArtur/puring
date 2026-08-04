@@ -29,7 +29,6 @@ puring_bind(
     int fd,
     const struct sockaddr *addr,
     socklen_t addrlen,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
@@ -55,7 +54,6 @@ puring_connect(
     int fd,
     struct sockaddr *addr,
     socklen_t addrlen,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
@@ -74,14 +72,7 @@ puring_connect(
 }
 
 int
-puring_listen(
-    struct io_uring *ring,
-    int request_idx,
-    int fd,
-    int backlog,
-    SOCKET_STATES state,
-    const struct TimeoutParams timeout_params
-) {
+puring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_listen(sqe, fd, backlog);
@@ -105,7 +96,6 @@ puring_accept(
     struct sockaddr *addr,
     socklen_t *len,
     int flags,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
@@ -148,7 +138,6 @@ puring_send(
     const void *buf,
     size_t len,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
@@ -179,7 +168,6 @@ puring_recv(
     void *buf,
     size_t len,
     int is_poll_first,
-    SOCKET_STATES state,
     const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);

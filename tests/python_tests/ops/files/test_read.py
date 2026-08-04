@@ -56,7 +56,7 @@ async def test_read__validation_error(temp_file_path, offset, size):
     uring_file = await puring.open_file(path=temp_file_path)
 
     with pytest.raises(expected_exception=TypeError):
-        uring_file.read(
+        await uring_file.read(
             offset=offset,
             size=size,
         )
@@ -69,7 +69,7 @@ async def test_read__closed_file_raises_error(temp_file_path):
     uring_file = await puring.open_file(path=temp_file_path)
     await uring_file.close()
     with pytest.raises(expected_exception=BrokenPipeError):
-        uring_file.read()
+        await uring_file.read()
 
 
 @pytest_parametrize(

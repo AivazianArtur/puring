@@ -111,29 +111,21 @@ on_uring_ready(PuringLoop *self) {
                 if (slot->socket) {
                     PuringSocket *sock = (PuringSocket *)slot->socket;
                     sock->sock_fd = cqe->res;
-                    SOCKET_STATES state = NEW;
-                    sock->state = state;
                     result = (PyObject *)slot->socket;
                 }
                 break;
             case IORING_OP_BIND:
                 if (slot->socket) {
-                    SOCKET_STATES state = BOUND;
-                    slot->socket->state = state;
                     result = PyLong_FromLong(cqe->res);
                 }
                 break;
             case IORING_OP_CONNECT:
                 if (slot->socket) {
-                    SOCKET_STATES state = CONNECTED;
-                    slot->socket->state = state;
                     result = PyLong_FromLong(cqe->res);
                 }
                 break;
             case IORING_OP_LISTEN:
                 if (slot->socket) {
-                    SOCKET_STATES state = LISTENING;
-                    slot->socket->state = state;
                     result = PyLong_FromLong(cqe->res);
                 }
                 break;
@@ -154,7 +146,6 @@ on_uring_ready(PuringLoop *self) {
                     conn->loop = slot->socket->loop;
                     Py_INCREF(conn->loop);
                     conn->domain = slot->socket->domain;
-                    conn->state = ACCEPTING;
 
                     conn->addr = (struct sockaddr *)peer_addr;
 
@@ -260,8 +251,6 @@ on_uring_ready(PuringLoop *self) {
                 break;
             case IORING_OP_CLOSE:
                 if (slot->socket) {
-                    SOCKET_STATES state = CLOSED;
-                    slot->socket->state = state;
                     slot->socket->closed = true;
                     result = PyLong_FromLong(cqe->res);
                 } else if (slot->file) {

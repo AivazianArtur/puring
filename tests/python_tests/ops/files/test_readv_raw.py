@@ -38,7 +38,7 @@ def temp_file_path(tmp_path):
 
 
 @pytest_parametrize(
-    ('iovecs',),
+    ('iovecs'),
     (
         pytest_param(
             iovecs=bytearray(1),
@@ -86,40 +86,37 @@ async def test_readv_raw__closed_file_raises_error(temp_file_path):
 
 
 @pytest_parametrize(
-    (
-        'buffer_sizes',
-        'flags',
-    ),
+    ('buffer_sizes', 'nowait'),
     (
         pytest_param(
             buffer_sizes=[16],
-            flags=None,
+            nowait=None,
             id='single_buffer',
         ),
         pytest_param(
             buffer_sizes=[16, 32],
-            flags=None,
+            nowait=None,
             id='multiple_buffers',
         ),
         pytest_param(
             buffer_sizes=[16],
-            flags=0,
+            nowait=0,
             id='explicit_flags',
         ),
     ),
 )
 @puring_test
-async def test_readv_raw__success(temp_file_path, buffer_sizes, flags):
+async def test_readv_raw__success(temp_file_path, buffer_sizes, nowait):
     uring_file = await puring.open_file(path=temp_file_path)
 
     buffers = [bytearray(size) for size in buffer_sizes]
     iovecs = _build_iovecs(buffers)
 
     kwargs = {'iovecs': iovecs}
-    if flags is not None:
-        kwargs['flags'] = flags
+    if nowait is not None:
+        kwargs['nowait'] = nowait
 
-    assert uring_file.readv_raw(**kwargs)
+    assert await uring_file.readv_raw(**kwargs)
 
     await uring_file.close()
 

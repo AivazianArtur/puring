@@ -16,27 +16,13 @@ accept_dispatcher(
     switch (stream_strategy) {
     case MULTISHOT:
         result = puring_accept_multishot(
-            self->loop->ring,
-            request_idx,
-            self->sock_fd,
-            (struct sockaddr *)addr,
-            len,
-            flags,
-            self->state,
-            timeout_params
+            self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, len, flags, timeout_params
         );
         break;
     case ONESHOT:
     default:
         result = puring_accept(
-            self->loop->ring,
-            request_idx,
-            self->sock_fd,
-            (struct sockaddr *)addr,
-            len,
-            flags,
-            self->state,
-            timeout_params
+            self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, len, flags, timeout_params
         );
     }
     return result;
@@ -65,7 +51,6 @@ recv_dispatcher(
             buffer_payload->linear->len,
             is_poll_first,
             buf_idx,
-            self->state,
             timeout_params
         );
         break;
@@ -79,7 +64,6 @@ recv_dispatcher(
                 buffer_payload->linear->len,
                 buffer_payload->bgid,
                 is_poll_first,
-                self->state,
                 timeout_params
             );
         } else {
@@ -90,7 +74,6 @@ recv_dispatcher(
                 buffer_payload->linear->len,
                 buffer_payload->bgid,
                 is_poll_first,
-                self->state,
                 timeout_params
             );
         }
@@ -105,7 +88,6 @@ recv_dispatcher(
             buffer_payload->linear->buffer,
             buffer_payload->linear->len,
             is_poll_first,
-            self->state,
             timeout_params
         );
     }
@@ -153,13 +135,7 @@ recvmsg_dispatcher(
             );
         } else {
             result = puring_recvmsg_buffer_select(
-                self->loop->ring,
-                request_idx,
-                self->sock_fd,
-                buffer_payload->bgid,
-                is_poll_first,
-                self->state,
-                timeout_params
+                self->loop->ring, request_idx, self->sock_fd, buffer_payload->bgid, is_poll_first, timeout_params
             );
         }
         break;
@@ -203,7 +179,6 @@ send_dispatcher(
                 buffer_payload->linear->len,
                 is_poll_first,
                 buf_idx,
-                self->state,
                 timeout_params
             );
         } else {
@@ -214,7 +189,6 @@ send_dispatcher(
                 buffer_payload->linear->buffer,
                 buffer_payload->linear->len,
                 is_poll_first,
-                self->state,
                 timeout_params
             );
         }
@@ -226,7 +200,6 @@ send_dispatcher(
             buffer_payload->linear->buffer,
             (unsigned)buffer_payload->linear->len,
             is_poll_first,
-            self->state,
             timeout_params
         );
     }
