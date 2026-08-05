@@ -391,7 +391,7 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *data = NULL;
-    int offset = 0;
+    int offset = -1;
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"data", "offset", "timeout_params", NULL};
@@ -438,7 +438,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffers_obj = NULL;
 
     int flags = 0;
-    int offset = 0;
+    int offset = -1;
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
@@ -499,7 +499,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     Py_buffer iovecs_buf;
 
     int flags = 0;
-    int offset = 0;
+    int offset = -1;
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};

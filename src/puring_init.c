@@ -6,6 +6,7 @@
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
+#include <structmember.h>
 #include <liburing.h>
 
 #include "python_api/loop/loop.h"
@@ -104,6 +105,17 @@ static PyMethodDef puring_file_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
+static PyMemberDef puring_file_members[] = {
+    {
+        "fd",
+        Py_T_INT,
+        offsetof(PuringFile, fd),
+        READONLY,
+        "file descriptor"
+    },
+    {NULL}
+};
+
 static PyMethodDef puring_buffer_mode_ctx_methods[] = {
     {"__enter__", (PyCFunction)BufferModeCtx_enter, METH_NOARGS, "Entering context manager"},
     {"__exit__", (PyCFunction)BufferModeCtx_exit, METH_VARARGS, "Closing context manager"},
@@ -165,6 +177,7 @@ PyTypeObject PuringFileType = {
     .tp_clear = (inquiry)PuringFile_clear,
     .tp_dealloc = (destructor)PuringFile_dealloc,
     .tp_methods = puring_file_methods,
+    .tp_members = puring_file_members,
 };
 
 PyTypeObject PuringSocketType = {

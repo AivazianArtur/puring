@@ -24,6 +24,7 @@ FILES_FOLDER = 'docs/assets/benchmark_temp/'
 FILE_ASYNC = FILES_FOLDER + 'async_test.bin'
 FILE_STD = FILES_FOLDER + 'std_test.bin'
 FILE_PURING_SEQ = FILES_FOLDER + 'puring_seq.bin'
+FILE_PURING_SEQ_FIXED = FILES_FOLDER + 'puring_seq_fixed.bin'
 FILE_PURING_SEQ__INIT = FILES_FOLDER + 'puring_seq__init.bin'
 FILE_UV = FILES_FOLDER + 'uv_test.bin'
 
@@ -79,11 +80,28 @@ async def uvloop_write():
 
 async def puring_write_sequential():
     print('Running io_uring sequential write')
-    loop = asyncio.get_running_loop()
     uring_file = await puring.open_file(path=FILE_PURING_SEQ)
     start = time.perf_counter()
     for _ in range(ITERATIONS):
         await uring_file.write(DATA)
+    await uring_file.fsync()
+    await uring_file.close()
+    return time.perf_counter() - start
+
+
+async def puring_write_sequential__fixed():
+    print('Running io_uring sequential write in FIXED mode')
+    uring_file = await puring.open_file(path=FILE_PURING_SEQ_FIXED)
+    buf = bytearray(DATA)
+    loop = asyncio.get_running_loop()
+    start = time.perf_counter()
+    with loop.buffer_mode(
+        mode=puring.BUFFER_MODE.FIXED,
+        payload_type=puring.PAYLOAD_TYPE.IOVEC,
+        buffers=[buf],
+    ):
+        for _ in range(ITERATIONS):
+            await uring_file.write(DATA)
     await uring_file.fsync()
     await uring_file.close()
     return time.perf_counter() - start
@@ -108,6 +126,9 @@ def run():
     with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
         t = runner.run(puring_write_sequential())
         results.append(('uring_seq', t))
+    with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
+        t = runner.run(puring_write_sequential__fixed())
+        results.append(('uring_seq FIXED', t))
 
     print('\n==== RESULTS ====')
     for name, sec in results:
