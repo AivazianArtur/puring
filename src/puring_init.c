@@ -106,14 +106,7 @@ static PyMethodDef puring_file_methods[] = {
 };
 
 static PyMemberDef puring_file_members[] = {
-    {
-        "fd",
-        Py_T_INT,
-        offsetof(PuringFile, fd),
-        READONLY,
-        "file descriptor"
-    },
-    {NULL}
+    {"fd", Py_T_INT, offsetof(PuringFile, fd), READONLY, "file descriptor"}, {NULL}
 };
 
 static PyMethodDef puring_buffer_mode_ctx_methods[] = {
@@ -283,31 +276,31 @@ puring_module_exec(PyObject *m) {
     if (PyType_Ready(&PuringExecutionContextCtxType) < 0)
         return -1;
 
-    if (PyModule_AddObjectRef(m, "PuringLoop", type) < 0) {
+    if (PyModule_AddObjectRef(m, "PuringLoop", type) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "File", (PyObject *)&PuringFileType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "File", (PyObject *)&PuringFileType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "Socket", (PyObject *)&PuringSocketType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "Socket", (PyObject *)&PuringSocketType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "BufferModeCtx", (PyObject *)&PuringBufferModeCtxType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "BufferModeCtx", (PyObject *)&PuringBufferModeCtxType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "StreamStrategyCtx", (PyObject *)&PuringStreamStrategyCtxType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "StreamStrategyCtx", (PyObject *)&PuringStreamStrategyCtxType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "TransferModeCtx", (PyObject *)&PuringTransferModeCtxType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "TransferModeCtx", (PyObject *)&PuringTransferModeCtxType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "ExecutionContextCtx", (PyObject *)&PuringExecutionContextCtxType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "ExecutionContextCtx", (PyObject *)&PuringExecutionContextCtxType) < 0)
         return -1;
-    }
 
     PyObject *resolve_flags = create_resolve_enum();
     if (!resolve_flags)
         return -1;
+
     if (PyModule_AddObject(m, "ResolveFlags", resolve_flags) < 0) {
         Py_DECREF(resolve_flags);
         return -1;

@@ -1,128 +1,130 @@
 # Puring
+TODO - PyPi link
 
-Experimental async runtime for Python built on Linux io_uring.
+Puring allows true async file i/o natively for Python by bringing Event Loop based on io_uring. Implemented in CPython.
 
-⚡ ~2× faster file I/O than asyncio thread pools in early benchmarks.
+⚠️ Currently in active development phase, so ABI and internals may change and will be expanded.
 
-Puring enables true async file I/O in Python without relying on thread pools,
-using Linux io_uring and a CPython C-extension runtime.
-
-⚠️
-
-Experimental project \
-APIs and internals may change \
-Used for experimenting with async I/O performance in Python \
-Looking for contributors and feedback \
-⚠️
-
-## Why Puring?
-* **True Async File I/O:** Unlike epoll-based `asyncio` and `uvloop`, `puring` is based on io_uring, which provides real async I/O without thread pools for files \
-<small> For full explanation, go [here](docs/uring/URING.md) </small>
-* **Seamless Integration:** Designed to work as a plug-in for the standard `asyncio` event loop.
-* **Low Overhead:** C-implemented request registry with $O(1)$ lookup.
-* **Simple Architecture:** Simple layered architecture that makes it easy to understand what is happening internally.
-* **Full io_uring support** The goal is to progressively implement all io_uring features.
-* **C-Python API** Implemented using CPython C-API for minimal overhead and full control over memory and GIL behavior.
 
 ## Quick Examples:
 ### Files:
 ```python
 async def main():
-    file = await puring.open_file(path='testfile.txt')
-
-    data = b'Hello, puring!\n'
-    await file.write(data=data)
-    await file.read()
-
-    await file.close()
+    async with puring.open_file(path='testfile.txt') as file:
+        data = b'Hello, puring!\n'
+        await file.write(data=data)
+        data = await file.read()
 
 asyncio.run(main(), loop_factory=puring.PuringLoop)
 ```
 
 ### Sockets:
 ```python
-HOST = "127.0.0.1"
-PORT = 9000
-PAYLOAD = b"hello"
-
 async def main():
-    sock = await puring.prep_socket()
-
-    await sock.connect(HOST, PORT)
-    await sock.send(PAYLOAD)
-    data = await sock.recv()
-    print("received:", data)
-    await sock.close()
+    async with await puring.prep_socket() as socket:
+        await socket.connect('127.0.0.1', 9000)
+        await socket.send(b'hello')
+        data = await socket.recv()
 
 asyncio.run(main(), loop_factory=puring.PuringLoop)
 ```
 
-## Comparison
-| Feature             | asyncio      | uvloop       | puring   |
-| ------------------- | ------------ | ------------ | -------- |
-| Async files         | ❌ threadpool | ❌ threadpool | ✅ native |
-| Syscalls            | many         | many         | minimal  |
-| Kernel batching     | ❌            | ❌            | ✅        |
-| Zero-copy potential | ❌            | ❌            | ✅        |
+### One of io_uring optimization features - Fixed buffers:
+```python
+async def main():
+    loop = asyncio.get_running_loop()
+    buf = bytearray(4096)
+    with loop.buffer_mode(mode=puring.BUFFER_MODE.FIXED, buffers=[buf]):
+        await simple_socket_example()
 
+asyncio.run(main(), loop_factory=puring.PuringLoop)
+```
 
-## Quick Install
+### See the whole [user guide](docs/USER_GUIDE.md)
+### See ABI in [documentation page]() and locally [here]().
+### Also you can watch examples inside `docs/examples` and run them under ASAN with 
+> make run-examples
+
+## Installation
 #### Warning! Linux only
-> git clone git@github.com:AivazianArtur/puring.git \
-> cd puring \
+Puring requires linux kernel version 6.11 and Python 3.12 or greater.
+Library is available on PyPI, so use pip to install it:
+> pip install puring
+
+## Build and use
+To build and install use
 > make install
 
+You can only build by using
+> make build
+
+Run tests:
+> make test-all
+
+Run tests under ASAN:
+> make test-all-asan
+
+While working with code, dont forget to 
+> make lint
+
+#### Watch more commands inside `Makefile`. Currently tested only on Fedora 43 with 7.1.5 kernel version.
+
 ## Architecture
-### Why Python needs it
-It brings proactor pattern to Python in Linux, that:
-* Allows implementation of async file I/O operations. 
-* Enables designs compatible with upcoming no-GIL Python efforts.
+### io_uring
+Puring is written natively in CPython and brings the new event loop, based on io_uring. \
+What is io_uring and how it works, explained for Python developers - [here](docs/IO_URING.md)
 
-### Current State
-* Core C-engine for Ring management.
-* Registry-based request tracking to connect futures with their result from CQE.
-* Python C-API bridge for `asyncio.Future` resolution.
-* Basic file usage. Brings true Async I/O.
-* Basic socket usage.
+### Presenting new objects
+- Main:
+    - PuringLoop
+    - File
+    - Socket
+- Helpers:
+    - BufferModeCtx
+    - StreamStrategyCtx
+    - TransferModeCtx
+    - ExecutionContextCtx
+- Enums:
+    - BUFFER_MODE
+    - STREAM_STRATEGY
+    - TRANSFER_MODE
+    - PAYLOAD_TYPE
+    - Resolve Flags
+    - Statx Flags
+    - StatxMask
 
-### Goal
-* Progressive coverage of io_uring features.
-### How it works
+Whole documentatation about their purposes and how they work is [here](docs/ARCHITECTURE.md)
+
+### Structure
+Structure of this project is trying to be simple - we have pure c-layer and pure python-layer and layer in between.
+- C-layer - Functionality written entirely in C and basically wrappers aroung liburing ABI
+- Python-layer - By analogy it is layer, written with usage of CPython API and CPython objects.
+- Layer in between - for now here is really only one thing - registry. It is container to hold objects in between. I wish i could say that in between C-layer and Python-layer, but the meaning is not so. We are working with async nature and giving control of the operations to kernel, so we can do our things. To map the result of kernel with what was intended we need some sort of storage - this is registry. 
+
+### Domains
+- Ring
+- Event Loop
+- Reader
+- OPS (подтипы)
+- Buffers(внутри написать про фиксед буфер и про открытие/закрытие буфер модов)
+- Execution Context(внутри написать про другие)
+- Registry
+- Timer. То что ниже убрать на отдельную страницу
+
 To read about implementation details, go to [architecture page](docs/ARCHITECTURE.md)
 
 
 ## Benchmarks
-On simple file benchmarks, `Puring` is showing that even in pre-alpha mode and with many features to come, it is already provide truly async file ops 2x-faster than other Python solutions. \
-For ping-pong benchmark of sockets, puring now shows results close or event better than `uvloop`. It is proof of concept.
-
-### File Results:
-
-![file benchmark result](docs/assets/benchmark_results/files_benchmark.png)
-
-### Sockets Results:
-
-![socket benchmark result](docs/assets/benchmark_results/sockets/avg_latency.png)
-
-To learn more, go to [benchmarks documentation](docs/BENCHMARK.md)
-
 
 ## Contributing
-To start contribute, go to our [contributing guideline](docs/guidelines/CONTRIBUTING.md)
-
 We are looking for help with:
-1. Testing on different Linux Distros/Kernels.
-2. Sharing experience in memory management, libraries architecture and many other things
-3. Write tests and benchmarks \
-And many more, see our [roadmap](docs/ROADMAP.md)
+1. Write new functionality. See our [roadmap](docs/ROADMAP.md) - you can add new checks yourself, but create an issue first.
+2. Testing on different Linux Distros/Kernels. If you'll find some issues - create some on GitHub.
+3. Sharing experience in memory management, libraries architecture, cpython, io_uring, epoll and many other things.
+4. Write tests and benchmarks \
 
-## Using
-### Developer
-To install, go to [installation page](docs/guidelines/INSTALLATION.md) \
-To start contribute, go to [developer guideline](docs/guidelines/DEVELOPING.md) and [contribution guideline](docs/guidelines/CONTRIBUTING.md)
-
-### User
-See how to use here - [usage guide](docs/USAGE.md)
-
+* Whole contribution culture should be vaccinated to this project, so if you are experienced in this things - welcome, please.
+* Beware of [developer guideline](docs/guidelines/DEVELOPING.md)
 
 ## Roadmap
 See [here](docs/ROADMAP.md)

@@ -45,28 +45,29 @@
 - [ ] Support all awaitable operations.
 - [ ] Configurable ring parameters.
 - [ ] Improve future creation: `FutureFactory` and `future pool`.
-- [ ] Implement `dir` object completely.
 - [ ] Research and implement futex if needed.
 - [ ] Add poll interface (with multishot poll).
 - [ ] Add `socket.send` with `IORING_SEND_VECTORIZED` and `IORING_RECVSEND_BUNDLE` flags as separate methods.
 - [ ] Add zero-copy RX interface.
-- [ ] Add Multishot timer, signals.
 
 ## v0.6.0 - CQE and SQE production features
 - [ ] Batching and chaining.
     - [ ] CQE batching.
     - [ ] `Batcher` and `Chainer` OOP interface.
-    - [ ] Support linked SQEs for chained operations.
+    - [ ] Support linked SQEs for chained operations, including timer.
 - [ ] SQPOLL.
 - [ ] FASTPOLL.
 - [ ] Support `IOSQE_CQE_SKIP_SUCCESS` and `IOSQE_BUFFER_SELECT`.
 - [ ] Keep file descriptors registered (`io_uring_register_files`).
 - [ ] Persistent log of CQ and SQ entry for backuping.
-- [ ] Explore event loop tick cycles variants.
+- [ ] Add Multishot `timer`, `signals`.
 
 ## v0.7.0 - Additional functionality
 - [ ] Ancillary data support for sockets scatter-gather.
 - [ ] Support io_uring_prep_cmd_sock.
+- [ ] Backward compatability with older linux kernel versions
+- [ ] Explore event loop tick cycles variants.
+- [ ] Implement `dir` object completely.
 
 ## Other - Community & Contribution
 - [ ] Document everything.

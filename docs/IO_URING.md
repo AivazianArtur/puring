@@ -65,7 +65,11 @@ Those diagrams are showing the simplest configurations of both `epoll` and `urin
 Both system can be more optimized by implement alternative for `wake up`, buffer optimizations, setting retires and more from the box.
 
 
-## Quick Summarize
+## Python Examples
+Lets see how its actually matters in Python 
+
+TODO: show scheme and how it woorks in python
+
 | Feature      | Epoll (Reactor)                     | io_uring (Proactor)              |
 |--------------|-------------------------------------|----------------------------------|
 | Notification | "It's ready, you do it."            | "It's done, here is the result." |

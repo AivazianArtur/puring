@@ -460,6 +460,9 @@ help:
 	@echo "  make build                - build wheel"
 	@echo "  make clean                - clean everything"
 	@echo ""
+	@echo "── Lint ────────────────────────────────────────"
+	@echo "  make lint         - check code with linter and formatter. 
+	@echo ""
 	@echo "── Examples ────────────────────────────────────────"
 	@echo "  make run-examples         - run all docs/examples/*.py under ASan"
 	@echo ""
