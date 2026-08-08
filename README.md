@@ -93,7 +93,7 @@ What is io_uring and how it works, explained for Python developers - [here](docs
     - Statx Flags
     - StatxMask
 
-Whole documentatation about their purposes and how they work is [here](docs/ARCHITECTURE.md)
+Whole documentation about their purposes and how they work is in [architecture page](docs/ARCHITECTURE.md)
 
 ### Structure
 Structure of this project is trying to be simple - we have pure c-layer and pure python-layer and layer in between.
@@ -105,11 +105,12 @@ Structure of this project is trying to be simple - we have pure c-layer and pure
 - Ring
 - Event Loop
 - Reader
-- OPS (подтипы)
-- Buffers(внутри написать про фиксед буфер и про открытие/закрытие буфер модов)
-- Execution Context(внутри написать про другие)
+- OPS
+- Buffers
+- Execution Context
 - Registry
-- Timer. То что ниже убрать на отдельную страницу
+- Timer
+- Signals
 
 To read about implementation details, go to [architecture page](docs/ARCHITECTURE.md)
 

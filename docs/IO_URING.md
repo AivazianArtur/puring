@@ -1,8 +1,8 @@
 # io_uring
 
-### If you already know io_uring, skip to: ARCHITECTURE.md
+### 🟢 If you already familiar with io_uring, you can go to: ARCHITECTURE.md
 
-## io_uring is an efficient Linux implementation of the Proactor I/O model.
+### io_uring is an efficient Linux implementation of the Proactor I/O model.
 ### It provides two shared buffers:
 * Submission Queue - Where apps pushes I/O requests.
 * Completion Queue - Where kernel pushes I/O responses.
@@ -64,11 +64,13 @@ Let's look at this difference by looking at diagrams of two phases:
 Those diagrams are showing the simplest configurations of both `epoll` and `uring`.
 Both system can be more optimized by implement alternative for `wake up`, buffer optimizations, setting retires and more from the box.
 
+## Conclusions
+To simplify, we can write schemes like this: \
+epoll:
+> task -> epoll wait for fd -> fd ready -> read() syscall -> done
 
-## Python Examples
-Lets see how its actually matters in Python 
-
-TODO: show scheme and how it woorks in python
+io_uring:
+> task -> submit SQE -> kernel did read() syscall -> CQE -> done
 
 | Feature      | Epoll (Reactor)                     | io_uring (Proactor)              |
 |--------------|-------------------------------------|----------------------------------|
@@ -78,3 +80,8 @@ TODO: show scheme and how it woorks in python
 | Thread Usage | Often needs a thread pool for files | Truly single-threaded async      |
 | Location     | Context resides in Kernel Space     | Queues are in Shared Memory      |
 | Data Copy    | App copies data                     | Kermnel copies data              |
+
+
+## io_uring-specific concepts
+
+## io_uring invariants

@@ -67,7 +67,8 @@
 - [ ] Support io_uring_prep_cmd_sock.
 - [ ] Backward compatability with older linux kernel versions
 - [ ] Explore event loop tick cycles variants.
-- [ ] Implement `dir` object completely.
+- [ ] Implement `dir` object.
+- [ ] Inspect and implement missed operations.
 
 ## Other - Community & Contribution
 - [ ] Document everything.

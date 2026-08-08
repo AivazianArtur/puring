@@ -68,15 +68,20 @@ PuringLoop_run_once(PuringLoop *self);
 PyObject *
 PuringLoop_write_to_self(PuringLoop *self);
 
-// Helpers
+// Shutdown
 void
 fast_shutdown(struct io_uring *ring, RequestRegistry *reg);
 void
 graceful_shutdown(struct io_uring *ring, RequestRegistry *reg);
 
+// Helpers
 struct __kernel_timespec
 compute_timeout(PuringLoop *self);
 void
 promote_scheduled(PuringLoop *self);
 void
 drain_ready(PuringLoop *self);
+
+// Future
+PyObject *
+create_future(PuringLoop *self);

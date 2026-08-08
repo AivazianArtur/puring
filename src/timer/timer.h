@@ -6,7 +6,7 @@
 
 #include "liburing.h"
 
-#include "queue_events/sqe/sqe.h"
+#include "ring/ring.h"
 
 typedef struct TimerParams {
     int sec;

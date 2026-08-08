@@ -8,9 +8,8 @@ timer(struct io_uring *ring, int request_idx, TimerParams *timer_params) {
     }
 
     struct io_uring_sqe *sqe = create_sqe(ring);
-    if (sqe == NULL) {
+    if (sqe == NULL)
         return -1;
-    }
 
     struct __kernel_timespec ts = {
         .tv_sec = timer_params->sec,
