@@ -49,6 +49,7 @@
 - [ ] Add poll interface (with multishot poll).
 - [ ] Add `socket.send` with `IORING_SEND_VECTORIZED` and `IORING_RECVSEND_BUNDLE` flags as separate methods.
 - [ ] Add zero-copy RX interface.
+- [ ] Proper test run pipeline for GitHub CI
 
 ## v0.6.0 - CQE and SQE production features
 - [ ] Batching and chaining.
