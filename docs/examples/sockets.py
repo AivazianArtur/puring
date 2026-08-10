@@ -15,20 +15,18 @@ async def main():
     await server_sock.listen(1)
     print(f'Server listening on {HOST}:{PORT}')
 
-    accept_future = server_sock.accept()
     client_sock = await puring.prep_socket()
 
     await client_sock.connect(HOST, PORT)
     print('Client connected')
 
-    server_conn = await accept_future
+    server_conn = await server_sock.accept()
     print(f'{server_conn = }')
     message = b'Hello from client!'
     await client_sock.send(message)
     print(f'Client sent message')
 
-    received_data_r = server_conn.recv()
-    received_data = await received_data_r
+    received_data = await server_conn.recv()
 
     result = received_data.decode()
     print(f'Server received: {result}')

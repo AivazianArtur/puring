@@ -1,9 +1,11 @@
 # Puring
+![GitHub Release](https://img.shields.io/github/v/release/AivazianArtur/puring)
+
 TODO - PyPi link
 
 Puring allows true async file i/o natively for Python by bringing Event Loop based on io_uring. Implemented in CPython.
 
-⚠️ Currently in active development phase, so ABI and internals may change and will be expanded.
+⚠️ Currently in active development phase, so API and internals may change and will be expanded.
 
 
 ## Quick Examples:
@@ -40,14 +42,14 @@ async def main():
 asyncio.run(main(), loop_factory=puring.PuringLoop)
 ```
 
-### See the whole [user guide](docs/USER_GUIDE.md)
-### See ABI in [documentation page]() and locally [here]().
+### See the whole [user guide](USER_GUIDE.md)
+### See API in [documentation page]() and locally [here]().
 ### Also you can watch examples inside `docs/examples` and run them under ASAN with 
 > make run-examples
 
 ## Installation
 #### Warning! Linux only
-Puring requires linux kernel version 6.11 and Python 3.12 or greater.
+Puring requires linux kernel version 5.19 and Python 3.12 or greater.
 Library is available on PyPI, so use pip to install it:
 > pip install puring
 
@@ -119,13 +121,19 @@ To read about implementation details, go to [architecture page](docs/ARCHITECTUR
 
 ## Contributing
 We are looking for help with:
-1. Write new functionality. See our [roadmap](docs/ROADMAP.md) - you can add new checks yourself, but create an issue first.
+1. Propose new features. You can choose something from our [roadmap](docs/ROADMAP.md) - you can add new checks yourself, but create an issue first.
 2. Testing on different Linux Distros/Kernels. If you'll find some issues - create some on GitHub.
 3. Sharing experience in memory management, libraries architecture, cpython, io_uring, epoll and many other things.
-4. Write tests and benchmarks \
+4. Write tests and benchmarks 
+5. Report bugs
 
-* Whole contribution culture should be vaccinated to this project, so if you are experienced in this things - welcome, please.
-* Beware of [developer guideline](docs/guidelines/DEVELOPING.md)
+
+**Read next**
+  - [Contributing guide](CONTRIBUTING.md)
+  - [Development guide](docs/DEVELOPMENT.md)
+  - [Code of Conduct](CODE_OF_CONDUCT.md)
+  - [Security](SECURITY.md)
+  - [Governance](GOVERNANCE.md)
 
 ## Roadmap
 See [here](docs/ROADMAP.md)

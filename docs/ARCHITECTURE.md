@@ -2,7 +2,7 @@
   - Strong layers between Python interface and C-functionality
   - Trying to stick to Domain Driven Development
 
-### 🟢 If you dont know what io_uring is about, what is Fixed and Provided buffers, multishot stream strategy - read explanation [here](IO_URING.md) first.
+**🟢 If you dont know what io_uring is about, what is Fixed and Provided buffers, multishot stream strategy - read explanation [here](IO_URING.md) first**
 
 ## Introduction
 ### io_uring
@@ -66,7 +66,7 @@ Code is inside `/src/ring` folder, where you can find:
 All methods inside `ring.c` are only part of the `loop` initialization and destruction process. \
 `SQE helper` is spread across C-layer objects only.
 
-###### Lays entirely in C-layer.
+> Lays entirely in C-layer.
 
 2. `Loop` \
 Code is inside `src/python_api/loop`, where you can find:
@@ -76,21 +76,21 @@ Code is inside `src/python_api/loop`, where you can find:
 - helpers.c - Contains specific helpers for redefinitions of `BaseEventLoop` methods.
 - future.c - Contains little wrapper for future creation. In next versions there will be `FuturePool`.
 
-#### Initialization of most objects is happening inside `PuringLoop` construction and initialization, so desctruction too.
-###### Lays entirely in Python-layer.
+> Initialization of most objects is happening inside `PuringLoop` construction and initialization, so desctruction too.
+> Lays entirely in Python-layer.
 
 3. `Reader` \
 Code is inside `src/python_api/reader`, where is only:
 - on_ready.h - Handler of `Completion Queue` - serializing `CQE` results and setting asyncio feature result by mapping them via `registry`.
 
-###### Lays entirely in Python-layer.
+> Lays entirely in Python-layer.
 
 4. `Registry` \
 Code is inside `src/registry`, where you can see:
 - registry.h - Defines `RequestRegistry` and `RequestSlot` objects, that are spread around whole project, but mainly is Python API functions. They are internal objects, and its important to know what is inside these objects.
 - registry.c - Internal API for registry, works in O(1) Time complexity.
 
-###### The only domain intended to be in between c and python layers.
+> The only domain intended to be in between c and python layers.
 
 5. `OPS` \
 Code is inside `src/ops/` AND `src/python_api/ops`. There you can see `Socket` subdomain and `File` subdomain.
@@ -119,7 +119,7 @@ Code is inside `src/ops/` AND `src/python_api/ops`. There you can see `Socket` s
     - files_ops_dispatcher.c - Helper functions to dispatch between same file operations in different execution context
     - _helpers.c - Intended for some utility functions, for now there is only one for raising chain of exceptions
 
-###### This domain is mirrored in both c-layer and python-layer
+ > This domain is mirrored in both c-layer and python-layer
 
 6. `Buffer` \
 Code is inside `src/python_api/buffers/` and `src/buffer_controllers/`, where we can see:
@@ -131,7 +131,7 @@ Code is inside `src/python_api/buffers/` and `src/buffer_controllers/`, where we
   - buffer_index.c - Internal API for `FixedBufferIdxRegistry`, works in O(1) Time complexity and built same way as main `Registry`.
   - buffer_modes.c - There is `io_uring` concept - `BufferMode`. This is handler to create and destroy all types of `BufferMode`.
 
-###### This domain is in both c-layer and python-layer, but not mirrored between themselves.
+> This domain is in both c-layer and python-layer, but not mirrored between themselves.
 
 7. `ExecutionContext` \
 Code is inside `src/python/api/execution_context/`
@@ -141,7 +141,7 @@ Code is inside `src/python/api/execution_context/`
 - enums.c - Defines `ExecutionContext` specific Python Enums: `BUFFER_MODE`, `STREAM_STRATEGY`, `TRANSFER_MODE` and `PAYLOAD_TYPE`.
 - execution_context_enums.c - Internal C Enums, separated in module to get rid of circular dependency.
 
-###### Lays entirely in Python-layer.
+> Lays entirely in Python-layer.
 
 8. `Timer` \
 Code is inside `src/timer` and `src/python_api/timer`, where we can see:
@@ -151,14 +151,14 @@ Code is inside `src/timer` and `src/python_api/timer`, where we can see:
   - timer.c - Public API handler for timer operation.
   - _helpers.c - Input validators for timer operation and timeout parameters.
 
-###### This domain is partly mirrored in both c-layer and python-layer
+> This domain is partly mirrored in both c-layer and python-layer
 
 9. `Signals` \
 Code is inside `src/python_api/signals` and `src/signals`, where we can see:
 - src/signals/signals.c - C handler for signal operations
 - src/python_api/signals/signals.c - CPython controller for system signals
 
-###### This domain is mirrored in both c-layer and python-layer
+> This domain is mirrored in both c-layer and python-layer
 
 ## Python objects
 - Main:

@@ -159,7 +159,7 @@ static PyType_Spec PuringLoop_spec = {
 };
 
 PyTypeObject PuringFileType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.ops.files.PuringFile",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.File",
     .tp_doc = PyDoc_STR("Puring file adapter"),
     .tp_basicsize = sizeof(PuringFile),
     .tp_itemsize = 0,
@@ -174,7 +174,7 @@ PyTypeObject PuringFileType = {
 };
 
 PyTypeObject PuringSocketType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.ops.sockets.PuringSocket",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.Socket",
     .tp_doc = PyDoc_STR("Puring socket adapter"),
     .tp_basicsize = sizeof(PuringSocket),
     .tp_itemsize = 0,

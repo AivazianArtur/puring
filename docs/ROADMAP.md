@@ -71,12 +71,8 @@
 - [ ] Implement `dir` object.
 - [ ] Inspect and implement missed operations.
 
-## Other - Community & Contribution
-- [ ] Document everything.
-- [ ] Add contribution support:
-    - [ ] Write contribution guidelines.
-    - [ ] Add repository badges.
-    - [ ] Enable GitHub issue tracking.
+## v0.8.0 - NoGIL version support
+- [ ] Inspect possibilities
 
 ### Note
 This roadmap is expected to evolve as our understanding deepens and the project matures.

@@ -1,5 +1,6 @@
 # io_uring
 ### io_uring is an efficient Linux implementation of the Proactor I/O model.
+Main way to interact with io_uring is [liburing](https://github.com/axboe/liburing), and `puring` use it too.
 
 ##### 🟢 If you already familiar with io_uring, you can go to: ARCHITECTURE.md
 
