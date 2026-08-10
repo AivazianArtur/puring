@@ -1,8 +1,6 @@
 # Puring
 ![GitHub Release](https://img.shields.io/github/v/release/AivazianArtur/puring)
 
-TODO - PyPi link
-
 Puring allows true async file i/o natively for Python by bringing Event Loop based on io_uring. Implemented in CPython.
 
 ⚠️ Currently in active development phase, so API and internals may change and will be expanded.

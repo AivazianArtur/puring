@@ -219,10 +219,40 @@ make clean
 make install
 ```
 
+## Notes about styles
+Style could be inconsistent, because some things clang formatter cant fix, but style of project has formed at time and some artifacts was left.
+1. One-line returners are better:
+```
+if (!example)
+    return NULL;
+```
+then this:
+```
+if (!example) {
+    return NULL;
+}
+```
+2. Function definitions.
+This is better:
+```
+int
+example(void)
+{
+```
+then this:
+```
+int
+example(void) {
+```
+and then this:
+```
+int example(void) {
+```
+
 ## Additional Resources
 
 - [liburing](https://github.com/axboe/liburing) - underlying io_uring library
 - [AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer)
 - [cppcheck](https://cppcheck.sourceforge.io/)
 
-If you face some problems, please leave an issue on [Github](https://github.com/AivazianArtur/puring/issues)
+If you face some problems, please leave an issue on [GitHub](https://github.com/AivazianArtur/puring/issues)
