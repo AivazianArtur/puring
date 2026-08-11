@@ -154,11 +154,7 @@ Code is inside `src/timer` and `src/python_api/timer`, where we can see:
 > This domain is partly mirrored in both c-layer and python-layer
 
 9. `Signals` \
-Code is inside `src/python_api/signals` and `src/signals`, where we can see:
-- src/signals/signals.c - C handler for signal operations
-- src/python_api/signals/signals.c - CPython controller for system signals
-
-> This domain is mirrored in both c-layer and python-layer
+Code is inside `src/python_api/signals` and `src/signals`, where we can see everything related. There is space to separate on CPython-layer and C-layer
 
 ## Python objects
 - Main:

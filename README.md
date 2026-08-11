@@ -130,7 +130,6 @@ We are looking for help with:
   - [Development guide](docs/DEVELOPMENT.md)
   - [Code of Conduct](CODE_OF_CONDUCT.md)
   - [Security](SECURITY.md)
-  - [Governance](GOVERNANCE.md)
 
 ## Roadmap
 See [here](docs/ROADMAP.md)

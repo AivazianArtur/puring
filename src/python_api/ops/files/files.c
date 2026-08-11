@@ -213,7 +213,7 @@ PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *timeout_params_obj = NULL;
-    int offset = -1;
+    int offset = 0;
     int size_i = 1024;
     static const char *kwlist[] = {"offset", "size", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|iiO", (char **)kwlist, &offset, &size_i, &timeout_params_obj)) {
@@ -266,7 +266,7 @@ PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffers_obj = NULL;
     PyObject *timeout_params_obj = NULL;
     int nowait = 0;
-    int offset = -1;
+    int offset = 0;
     static const char *kwlist[] = {"buffers", "offset", "nowait", "timeout_params", NULL};
     if (!PyArg_ParseTupleAndKeywords(
             args, kwargs, "|OipO", (char **)kwlist, &buffers_obj, &offset, &nowait, &timeout_params_obj
@@ -391,7 +391,7 @@ PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs) {
     }
 
     PyObject *data = NULL;
-    int offset = -1;
+    int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"data", "offset", "timeout_params", NULL};
@@ -438,7 +438,7 @@ PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs) {
     PyObject *buffers_obj = NULL;
 
     int flags = 0;
-    int offset = -1;
+    int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};
@@ -499,7 +499,7 @@ PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs) {
     Py_buffer iovecs_buf;
 
     int flags = 0;
-    int offset = -1;
+    int offset = 0;
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"buffers", "flags", "offset", "timeout_params", NULL};

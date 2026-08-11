@@ -62,7 +62,7 @@ PuringLoop_init(
         return -1;
     }
 
-    set_signals_controller(self->ring);
+    set_signals_handler(self->ring);
 
     self->readers = PyDict_New();
     self->writers = PyDict_New();

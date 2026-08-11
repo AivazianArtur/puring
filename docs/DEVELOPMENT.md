@@ -219,7 +219,7 @@ make clean
 make install
 ```
 
-## Notes about styles
+## Notes about style
 Style could be inconsistent, because some things clang formatter cant fix, but style of project has formed at time and some artifacts was left.
 1. One-line returners are better:
 ```

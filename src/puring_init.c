@@ -106,7 +106,14 @@ static PyMethodDef puring_file_methods[] = {
 };
 
 static PyMemberDef puring_file_members[] = {
-    {"fd", Py_T_INT, offsetof(PuringFile, fd), READONLY, "file descriptor"}, {NULL}
+    {
+        .name = "fd",
+        .type = Py_T_INT,
+        .offset = offsetof(PuringFile, fd),
+        .flags = READONLY,
+        .doc = "file descriptor",
+    },
+    {0},
 };
 
 static PyMethodDef puring_buffer_mode_ctx_methods[] = {
