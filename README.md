@@ -45,6 +45,8 @@ asyncio.run(main(), loop_factory=puring.PuringLoop)
 ### Also you can watch examples inside `docs/examples` and run them under ASAN with 
 > make run-examples
 
+## Benchmarks
+
 ## Installation
 #### Warning! Linux only
 Puring requires linux kernel version 5.19 and Python 3.12 or greater.
@@ -67,12 +69,12 @@ Run tests under ASAN:
 While working with code, dont forget to 
 > make lint
 
-#### Watch more commands inside `Makefile`. Currently tested only on Fedora 43 with 7.1.5 kernel version.
+#### Watch more commands in [developer guide](docs/DEVELOPMENT.md) or inside `Makefile`. Currently tested only on Fedora 43 with 7.1.5 kernel version.
 
 ## Architecture
 ### io_uring
 Puring is written natively in CPython and brings the new event loop, based on io_uring. \
-What is io_uring and how it works, explained for Python developers - [here](docs/IO_URING.md)
+What is io_uring and how it works, explained shortly by us - [here](docs/IO_URING.md)
 
 ### Presenting new objects
 - Main:
@@ -113,9 +115,6 @@ Structure of this project is trying to be simple - we have pure c-layer and pure
 - Signals
 
 To read about implementation details, go to [architecture page](docs/ARCHITECTURE.md)
-
-
-## Benchmarks
 
 ## Contributing
 We are looking for help with:
