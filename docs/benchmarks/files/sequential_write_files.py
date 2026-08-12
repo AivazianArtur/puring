@@ -125,10 +125,10 @@ def run():
 
     with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
         t = runner.run(puring_write_sequential())
-        results.append(('uring_seq', t))
+        results.append(('puring_seq', t))
     with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
         t = runner.run(puring_write_sequential__fixed())
-        results.append(('uring_seq FIXED', t))
+        results.append(('puring_seq FIXED', t))
 
     print('\n==== RESULTS ====')
     for name, sec in results:

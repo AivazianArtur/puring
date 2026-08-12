@@ -33,6 +33,35 @@ import puring
 #
 # Keep NR_CHUNKS * CHUNK_SIZE comfortably under ~64 KiB - that's the
 # practical UDP datagram ceiling, even on loopback.
+#
+# ---- ON THE TWO DIFFERENT "asyncio/uvloop" VARIANTS BELOW -------------
+# There are two fundamentally different things you can measure when you
+# put a blocking socket call behind asyncio, and they answer different
+# questions:
+#
+#   BATCH   (*_batch_udp):    the ENTIRE ITERATIONS loop is handed to a
+#            single asyncio.to_thread() call. The event loop pays the
+#            thread-dispatch cost exactly ONCE for the whole benchmark,
+#            then the loop runs as plain blocking C-level socket calls
+#            in a background thread with no event-loop involvement at
+#            all in between. This measures "how fast is the raw
+#            syscall path if you get to ignore the event loop", which
+#            is a real and useful number, but it is NOT a per-operation
+#            concurrency model - nothing here is comparable to puring,
+#            which submits one SQE per sendmsg/recvmsg call.
+#
+#   DISPATCH (*_dispatch_udp): each individual send/recv/sendmsg/recvmsg
+#            call gets its own asyncio.to_thread() call - one thread
+#            hop per operation, same granularity as puring's one SQE
+#            per operation. This is the actual apples-to-apples
+#            comparison: "cost of a thread-pool hop per op" vs "cost of
+#            an io_uring SQE per op".
+#
+# Comparing puring against the BATCH variants is comparing it to
+# something that pays dispatch overhead once instead of N times - of
+# course that wins on cheap ops. The DISPATCH variants are the fair
+# fight; keep the BATCH numbers around only as an upper-bound reference
+# for "what if there were no event loop at all".
 
 CHUNK_SIZE = 4 * 1024
 NR_CHUNKS = 8
@@ -45,12 +74,16 @@ HOST = '127.0.0.1'
 
 # distinct port pairs per backend/mode so runs never collide
 PORTS = {
-    'stdlib_scalar':    (9301, 9311),
-    'stdlib_vectored':  (9302, 9312),
-    'asyncio_vectored': (9303, 9313),
-    'uvloop_vectored':  (9304, 9314),
-    'puring_scalar':    (9305, 9315),
-    'puring_vectored':  (9306, 9316),
+    'stdlib_scalar':            (9301, 9311),
+    'stdlib_vectored':          (9302, 9312),
+    'asyncio_vectored_batch':   (9303, 9313),
+    'uvloop_vectored_batch':    (9304, 9314),
+    'puring_scalar':            (9305, 9315),
+    'puring_vectored':          (9306, 9316),
+    'asyncio_scalar_dispatch':  (9307, 9317),
+    'uvloop_scalar_dispatch':   (9308, 9318),
+    'asyncio_vectored_dispatch': (9309, 9319),
+    'uvloop_vectored_dispatch': (9310, 9320),
 }
 
 
@@ -68,6 +101,10 @@ def make_udp_pair(server_port, client_port):
     server.connect((HOST, client_port))
     client.connect((HOST, server_port))
     return server, client
+
+
+def _make_bufs():
+    return [bytearray(CHUNK_SIZE) for _ in range(NR_CHUNKS)]
 
 
 # ---------------------------------------------------------------------
@@ -112,10 +149,6 @@ def sync_scalar_udp():
 #    gathering/scattering all NR_CHUNKS buffers in one syscall.
 # ---------------------------------------------------------------------
 
-def _make_bufs():
-    return [bytearray(CHUNK_SIZE) for _ in range(NR_CHUNKS)]
-
-
 def _vectored_server_loop(server):
     bufs = _make_bufs()
     for _ in range(ITERATIONS):
@@ -149,13 +182,13 @@ def sync_vectored_udp():
 
 
 # ---------------------------------------------------------------------
-# 3/4. asyncio & uvloop: no native vectored UDP transport in
-#    asyncio.DatagramProtocol, so both wrap the same blocking sendmsg
-#    calls via to_thread - this isolates event-loop/scheduling overhead
-#    from the syscall itself.
+# 3/4. BATCH variants: whole ITERATIONS loop behind ONE to_thread() call.
+#    Kept as an "event loop out of the picture entirely" reference -
+#    NOT comparable to puring's per-op SQE model. See the big comment
+#    at the top of the file.
 # ---------------------------------------------------------------------
 
-async def _threaded_vectored_udp(server_port, client_port):
+async def _batch_vectored_udp(server_port, client_port):
     server, client = make_udp_pair(server_port, client_port)
 
     server_fut = asyncio.ensure_future(
@@ -172,18 +205,96 @@ async def _threaded_vectored_udp(server_port, client_port):
     return elapsed
 
 
-async def asyncio_vectored_udp():
-    print('Running asyncio threadpool vectored UDP')
-    return await _threaded_vectored_udp(*PORTS['asyncio_vectored'])
+async def asyncio_vectored_batch_udp():
+    print('Running asyncio BATCH vectored UDP (one to_thread for the whole loop)')
+    return await _batch_vectored_udp(*PORTS['asyncio_vectored_batch'])
 
 
-async def uvloop_vectored_udp():
-    print('Running uvloop threadpool vectored UDP')
-    return await _threaded_vectored_udp(*PORTS['uvloop_vectored'])
+async def uvloop_vectored_batch_udp():
+    print('Running uvloop BATCH vectored UDP (one to_thread for the whole loop)')
+    return await _batch_vectored_udp(*PORTS['uvloop_vectored_batch'])
 
 
 # ---------------------------------------------------------------------
-# 5. puring scalar: NR_CHUNKS separate send()/recv() SQEs per iteration.
+# 5/6. DISPATCH variants: one to_thread() call PER send/recv (scalar)
+#    or PER sendmsg/recvmsg (vectored) - the same granularity as
+#    puring's one-SQE-per-call model. This is the fair comparison.
+# ---------------------------------------------------------------------
+
+async def _dispatch_scalar_client_loop(client):
+    for _ in range(ITERATIONS):
+        for chunk in DATA_CHUNKS:
+            await asyncio.to_thread(client.send, chunk)
+        for _ in range(NR_CHUNKS):
+            await asyncio.to_thread(client.recv, CHUNK_SIZE)
+
+
+async def _dispatch_vectored_client_loop(client):
+    bufs = _make_bufs()
+    for _ in range(ITERATIONS):
+        await asyncio.to_thread(client.sendmsg, DATA_CHUNKS)
+        await asyncio.to_thread(client.recvmsg_into, bufs)
+
+
+async def _dispatch_scalar_udp(server_port, client_port):
+    server, client = make_udp_pair(server_port, client_port)
+
+    # server side isn't timed, so it can stay as a plain background
+    # thread without affecting the measured (client-side) cost, as
+    # long as it can keep up with the client's request rate.
+    server_fut = asyncio.ensure_future(
+        asyncio.to_thread(_scalar_server_loop, server)
+    )
+
+    start = time.perf_counter()
+    await _dispatch_scalar_client_loop(client)
+    elapsed = time.perf_counter() - start
+
+    await server_fut
+    server.close()
+    client.close()
+    return elapsed
+
+
+async def _dispatch_vectored_udp(server_port, client_port):
+    server, client = make_udp_pair(server_port, client_port)
+
+    server_fut = asyncio.ensure_future(
+        asyncio.to_thread(_vectored_server_loop, server)
+    )
+
+    start = time.perf_counter()
+    await _dispatch_vectored_client_loop(client)
+    elapsed = time.perf_counter() - start
+
+    await server_fut
+    server.close()
+    client.close()
+    return elapsed
+
+
+async def asyncio_scalar_dispatch_udp():
+    print('Running asyncio DISPATCH scalar UDP (to_thread per send/recv call)')
+    return await _dispatch_scalar_udp(*PORTS['asyncio_scalar_dispatch'])
+
+
+async def uvloop_scalar_dispatch_udp():
+    print('Running uvloop DISPATCH scalar UDP (to_thread per send/recv call)')
+    return await _dispatch_scalar_udp(*PORTS['uvloop_scalar_dispatch'])
+
+
+async def asyncio_vectored_dispatch_udp():
+    print('Running asyncio DISPATCH vectored UDP (to_thread per sendmsg/recvmsg call)')
+    return await _dispatch_vectored_udp(*PORTS['asyncio_vectored_dispatch'])
+
+
+async def uvloop_vectored_dispatch_udp():
+    print('Running uvloop DISPATCH vectored UDP (to_thread per sendmsg/recvmsg call)')
+    return await _dispatch_vectored_udp(*PORTS['uvloop_vectored_dispatch'])
+
+
+# ---------------------------------------------------------------------
+# 7. puring scalar: NR_CHUNKS separate send()/recv() SQEs per iteration.
 # ---------------------------------------------------------------------
 
 async def puring_scalar_udp():
@@ -223,7 +334,7 @@ async def puring_scalar_udp():
 
 
 # ---------------------------------------------------------------------
-# 6. puring vectored: 1 sendmsg()/recvmsg() SQE per iteration.
+# 8. puring vectored: 1 sendmsg()/recvmsg() SQE per iteration.
 # ---------------------------------------------------------------------
 
 async def puring_vectored_udp():
@@ -276,13 +387,26 @@ def run():
     t = sync_vectored_udp()
     results.append(('stdlib vectored', t))
 
-    t = asyncio.run(asyncio_vectored_udp())
-    results.append(('asyncio vectored', t))
+    t = asyncio.run(asyncio_vectored_batch_udp())
+    results.append(('asyncio vectored BATCH', t))
+
+    t = asyncio.run(asyncio_scalar_dispatch_udp())
+    results.append(('asyncio scalar DISPATCH', t))
+
+    t = asyncio.run(asyncio_vectored_dispatch_udp())
+    results.append(('asyncio vectored DISPATCH', t))
 
     if is_uvloop_installed:
         uvloop.install()
-        t = asyncio.run(uvloop_vectored_udp())
-        results.append(('uvloop vectored', t))
+
+        t = asyncio.run(uvloop_vectored_batch_udp())
+        results.append(('uvloop vectored BATCH', t))
+
+        t = asyncio.run(uvloop_scalar_dispatch_udp())
+        results.append(('uvloop scalar DISPATCH', t))
+
+        t = asyncio.run(uvloop_vectored_dispatch_udp())
+        results.append(('uvloop vectored DISPATCH', t))
 
     with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
         t = runner.run(puring_scalar_udp())
@@ -292,8 +416,11 @@ def run():
         results.append(('puring vectored', t))
 
     print('\n==== RESULTS ====')
+    print('(BATCH = one to_thread for the whole loop, not comparable to')
+    print(' puring\'s per-op SQE model - see comment at top of file.')
+    print(' DISPATCH = one to_thread per op, the fair comparison.)\n')
     for name, sec in results:
-        print(f'{name:18s} {mbps(sec):10.2f} MB/s   ({sec:.3f}s)')
+        print(f'{name:28s} {mbps(sec):10.2f} MB/s   ({sec:.3f}s)')
 
 
 if __name__ == '__main__':

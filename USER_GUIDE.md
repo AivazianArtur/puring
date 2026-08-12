@@ -152,7 +152,9 @@ asyncio.run(socket_simple_example(), loop_factory=puring.PuringLoop)
 ```
 
 ## Execution Context
-To use advanced features, use different types of context managers:
+To use advanced features, use different types of context managers.\
+**Note that not all operations are supported in every context, but it will automatically dispatched to supported operation**
+
 ### TransferMode
 To use operations in zero-copy mode, use `PuringLoop.transfer_mode` context manager, with `puring.TRANSFER_MODE` Enum:
 ```python
@@ -180,12 +182,13 @@ There is `ONESHOT` and `MULTISHOT` values in `STREAM_STRATEGY` Enum
 ### BufferMode
 To use operations in zero-copy mode, use `PuringLoop.buffer_mode` context manager with `puring.BUFFER_MODE` Enum:
 #### Fixed buffer mode:
+**Note, FIXED buffer mode currently working only with files**
 ```python
 async def buffer_mode():
     loop = asyncio.get_running_loop()
     buf = bytearray(4096)
     with loop.buffer_mode(mode=puring.BUFFER_MODE.FIXED, buffers=[buf]):
-        await simple_socket_example()
+        await simple_file_example()
 
 asyncio.run(buffer_mode(), loop_factory=puring.PuringLoop)
 ```
@@ -200,12 +203,12 @@ async def execution_context():
 
     buf = bytearray(4096)
     with loop.execution_context(
-        stream_strategy=puring.STREAM_STRATEGY.ONESHOT,
+        stream_strategy=puring.STREAM_STRATEGY.MULTISHOT,
         buffer_mode=puring.BUFFER_MODE.FIXED,
-        transfer_mode=puring.TRANSFER_MODE.NORMAL,
+        transfer_mode=puring.TRANSFER_MODE.ZERO_COPY,
         buffers=[buf],
     ):
-        await simple_socket_example()
+        await simple_file_example()
 
 asyncio.run(buffer_mode(), loop_factory=puring.PuringLoop)
 ```

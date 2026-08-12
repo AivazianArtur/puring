@@ -49,7 +49,7 @@ asyncio.run(main(), loop_factory=puring.PuringLoop)
 
 ## Installation
 #### Warning! Linux only
-Puring requires linux kernel version 5.19 and Python 3.12 or greater.
+Puring requires linux kernel version 6.11 or greater and Python 3.12 or greater.
 Library is available on PyPI, so use pip to install it:
 > pip install puring
 

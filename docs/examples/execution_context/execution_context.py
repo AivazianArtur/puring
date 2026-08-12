@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0, '')
 import asyncio
 import puring
-from _common import simple_socket_example
+from _common import simple_file_example
 
 TEMPFILE = 'docs/assets/tempfile.txt'
 
@@ -12,12 +12,12 @@ async def execution_context():
 
     buf = bytearray(4096)
     with loop.execution_context(
-        stream_strategy=puring.STREAM_STRATEGY.ONESHOT,
+        stream_strategy=puring.STREAM_STRATEGY.MULTISHOT,
         buffer_mode=puring.BUFFER_MODE.FIXED,
-        transfer_mode=puring.TRANSFER_MODE.NORMAL,
+        transfer_mode=puring.TRANSFER_MODE.ZERO_COPY,
         buffers=[buf],
     ):
-        await simple_socket_example()
+        await simple_file_example()
 
 if __name__ == '__main__':
     asyncio.run(execution_context(), loop_factory=puring.PuringLoop)

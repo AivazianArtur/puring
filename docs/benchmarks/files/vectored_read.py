@@ -19,10 +19,21 @@ import puring
 # ---- Config ---------------------------------------------------------------
 # Each "iteration" reads NR_CHUNKS * CHUNK_SIZE contiguous bytes from the
 # source file, either as one vectored readv() into NR_CHUNKS buffers, or as
-# NR_CHUNKS separate scalar reads. The point isn't disk throughput (the
-# file is small enough to sit in the page cache after the first pass) -
-# it's how much submission/syscall overhead a scatter-gather read saves
-# you versus firing one read per buffer.
+# NR_CHUNKS separate scalar reads.
+#
+# We run every variant twice:
+#   COLD  - page cache for the file is dropped (POSIX_FADV_DONTNEED) right
+#           before each timed call, so the kernel/io_uring actually has to
+#           go to the block device. This is what you want if the question
+#           is "does a vectored/io_uring read save real disk I/O time".
+#   HOT   - the file is pre-warmed into the page cache and never dropped,
+#           so every read is a memcpy from RAM. This isolates pure
+#           submission/syscall/dispatch overhead, with no device latency
+#           to hide behind.
+#
+# Comparing HOT numbers across implementations tells you about CPU/syscall
+# overhead. Comparing COLD numbers tells you about real I/O concurrency.
+# Don't compare a HOT number to a COLD number - they measure different things.
 
 CHUNK_SIZE = 256 * 1024
 NR_CHUNKS = 32
@@ -49,6 +60,33 @@ def make_source():
 def offsets():
     step = CHUNK_SIZE * NR_CHUNKS
     return [i * step for i in range(ITERATIONS)]
+
+
+def drop_cache(path=SRC):
+    """Evict the file's pages from the kernel page cache.
+
+    Path-based (not tied to whichever fd later reads the file) so it works
+    the same way whether the next reader is os.readv, os.pread, or puring.
+    Best-effort: only reliable when nothing else in the system is pinning
+    those pages, which holds for a single-process benchmark like this one.
+    """
+    fd = os.open(path, os.O_RDONLY)
+    try:
+        os.posix_fadvise(fd, 0, 0, os.POSIX_FADV_DONTNEED)
+    finally:
+        os.close(fd)
+
+
+def warm_cache(path=SRC):
+    """Read the whole file once sequentially so it's resident in the page
+    cache before the HOT suite starts timing anything."""
+    fd = os.open(path, os.O_RDONLY)
+    buf = bytearray(4 * 1024 * 1024)
+    try:
+        while os.readv(fd, [buf]):
+            pass
+    finally:
+        os.close(fd)
 
 
 # ---------------------------------------------------------------------
@@ -196,6 +234,8 @@ async def puring_readv_fixed():
     loop = asyncio.get_running_loop()
 
     start = time.perf_counter()
+
+    # If you'll face memory allocation error, up your limit ulimit -Hl
     with loop.buffer_mode(
         mode=puring.BUFFER_MODE.FIXED,
         payload_type=puring.PAYLOAD_TYPE.IOVEC,
@@ -209,45 +249,66 @@ async def puring_readv_fixed():
     return elapsed
 
 
-def run():
-    print(f'{CHUNK_SIZE=}, {NR_CHUNKS=}, {ITERATIONS=}, total={TOTAL_SIZE / (1024 ** 3):.2f} GiB')
+def run_suite(cold):
+    """Run every read variant once. If `cold` is True, the page cache for
+    SRC is dropped immediately before each timed call, so the read has to
+    go to the device. If False, the caller is expected to have already
+    warmed the cache (see run()) and nothing is dropped in between."""
+
+    def timed_sync(name, func):
+        if cold:
+            drop_cache()
+        t = func()
+        results.append((name, t))
+
+    def timed_async(name, coro_func, runner=None):
+        if cold:
+            drop_cache()
+        if runner is None:
+            t = asyncio.run(coro_func())
+        else:
+            t = runner.run(coro_func())
+        results.append((name, t))
 
     results = []
 
-    t = sync_readv()
-    results.append(('sync readv', t))
+    timed_sync('sync readv', sync_readv)
+    timed_sync('sync scalar pread', sync_scalar_read)
 
-    t = sync_scalar_read()
-    results.append(('sync scalar pread', t))
-
-    t = asyncio.run(asyncio_readv())
-    results.append(('asyncio readv', t))
-
-    t = asyncio.run(asyncio_scalar_read_concurrent())
-    results.append(('asyncio scalar concurrent', t))
+    timed_async('asyncio readv', asyncio_readv)
+    timed_async('asyncio scalar concurrent', asyncio_scalar_read_concurrent)
 
     if is_uvloop_installed:
         uvloop.install()
-
-        t = asyncio.run(uvloop_readv())
-        results.append(('uvloop readv', t))
-
-        t = asyncio.run(uvloop_scalar_read_concurrent())
-        results.append(('uvloop scalar concurrent', t))
+        timed_async('uvloop readv', uvloop_readv)
+        timed_async('uvloop scalar concurrent', uvloop_scalar_read_concurrent)
 
     with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
-        t = runner.run(puring_readv())
-        results.append(('puring readv', t))
+        timed_async('puring readv', puring_readv, runner)
+        timed_async('puring scalar concurrent', puring_scalar_read_concurrent, runner)
+        # timed_async('puring readv FIXED', puring_readv_fixed, runner)
 
-        t = runner.run(puring_scalar_read_concurrent())
-        results.append(('puring scalar concurrent', t))
+    return results
 
-        t = runner.run(puring_readv_fixed())
-        results.append(('puring readv FIXED', t))
 
-    print('\n==== RESULTS ====')
+def print_results(title, results):
+    print(f'\n==== {title} ====')
     for name, sec in results:
         print(f'{name:28s} {mbps(sec):10.2f} MB/s   ({sec:.3f}s)')
+
+
+def run():
+    print(f'{CHUNK_SIZE=}, {NR_CHUNKS=}, {ITERATIONS=}, total={TOTAL_SIZE / (1024 ** 3):.2f} GiB')
+
+    # COLD: drop the cache before every single call -> real device I/O.
+    cold_results = run_suite(cold=True)
+
+    # HOT: warm the cache once, then never drop it -> pure dispatch overhead.
+    warm_cache()
+    hot_results = run_suite(cold=False)
+
+    print_results('COLD (real device I/O, cache dropped per call)', cold_results)
+    print_results('HOT (page cache, no device I/O)', hot_results)
 
 
 if __name__ == '__main__':

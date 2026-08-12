@@ -87,37 +87,20 @@ async def asyncio_write(depth):
     print(f"asyncio depth={depth}")
 
     sem = asyncio.Semaphore(depth)
-    fds = [
-        open_write(p)
-        for p in FILES
-    ]
+    fds = [open_write(p) for p in FILES]
 
-    async def write_one(fd):
+    async def write_one(fd, offset):
         async with sem:
-            await asyncio.to_thread(
-                os.write,
-                fd,
-                DATA
-            )
-
+            await asyncio.to_thread(os.pwrite, fd, DATA, offset)
 
     start = time.perf_counter()
     for fd in fds:
-        tasks = []
         chunks = FILE_SIZE // CHUNK_SIZE
-        for _ in range(chunks):
-            tasks.append(
-                write_one(fd)
-            )
-
+        tasks = [write_one(fd, i * CHUNK_SIZE) for i in range(chunks)]
         await asyncio.gather(*tasks)
 
     for fd in fds:
-        await asyncio.to_thread(
-            os.fsync,
-            fd
-        )
-
+        await asyncio.to_thread(os.fsync, fd)
     for fd in fds:
         os.close(fd)
 
@@ -137,12 +120,6 @@ async def puring_write(depth):
         ]
     )
     total_chunks = FILE_SIZE // CHUNK_SIZE
-    async def worker(f, offsets):
-        for offset in offsets:
-            await f.write(
-                DATA,
-                offset=offset
-            )
 
     start = time.perf_counter()
     for f in files:

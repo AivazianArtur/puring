@@ -89,35 +89,22 @@ async def asyncio_writev():
 async def asyncio_write_concurrent():
     print('Running asyncio threadpool write concurrent')
 
-    def worker():
-        fd = open_write(FILE_ASYNC_CONCURRENT)
-
-        for _ in range(ITERATIONS):
-            tasks = [
-                asyncio.to_thread(os.write, fd, chunk)
-                for chunk in DATA
-            ]
-
-        os.fsync(fd)
-        os.close(fd)
-
-    async def run_once(fd):
+    async def run_once(fd, base_offset):
         tasks = [
-            asyncio.to_thread(os.write, fd, chunk)
-            for chunk in DATA
+            asyncio.to_thread(os.pwrite, fd, chunk, base_offset + i * CHUNK_SIZE)
+            for i, chunk in enumerate(DATA)
         ]
         await asyncio.gather(*tasks)
 
     fd = open_write(FILE_ASYNC_CONCURRENT)
+    stride = CHUNK_SIZE * NR_CHUNKS
 
     start = time.perf_counter()
-
-    for _ in range(ITERATIONS):
-        await run_once(fd)
+    for it in range(ITERATIONS):
+        await run_once(fd, it * stride)
 
     os.fsync(fd)
     os.close(fd)
-
     return time.perf_counter() - start
 
 

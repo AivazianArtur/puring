@@ -22,7 +22,8 @@ except ImportError:
 NR_FILES = 8
 FILE_SIZE = 256 * 1024 * 1024      # 256 MiB per file
 CHUNK = 1024 * 1024                # chunk size for the userspace baseline
-PIPE_CAPACITY = 1024 * 1024        # bump the default 64 KiB pipe buffer
+PIPE_CAPACITY = 4 * 1024 * 1024    # bump the default 64 KiB pipe buffer
+STRIPES_PER_FILE = 8               # concurrent pipe pairs per file (queue depth)
 
 ROOT = "docs/benchmark_splice"
 SRC = os.path.join(ROOT, "src")
@@ -33,13 +34,41 @@ DST_FILES = [os.path.join(DST, f"{i}.bin") for i in range(NR_FILES)]
 
 INIT_BLOCK = os.urandom(CHUNK)
 
-# Linux-only fcntl op, not exposed as a named constant in the fcntl module.
+# Linux-only fcntl ops, not exposed as named constants in the fcntl module.
 F_SETPIPE_SZ = 1031
+F_GETPIPE_SZ = 1032
 
 
 def throughput(seconds):
     total = NR_FILES * FILE_SIZE
     return total / seconds / 1024 / 1024
+
+
+def physical_bytes(path):
+    """Actual on-disk allocation, in bytes - st_blocks is always in
+    512-byte units regardless of the filesystem's real block size."""
+    return os.stat(path).st_blocks * 512
+
+
+def detect_reflink(dst_files, expected_size, threshold=0.5):
+    """Best-effort detection of a CoW clone (btrfs/xfs reflink) instead
+    of a real data copy: if a copy_file_range() result occupies far
+    fewer physical blocks than the source, os.copy_file_range almost
+    certainly cloned extents rather than moving bytes - the timer isn't
+    measuring I/O throughput at all, just metadata-op latency.
+
+    INIT_BLOCK is os.urandom(...), so it doesn't compress away under
+    filesystems mounted with transparent compression (e.g. btrfs
+    compress=zstd) - a real copy of incompressible data should still
+    land close to expected_size on disk.
+
+    Returns True if ANY destination file looks reflinked - one clone
+    is enough to invalidate the whole run as a throughput measurement.
+    """
+    for path in dst_files:
+        if physical_bytes(path) < expected_size * threshold:
+            return True
+    return False
 
 
 def make_source():
@@ -62,6 +91,20 @@ def open_pair(src, dst):
     fd_in = os.open(src, os.O_RDONLY)
     fd_out = os.open(dst, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o644)
     return fd_in, fd_out
+
+
+def make_pipe():
+    """Create a pipe and try to grow its buffer to PIPE_CAPACITY. Returns
+    (pipe_r, pipe_w, actual_size) - actual_size lets callers notice a
+    silently-capped pipe (common when /proc/sys/fs/pipe-max-size is low,
+    e.g. inside some containers/VMs)."""
+    pipe_r, pipe_w = os.pipe()
+    try:
+        fcntl.fcntl(pipe_w, F_SETPIPE_SZ, PIPE_CAPACITY)
+    except OSError:
+        pass  # fall back to whatever the default/max is
+    actual_size = fcntl.fcntl(pipe_w, F_GETPIPE_SZ)
+    return pipe_r, pipe_w, actual_size
 
 
 # ---------------------------------------------------------------------
@@ -189,50 +232,103 @@ async def uvloop_sendfile_copy():
 #    file_in -> pipe -> file_out. Both legs stay entirely in kernel
 #    space; the data is never copied into a userspace buffer.
 #
+#    FIX vs the original version: the two legs (file->pipe, pipe->file)
+#    are now run as independent concurrent coroutines (producer /
+#    consumer) instead of a strict lock-step "fill the whole leg, then
+#    fully drain it, then fill again". Lock-step meant the ring only
+#    ever had one SQE in flight per file and paid a full Python
+#    await/wakeup round trip for every single small transfer. Letting
+#    producer and consumer run concurrently means io_uring can have
+#    both legs in flight at once, and the pipe's own buffer provides
+#    backpressure automatically (a blocking splice() naturally waits -
+#    via the ring, not by blocking Python - when the pipe is full/empty).
+#    PIPE_CAPACITY was also bumped from 1 MiB to 4 MiB to cut the number
+#    of round trips per file by 4x on top of that.
+#
 #    NOTE: the exact keyword names below (src/dst/offset_src/offset_dst)
 #    are taken from files.c's PuringFile_splice signature. splice() is
 #    called on `anchor`, an arbitrary open PuringFile that just gives us
-#    a handle onto the ring — it operates on the raw fds passed in, not
+#    a handle onto the ring - it operates on the raw fds passed in, not
 #    on `anchor` itself. Adjust names if your puring build differs.
 # ---------------------------------------------------------------------
 
 async def puring_splice_copy():
-    print('Running puring splice (io_uring, pipe-relayed)')
+    print('Running puring splice (io_uring, pipe-relayed, pipelined, fan-out)')
 
     anchor = await puring.open_file(path=SRC_FILES[0])
+    pipe_warning_shown = False
+
+    async def copy_stripe(fd_in, fd_out, start_offset, stripe_len):
+        """Copy one contiguous stripe of a file through its own
+        producer/consumer pipe pair."""
+        nonlocal pipe_warning_shown
+
+        pipe_r, pipe_w, actual_pipe_size = make_pipe()
+
+        if actual_pipe_size < PIPE_CAPACITY and not pipe_warning_shown:
+            print(
+                f'  warning: pipe capped at {actual_pipe_size} bytes '
+                f'(requested {PIPE_CAPACITY}) - check '
+                f'/proc/sys/fs/pipe-max-size; compensating with '
+                f'{STRIPES_PER_FILE} pipes/file instead'
+            )
+            pipe_warning_shown = True
+
+        end_offset = start_offset + stripe_len
+        try:
+            async def producer():
+                offset = start_offset
+                while offset < end_offset:
+                    leg = min(actual_pipe_size, end_offset - offset)
+                    moved = await anchor.splice(
+                        src=fd_in, dst=pipe_w,
+                        count=leg,
+                        offset_src=offset, offset_dst=-1,
+                    )
+                    if moved == 0:
+                        break
+                    offset += moved
+
+            async def consumer():
+                offset = start_offset
+                while offset < end_offset:
+                    moved = await anchor.splice(
+                        src=pipe_r, dst=fd_out,
+                        count=actual_pipe_size,
+                        offset_src=-1, offset_dst=offset,
+                    )
+                    if moved == 0:
+                        break
+                    offset += moved
+
+            await asyncio.gather(producer(), consumer())
+        finally:
+            os.close(pipe_r)
+            os.close(pipe_w)
 
     async def copy_one(src_path, dst_path):
         fd_in = os.open(src_path, os.O_RDONLY)
         fd_out = os.open(dst_path, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o644)
-        pipe_r, pipe_w = os.pipe()
-
         try:
-            fcntl.fcntl(pipe_w, F_SETPIPE_SZ, PIPE_CAPACITY)
-        except OSError:
-            pass  # fall back to the default 64 KiB pipe buffer
-
-        try:
+            # Split the file into STRIPES_PER_FILE contiguous regions,
+            # each copied through its own pipe. When the kernel caps a
+            # single pipe at 64 KiB (common without root - see the
+            # warning above), this is what actually restores queue
+            # depth: N pipes in flight beat one pipe made artificially
+            # bigger, the same way multiple in-flight NVMe requests beat
+            # a single big one.
+            stripe_len = -(-FILE_SIZE // STRIPES_PER_FILE)  # ceil div
+            stripes = []
             offset = 0
             while offset < FILE_SIZE:
-                leg = min(PIPE_CAPACITY, FILE_SIZE - offset)
+                length = min(stripe_len, FILE_SIZE - offset)
+                stripes.append((offset, length))
+                offset += length
 
-                # file -> pipe (offset_dst=-1: pipes aren't seekable)
-                moved_in = await anchor.splice(
-                    src=fd_in, dst=pipe_w,
-                    count=leg,
-                    offset_src=offset, offset_dst=-1,
-                )
-
-                # pipe -> file, may take more than one splice to drain
-                remaining = moved_in
-                while remaining:
-                    moved_out = await anchor.splice(
-                        src=pipe_r, dst=fd_out,
-                        count=remaining,
-                        offset_src=-1, offset_dst=offset,
-                    )
-                    offset += moved_out
-                    remaining -= moved_out
+            await asyncio.gather(*[
+                copy_stripe(fd_in, fd_out, start_offset, length)
+                for start_offset, length in stripes
+            ])
 
             # splice only queues writes into the page cache; without an
             # explicit fsync the kernel is free to write it back whenever
@@ -248,8 +344,6 @@ async def puring_splice_copy():
             # that never comes. A short blocking fsync is safe and simple.
             os.fsync(fd_out)
         finally:
-            os.close(pipe_r)
-            os.close(pipe_w)
             os.close(fd_in)
             os.close(fd_out)
 
@@ -270,6 +364,7 @@ def run():
 
     make_source()
     results = []
+    footnotes = []
 
     clean_dst()
     t = sync_read_write_copy()
@@ -281,7 +376,18 @@ def run():
 
     clean_dst()
     t = copy_file_range_copy()
-    results.append(('os.copy_file_range', t))
+    cfr_label = 'os.copy_file_range'
+    if detect_reflink(DST_FILES, FILE_SIZE):
+        cfr_label = 'os.copy_file_range [*]'
+        footnotes.append(
+            '[*] destination files occupy far fewer physical blocks than '
+            'the source - this filesystem cloned extents (CoW reflink) '
+            'instead of copying data. The number above measures metadata-op '
+            'latency, not I/O throughput, and is not comparable to the '
+            'other rows. This is expected/likely on btrfs or xfs with '
+            'reflink=1; it would not happen on ext4.'
+        )
+    results.append((cfr_label, t))
 
     clean_dst()
     t = asyncio.run(asyncio_sendfile_copy())
@@ -300,7 +406,10 @@ def run():
 
     print('\n==== RESULTS ====\n')
     for name, sec in results:
-        print(f'{name:22s} {throughput(sec):10.2f} MB/s   ({sec:.2f}s)')
+        print(f'{name:26s} {throughput(sec):10.2f} MB/s   ({sec:.2f}s)')
+
+    for note in footnotes:
+        print(f'\n{note}')
 
 
 if __name__ == '__main__':

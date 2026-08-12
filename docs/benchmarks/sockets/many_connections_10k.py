@@ -1,4 +1,6 @@
 import asyncio
+import itertools
+import resource
 import socket
 import sys
 import threading
@@ -16,7 +18,7 @@ sys.path.insert(0, '')
 
 import puring
 
-# NOTE ON THE PURING SOCKET API: prep_socket/bind/listen/accept/connect/
+# NOTE ON THE PURING SOCKET API: accept()/bind/listen/accept/connect/
 # send/recv/close are reconstructed from sockets.c. `accept()` is assumed
 # to resolve to a new connected PuringSocket, mirroring how open_file()
 # hands back a PuringFile. Adjust if your build's names differ.
@@ -31,7 +33,9 @@ import puring
 #
 # Raise CONN_COUNTS if your ulimit -n allows it; each connection needs
 # ~2 file descriptors (client + accepted server side) plus whatever the
-# backend needs for bookkeeping.
+# backend needs for bookkeeping. See fd-limit handling below - the
+# sweep clips itself to what's actually available instead of crashing
+# partway through.
 
 CONN_COUNTS = [100, 500, 2000]
 
@@ -39,10 +43,55 @@ MESSAGE = b'ping'
 REPLY = b'pong'
 
 HOST = '127.0.0.1'
-PORT_STDLIB = 9401
-PORT_ASYNCIO = 9402
-PORT_UVLOOP = 9403
-PORT_PURING = 9404
+_PORT_COUNTER = itertools.count(9400)
+
+
+def next_port():
+    # A fresh port per sweep step, per backend, so a listening socket
+    # the OS hasn't fully released yet from a previous step can never
+    # collide with the next bind() - this is what caused EADDRINUSE
+    # when PORT_PURING was reused across n=100/500/2000.
+    return next(_PORT_COUNTER)
+
+
+# ---- fd limit ------------------------------------------------------
+# Each connection costs ~2 fds (client + accepted server side) at
+# peak, plus whatever's still being torn down from the previous step.
+# Raise the soft limit to the hard limit once at startup, then clip
+# the sweep to whatever's actually available - never crash mid-sweep
+# over this (same approach as concurrent_echo_fanout.py).
+
+FDS_PER_CONN = 3
+FD_RESERVE = 64
+
+
+def raise_fd_limit(min_needed):
+    soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+    target = min(max(min_needed, soft), hard)
+    if target > soft:
+        try:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (target, hard))
+        except (ValueError, OSError) as e:
+            print(
+                f'warning: could not raise RLIMIT_NOFILE to {target} '
+                f'(soft={soft}, hard={hard}): {e}. '
+                f'Run `ulimit -n {min_needed}` before starting Python, '
+                f'or lower CONN_COUNTS below.'
+            )
+    return resource.getrlimit(resource.RLIMIT_NOFILE)
+
+
+def clip_conn_counts(counts, available_fds):
+    max_n = max(1, (available_fds - FD_RESERVE) // FDS_PER_CONN)
+    clipped = sorted({min(n, max_n) for n in counts})
+    if clipped != sorted(set(counts)):
+        print(
+            f'warning: clipping CONN_COUNTS to fit {available_fds} available fds '
+            f'(~{FDS_PER_CONN} fds/conn + {FD_RESERVE} reserve -> max n={max_n}). '
+            f'Requested {counts}, using {clipped}. '
+            f'Raise `ulimit -n` and rerun for the original values.'
+        )
+    return clipped
 
 
 def conns_per_sec(n, seconds):
@@ -80,20 +129,20 @@ def _stdlib_server(port, ready_event, stop_event):
     srv.close()
 
 
-def stdlib_c10k(n):
+def stdlib_c10k(n, port):
     print(f'Running stdlib thread-per-connection, n={n}')
 
     ready_event = threading.Event()
     stop_event = threading.Event()
     server_thread = threading.Thread(
-        target=_stdlib_server, args=(PORT_STDLIB, ready_event, stop_event)
+        target=_stdlib_server, args=(port, ready_event, stop_event)
     )
     server_thread.start()
     ready_event.wait()
 
     def one(_):
         c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        c.connect((HOST, PORT_STDLIB))
+        c.connect((HOST, port))
         c.sendall(MESSAGE)
         c.recv(len(REPLY))
         c.close()
@@ -139,14 +188,14 @@ async def _asyncio_c10k(n, port):
     return elapsed
 
 
-async def asyncio_c10k(n):
+async def asyncio_c10k(n, port):
     print(f'Running asyncio streams, n={n}')
-    return await _asyncio_c10k(n, PORT_ASYNCIO)
+    return await _asyncio_c10k(n, port)
 
 
-async def uvloop_c10k(n):
+async def uvloop_c10k(n, port):
     print(f'Running uvloop streams, n={n}')
-    return await _asyncio_c10k(n, PORT_UVLOOP)
+    return await _asyncio_c10k(n, port)
 
 
 # ---------------------------------------------------------------------
@@ -154,13 +203,13 @@ async def uvloop_c10k(n):
 #    worker threads and no epoll either.
 # ---------------------------------------------------------------------
 
-async def puring_c10k(n):
+async def puring_c10k(n, port):
     print(f'Running puring sockets (io_uring), n={n}')
 
     server_sock = await puring.prep_socket(
         domain=socket.AF_INET, socktype=socket.SOCK_STREAM
     )
-    await server_sock.bind(host=HOST, port=PORT_PURING)
+    await server_sock.bind(host=HOST, port=port)
     await server_sock.listen(backlog=4096)
 
     async def handle(conn):
@@ -179,7 +228,7 @@ async def puring_c10k(n):
         c = await puring.prep_socket(
             domain=socket.AF_INET, socktype=socket.SOCK_STREAM
         )
-        await c.connect(host=HOST, port=PORT_PURING)
+        await c.connect(host=HOST, port=port)
         await c.send(data=MESSAGE)
         await c.recv(bufsize=len(REPLY))
         await c.close()
@@ -197,31 +246,50 @@ async def puring_c10k(n):
 
 def run():
     print(f'{CONN_COUNTS=}')
+
+    # ~3 fds/connection at peak, +64 reserve for stdio/interpreter/
+    # listening sockets. Ask for headroom, then clip the sweep to
+    # whatever we actually got - never crash mid-sweep over this.
+    needed = max(CONN_COUNTS) * FDS_PER_CONN + FD_RESERVE
+    soft, hard = raise_fd_limit(needed)
+    conn_counts = clip_conn_counts(CONN_COUNTS, soft)
+
     results = []
+    skipped = []
 
-    for n in CONN_COUNTS:
-        t = stdlib_c10k(n)
-        results.append(('stdlib thread/conn', n, t))
+    def run_step(label, fn, n, *args):
+        try:
+            t = fn(n, *args)
+            results.append((label, n, t))
+        except OSError as e:
+            print(f'  SKIPPED {label} n={n}: {e!r}')
+            skipped.append((label, n, e))
+        time.sleep(0.3)  # let the OS reclaim fds/ports before the next step
 
-    for n in CONN_COUNTS:
-        t = asyncio.run(asyncio_c10k(n))
-        results.append(('asyncio', n, t))
+    for n in conn_counts:
+        run_step('stdlib thread/conn', stdlib_c10k, n, next_port())
+
+    for n in conn_counts:
+        run_step('asyncio', lambda n, p: asyncio.run(asyncio_c10k(n, p)), n, next_port())
 
     if is_uvloop_installed:
         uvloop.install()
-        for n in CONN_COUNTS:
-            t = asyncio.run(uvloop_c10k(n))
-            results.append(('uvloop', n, t))
+        for n in conn_counts:
+            run_step('uvloop', lambda n, p: asyncio.run(uvloop_c10k(n, p)), n, next_port())
 
     with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
-        for n in CONN_COUNTS:
-            t = runner.run(puring_c10k(n))
-            results.append(('puring', n, t))
+        for n in conn_counts:
+            run_step('puring', lambda n, p: runner.run(puring_c10k(n, p)), n, next_port())
 
     print('\n==== RESULTS ====')
     print(f'{"backend":20s} {"n":>6s} {"conns/s":>10s} {"time":>8s}')
     for name, n, sec in results:
         print(f'{name:20s} {n:6d} {conns_per_sec(n, sec):10.0f} {sec:7.3f}s')
+
+    if skipped:
+        print('\n==== SKIPPED ====')
+        for label, n, e in skipped:
+            print(f'{label} n={n}: {e!r}')
 
 
 if __name__ == '__main__':

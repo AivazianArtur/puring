@@ -121,7 +121,7 @@ async def _bounded_read(sem, f, offset):
 
 
 async def puring_random_read(offsets):
-    print('Running io_uring concurrent random read (no threads)')
+    print('Running puring concurrent random read (no threads)')
 
     files = await asyncio.gather(*(puring.open_file(path=p) for p in FILE_PATHS))
     sem = asyncio.Semaphore(MAX_INFLIGHT)
@@ -162,7 +162,7 @@ def run():
     evict_page_cache()
     with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
         t = runner.run(puring_random_read(offsets))
-    results.append(('uring_concurrent', t))
+    results.append(('puring_concurrent', t))
 
     print('\n==== RESULTS ====')
     print(f'{"backend":16s} {"IOPS":>12s} {"MB/s":>10s} {"time":>8s}')

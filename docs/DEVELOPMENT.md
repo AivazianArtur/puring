@@ -67,7 +67,7 @@ make sanitize
 
 | Tool                          | Purpose                                          |
 |-------------------------------|--------------------------------------------------|
-| Linux kernel 5.19             | io_uring and its modern functionality |
+| Linux kernel 6.11             | io_uring and its modern functionality |
 | Python 3.12 (+ `venv`)        | build/test the Python bindings                   |
 | C compiler (`clang`/`gcc`)    | build the native extension and C-level tests     |
 | `clang-format`, `clang-tools` | formatting / static analysis                     |
