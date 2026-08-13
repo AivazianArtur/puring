@@ -15,18 +15,7 @@ sys.path.insert(0, '')
 
 import puring
 
-# NOTE ON THE PURING SOCKET API: sendmsg()/recvmsg() kwargs (buffers,
-# host, port, domain, is_poll_first) are reconstructed from sockets.c.
-# Adjust if your build's Python-facing names differ.
-
-
 # ---- Config -----------------------------------------------------------
-# UDP, two "connected" sockets (connect() just fixes the default peer -
-# valid for datagram sockets too, it lets us use plain send/recv without
-# passing an address every call). Per iteration we move NR_CHUNKS
-# buffers of CHUNK_SIZE bytes, then bounce them straight back (echo), so
-# every backend gets a fair round-trip measurement.
-#
 # "scalar"   variant: NR_CHUNKS separate datagrams, one syscall/SQE each.
 # "vectored" variant: 1 datagram assembled from NR_CHUNKS buffers via
 #                      sendmsg (gather) / recvmsg (scatter).

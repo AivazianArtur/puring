@@ -18,12 +18,6 @@ sys.path.insert(0, '')
 
 import puring
 
-# NOTE ON THE PURING SOCKET API: accept()/bind/listen/accept/connect/
-# send/recv/close are reconstructed from sockets.c. `accept()` is assumed
-# to resolve to a new connected PuringSocket, mirroring how open_file()
-# hands back a PuringFile. Adjust if your build's names differ.
-
-
 # ---- Config -----------------------------------------------------------
 # This isn't a throughput test - each connection moves 4 bytes each way.
 # The question is purely "how does the cost of N *concurrent* connections

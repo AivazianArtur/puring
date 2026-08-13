@@ -66,18 +66,8 @@ def clip_conn_counts(counts, available_fds):
         )
     return clipped
 
-# NOTE ON THE PURING SOCKET API: prep_socket/bind/listen/accept/connect/
-# send/recv/close are reconstructed from sockets.c, same assumptions as
-# many_connections_10k.py and top_echo_throughput.py. Adjust if your
-# build's Python-facing names differ.
-
 
 # ---- Config -----------------------------------------------------------
-# This fills the gap between many_connections_10k.py (many connections,
-# but only ONE message each - pure connection-setup cost) and
-# top_echo_throughput.py (real payload, but only ONE connection - pure
-# per-op/latency cost).
-#
 # Here: N connections open *simultaneously* and each does
 # ROUNDS_PER_CONN ping-pong exchanges of MESSAGE_SIZE bytes, all in
 # flight at once. This is the socket equivalent of nvme_saturation_test's

@@ -35,7 +35,7 @@ async def main():
     loop = asyncio.get_running_loop()
     buf = bytearray(4096)
     with loop.buffer_mode(mode=puring.BUFFER_MODE.FIXED, buffers=[buf]):
-        await simple_socket_example()
+        await simple_file_example()
 
 asyncio.run(main(), loop_factory=puring.PuringLoop)
 ```
@@ -46,6 +46,25 @@ asyncio.run(main(), loop_factory=puring.PuringLoop)
 > make run-examples
 
 ## Benchmarks
+**`Puring` shows that true `file` async I/O provided by `io_uring` is superior over current solutions and shows x2 and almost x3 performance:**
+#### Write files sequentially:
+![sequential write files](docs/assets/benchmark_results/sequential_write_files.png)
+#### Write files using vector operations:
+![vectored write](docs/assets/benchmark_results/vectored_write.png)
+
+**`Puring` also shows better performance over other solutions in `socket` operations:**
+#### Socket connection storm:
+![many connections](docs/assets/benchmark_results/many_connections.png)
+
+**⚠️ But `puring` and `io_uring` are not a magic wands, so in many scenarios its better not to use it. For example:**
+#### Load test of concurrent TCP connections with write and read ops:
+![echo fanout](docs/assets/benchmark_results/concurrent_echo_fanout.png)
+
+As you can see, with little amount of connections there is no reason to use `puring` because of `CQE`s and `SQE`s overhead. However, when it comes to many connections - it is the only backend that not degrading under pressure.
+
+**⚠️ Also remember that current version is not prod-ready, but we heavily need your user experience feedback.**
+
+Read more about benchmarks results in [Benchmarks analysis page](/docs/BENCHMARKS_ANALYSIS.md)
 
 ## Installation
 #### Warning! Linux only
