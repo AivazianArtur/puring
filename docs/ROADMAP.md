@@ -35,7 +35,7 @@
 - [X] Add initial tests for whole library:
     - [X] Python-layer.
     - [X] C-layer.
-- [ ] Add initial documentation.
+- [X] Add initial documentation.
 - [ ] Publish library on PyPI (`pip` installable).
 
 ## v0.5.0 - Async Runtime & Architecture

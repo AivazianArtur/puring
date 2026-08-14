@@ -222,11 +222,11 @@ make install
 While in not little C-project memory handling could easily make project fragile, when you are bridging it with CPython memory management it just causes headaches.
 So you must know that
 - Event loop and ring are linked
-- Thats why (almost) all objects are linked through them
-- And there is two types of objects:
-  - pure C-objects. This objects we should handle through standard allocation
+- That's why (almost) all objects are linked through them
+- And there are two types of objects:
+  - Pure C-objects. This objects we should handle through standard allocation methods
   - CPython objects - they should be allocated/deacllocated only with CPython instrumentation
-- There are cases when its better to handle objects manually in C and their nature is C, but they need to be pushed in Python memory. There is CPython `Capsule` for this case, better not to multiply Python objects
+- There are cases when it's better to handle objects manually in C and their nature is C, but they need to be pushed in Python memory. There is CPython `Capsule` for this case, better not to multiply Python objects
 
 ## Notes about style
 Style could be inconsistent, because some things clang formatter cant fix, but style of project has formed at time and some artifacts was left.

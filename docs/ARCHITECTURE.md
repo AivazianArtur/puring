@@ -2,14 +2,12 @@
   - Strong layers between Python interface and C-functionality
   - Trying to stick to Domain Driven Development
 
-**🟢 If you dont know what io_uring is about, what is Fixed and Provided buffers, multishot stream strategy - read explanation [here](IO_URING.md) first**
+**🟢 If you dont know what io_uring is about, what are Fixed and Provided buffers, multishot stream strategy - read explanation [here](IO_URING.md) first**
 
 ## Introduction
 ### io_uring
 `Puring` is written natively in CPython and brings the new event loop, based on `liburing` library - main lib to use `io_uring`.
 `io_uring` is an alternate for `epoll` and other `reactor`-based systems.
-
-What is `io_uring` and how it works - read [here](IO_URING.md)
 
 ## Domains
 1. Ring
@@ -160,7 +158,7 @@ Code is inside `src/python_api/signals` and `src/signals`, where we can see ever
 - Main:
   - PuringLoop - Main object of library, by the way, users would not interact a lot with it. With initialization of loop there is initialization of all io_uring objects. Child of `BaseEventLoop` object with redefinition of loop's reader. For now custom reader is not really supporting every async operation through `io_uring` rings.
   - File, internally is `PuringFile`. There is its own methods for every file operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Every operation is supported in `puring`, and `io_uring` specific operations, like `read` with `BUFFER_SELECT` `Buffer Mode`.
-  - Socket, internally is `PuringSocket`. There is its own methods for every socket operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Almost every(for now) operation is supported in `puring`, and `io_uring` specific operations, like `accept` with `MULTISHOT` `StreamStrategy`.
+  - Socket, internally is `PuringSocket`. There are its own methods for every socket operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Almost every(for now) operation is supported in `puring`, and `io_uring` specific operations, like `accept` with `MULTISHOT` `StreamStrategy`.
 - Helpers:
   - BufferModeCtx - Special object to implement Pythons context manager of `BufferMode`
   - StreamStrategyCtx - Special object to implement Pythons context manager of `StreamStrategy`

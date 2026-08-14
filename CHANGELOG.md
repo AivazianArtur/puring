@@ -15,7 +15,8 @@
 - Support of context manager protocol for `File` and `Socket`
 - Initial documentation: architecture.md, developing.md, user_guide.md, contributing.md, io_uring.md
 - Initial Python and C tests (AI generated)
-- Add benchmarks (AI generated)
+- Added benchmarks (AI generated)
+- Initial documentation written and build for contributing
 ### Updated
 - Makefile: fixed sanitaizer stage, added new stages.
 - GitHub CI: partly added tests stage
