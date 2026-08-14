@@ -1,7 +1,9 @@
 # Puring
+![Linux](https://img.shields.io/badge/Linux-%23FFFFFF.svg?style=for-the-badge&logo=linux&logoColor=black) \
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FAivazianArtur%2Fpuring%2Frefs%2Fheads%2Fmain%2Fpyproject.toml) \
 ![GitHub Release](https://img.shields.io/github/v/release/AivazianArtur/puring)
 
-Puring allows true async file i/o natively for Python by bringing Event Loop based on io_uring. Implemented in CPython.
+Puring allows true asynchronous file i/o natively for Python by bringing Event Loop based on [io_uring](https://unixism.net/loti/). Implemented in CPython.
 
 ⚠️ Currently in active development phase, so API and internals may change and will be expanded.
 
@@ -29,7 +31,7 @@ async def main():
 asyncio.run(main(), loop_factory=puring.PuringLoop)
 ```
 
-### One of io_uring optimization features - Fixed buffers:
+### One of io_uring optimization features - `Fixed` buffers:
 ```python
 async def main():
     loop = asyncio.get_running_loop()
@@ -42,27 +44,27 @@ asyncio.run(main(), loop_factory=puring.PuringLoop)
 
 ### See the whole [user guide](USER_GUIDE.md)
 ### See API in [documentation page]() and locally [here]().
-### Also you can watch examples inside `docs/examples` and run them under ASAN with 
+### Also, you can watch examples inside `docs/examples` and run them under ASAN with 
 > make run-examples
 
 ## Benchmarks
 **`Puring` shows that true `file` async I/O provided by `io_uring` is superior over current solutions and shows x2 and almost x3 performance:**
+
 #### Write files sequentially:
-![sequential write files](docs/assets/benchmark_results/sequential_write_files.png)
+![sequential write files](docs/assets/benchmark_results/files/sequential_write_files.png)
 #### Write files using vector operations:
-![vectored write](docs/assets/benchmark_results/vectored_write.png)
+![vectored write](docs/assets/benchmark_results/files/vectored_write.png)
 
 **`Puring` also shows better performance over other solutions in `socket` operations:**
 #### Socket connection storm:
-![many connections](docs/assets/benchmark_results/many_connections.png)
+![many connections](docs/assets/benchmark_results/sockets/many_connections.png)
 
 **⚠️ But `puring` and `io_uring` are not a magic wands, so in many scenarios its better not to use it. For example:**
-#### Load test of concurrent TCP connections with write and read ops:
-![echo fanout](docs/assets/benchmark_results/concurrent_echo_fanout.png)
+
+#### Load test of concurrent TCP connections with I/O operations:
+![echo fanout](docs/assets/benchmark_results/sockets/concurrent_echo_fanout.png)
 
 As you can see, with little amount of connections there is no reason to use `puring` because of `CQE`s and `SQE`s overhead. However, when it comes to many connections - it is the only backend that not degrading under pressure.
-
-**⚠️ Also remember that current version is not prod-ready, but we heavily need your user experience feedback.**
 
 Read more about benchmarks results in [Benchmarks analysis page](/docs/BENCHMARKS_ANALYSIS.md)
 
