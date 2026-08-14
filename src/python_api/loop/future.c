@@ -1,5 +1,4 @@
-#include "future.h"
-#include "python_api/loop/loop.h"
+#include "loop.h"
 
 PyObject *
 create_future(PuringLoop *self) {

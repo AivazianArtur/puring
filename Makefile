@@ -26,7 +26,7 @@ CTESTS_DEPS := \
 	$(SRC)/ops/files/fixed.c \
 	$(SRC)/ops/files/multishot.c \
 	$(SRC)/ring/ring.c \
-	$(SRC)/queue_events/sqe/sqe.c \
+	$(SRC)/ring/sqe_helper.c \
 	$(SRC)/timer/timer.c
 
 CTESTS_SOCKETS_DEPS := \
@@ -36,14 +36,14 @@ CTESTS_SOCKETS_DEPS := \
 	$(SRC)/ops/sockets/multishot.c \
 	$(SRC)/ops/sockets/zerocopy.c \
 	$(SRC)/ring/ring.c \
-	$(SRC)/queue_events/sqe/sqe.c \
+	$(SRC)/ring/sqe_helper.c \
 	$(SRC)/timer/timer.c
 
 CTESTS_BUFFERS_DEPS := \
 	$(SRC)/buffer_controllers/buffer_index.c \
 	$(SRC)/buffer_controllers/buffer_modes.c \
 	$(SRC)/ring/ring.c \
-	$(SRC)/queue_events/sqe/sqe.c \
+	$(SRC)/ring/sqe_helper.c \
 	$(SRC)/timer/timer.c
 
 CTESTS_REGISTRY_DEPS := \
@@ -52,7 +52,7 @@ CTESTS_REGISTRY_DEPS := \
 	$(SRC)/buffer_controllers/buffer_index.c \
 	$(SRC)/buffer_controllers/buffer_modes.c \
 	$(SRC)/ring/ring.c \
-	$(SRC)/queue_events/sqe/sqe.c \
+	$(SRC)/ring/sqe_helper.c \
 	$(SRC)/timer/timer.c
 
 CTESTS_INCLUDES := \
@@ -64,7 +64,6 @@ CTESTS_INCLUDES := \
     -I $(SRC)/registry \
     -I $(SRC)/buffer_controllers \
     -I $(SRC)/ring \
-    -I $(SRC)/queue_events/sqe \
     -I $(SRC)/timer \
     -isystem requirements/liburing/include \
     -isystem requirements/liburing/src/include \
@@ -459,6 +458,9 @@ help:
 	@echo "  make install              - build and install puring (venv)"
 	@echo "  make build                - build wheel"
 	@echo "  make clean                - clean everything"
+	@echo ""
+	@echo "── Lint ────────────────────────────────────────"
+	@echo "  make lint         - check code with linter and formatter. 
 	@echo ""
 	@echo "── Examples ────────────────────────────────────────"
 	@echo "  make run-examples         - run all docs/examples/*.py under ASan"

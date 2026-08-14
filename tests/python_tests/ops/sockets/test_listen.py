@@ -29,17 +29,6 @@ async def test_listen__validation_error(backlog):
 
 
 @puring_test
-async def test_listen__no_req_params():
-    sock = await puring.prep_socket()
-    await sock.bind(host='127.0.0.1', port=0)
-
-    with pytest.raises(expected_exception=TypeError):
-        sock.listen()
-
-    await sock.close()
-
-
-@puring_test
 async def test_listen__closed_socket_raises_error():
     sock = await puring.prep_socket()
     await sock.close()

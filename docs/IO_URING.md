@@ -1,14 +1,38 @@
 # io_uring
+### io_uring is an efficient Linux implementation of the Proactor I/O model.
+Main way to interact with io_uring is [liburing](https://github.com/axboe/liburing), and `puring` use it too.
 
-### If you already know io_uring, skip to: ARCHITECTURE.md
+##### 🟢 If you already familiar with io_uring, you can go to: ARCHITECTURE.md
 
-## io_uring is an efficient Linux implementation of the Proactor I/O model.
-### It provides two shared buffers:
+## Specific concepts
+- **io_uring** - Linux API for async I/O, implements proactor pattern
+- **ring** - Instance of io_uring, contains two buffer rings - Submission Queue and Completion Queue 
+- **Submission Queue** - Queue buffer that acts as input topic - app writes async operation there, kernel read out of there
+- **Completion Queue** - Queue buffer that acts as output topic - kernel writes result of done operation there, app read out of there
+  ###### More about these topics: - [man page](https://man7.org/linux/man-pages/man7/io_uring.7.html), [lords of io_uring](https://unixism.net/loti/what_is_io_uring.html)
+- **Submission Queue Entry** - Object, that wraps input data for Submission Queue. SQE is a record for SQ
+  ###### Links to learn more: [lords of io_uring.SQE](https://unixism.net/loti/ref-liburing/sqe.html)
+- **Completion Queue Event** - Object, that wraps input data for Completion Queue. CQE is a record for CQ
+  ###### Links to learn more: [lords of io_uring.CQE](https://unixism.net/loti/ref-liburing/cqe.html)
+- **Fixed Buffer** - Optimization workaround for user buffers, to not send buffer with every operation. User register buffers, and then should only track their indexes and send this indexes. Reduces need of copy-pasting buffer data around user and kernel space.
+  ###### Links to learn more: [lords of io_uring.Fixed Buffers](https://unixism.net/loti/tutorial/fixed_buffers.html)
+- **Provided Buffer** - Another optimization. Here is user register buffers, and io_uring even handler their indexes.
+  ###### Links to learn more: [man page](https://man7.org/linux/man-pages/man7/io_uring_provided_buffers.7.html)
+- **Buffer Ring** - One more optimization, created specifically to optimize Provided Buffers mechanism.
+  ###### Links to learn more: [man page](https://man7.org/linux/man-pages/man3/io_uring_register_buf_ring.3.html)
+- **Multishot** - Allows one SQE to generate multiple CQE on some trigger-event.
+  ###### Links to learn more: [man page](https://man7.org/linux/man-pages/man7/io_uring_multishot.7.html)
+- **Zero-copy** - Reduces CPU load on copying data between kernel and user-space.
+  ###### Links to learn more: [man page](https://man7.org/linux/man-pages/man3/io_uring_prep_send_zc.3.html)
+
+# Short visualized explanation:
+### `io_uring` provides two shared buffers:
 * Submission Queue - Where apps pushes I/O requests.
 * Completion Queue - Where kernel pushes I/O responses.
 
-### The core difference between this and standard reactor model using epoll is that proactor models provides solutions to reduce system calls for getting result.
-### Also, rings are placed inside shared memory, while epoll is inside kernel memory.
+**The core difference between this and standard reactor model using epoll is that proactor models provides solutions to reduce system calls for getting result.** \
+**Also, rings are placed inside shared memory, while epoll is inside kernel memory.**
+
 Let's look at this difference by looking at diagrams of two phases:
 1. Sending to kernel
 2. Getting result
@@ -64,8 +88,14 @@ Let's look at this difference by looking at diagrams of two phases:
 Those diagrams are showing the simplest configurations of both `epoll` and `uring`.
 Both system can be more optimized by implement alternative for `wake up`, buffer optimizations, setting retires and more from the box.
 
+## Conclusions
+To simplify, we can write schemes like this: \
+epoll:
+> task -> epoll wait for fd -> fd ready -> read() syscall -> done
 
-## Quick Summarize
+io_uring:
+> task -> submit SQE -> kernel did read() syscall -> CQE -> done
+
 | Feature      | Epoll (Reactor)                     | io_uring (Proactor)              |
 |--------------|-------------------------------------|----------------------------------|
 | Notification | "It's ready, you do it."            | "It's done, here is the result." |

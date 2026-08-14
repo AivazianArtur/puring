@@ -6,6 +6,7 @@
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
+#include <structmember.h>
 #include <liburing.h>
 
 #include "python_api/loop/loop.h"
@@ -104,6 +105,17 @@ static PyMethodDef puring_file_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
+static PyMemberDef puring_file_members[] = {
+    {
+        .name = "fd",
+        .type = Py_T_INT,
+        .offset = offsetof(PuringFile, fd),
+        .flags = READONLY,
+        .doc = "file descriptor",
+    },
+    {0},
+};
+
 static PyMethodDef puring_buffer_mode_ctx_methods[] = {
     {"__enter__", (PyCFunction)BufferModeCtx_enter, METH_NOARGS, "Entering context manager"},
     {"__exit__", (PyCFunction)BufferModeCtx_exit, METH_VARARGS, "Closing context manager"},
@@ -154,7 +166,7 @@ static PyType_Spec PuringLoop_spec = {
 };
 
 PyTypeObject PuringFileType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.ops.files.PuringFile",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.File",
     .tp_doc = PyDoc_STR("Puring file adapter"),
     .tp_basicsize = sizeof(PuringFile),
     .tp_itemsize = 0,
@@ -165,10 +177,11 @@ PyTypeObject PuringFileType = {
     .tp_clear = (inquiry)PuringFile_clear,
     .tp_dealloc = (destructor)PuringFile_dealloc,
     .tp_methods = puring_file_methods,
+    .tp_members = puring_file_members,
 };
 
 PyTypeObject PuringSocketType = {
-    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.src.python_api.ops.sockets.PuringSocket",
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0).tp_name = "puring.Socket",
     .tp_doc = PyDoc_STR("Puring socket adapter"),
     .tp_basicsize = sizeof(PuringSocket),
     .tp_itemsize = 0,
@@ -270,31 +283,31 @@ puring_module_exec(PyObject *m) {
     if (PyType_Ready(&PuringExecutionContextCtxType) < 0)
         return -1;
 
-    if (PyModule_AddObjectRef(m, "PuringLoop", type) < 0) {
+    if (PyModule_AddObjectRef(m, "PuringLoop", type) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "File", (PyObject *)&PuringFileType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "File", (PyObject *)&PuringFileType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "Socket", (PyObject *)&PuringSocketType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "Socket", (PyObject *)&PuringSocketType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "BufferModeCtx", (PyObject *)&PuringBufferModeCtxType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "BufferModeCtx", (PyObject *)&PuringBufferModeCtxType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "StreamStrategyCtx", (PyObject *)&PuringStreamStrategyCtxType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "StreamStrategyCtx", (PyObject *)&PuringStreamStrategyCtxType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "TransferModeCtx", (PyObject *)&PuringTransferModeCtxType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "TransferModeCtx", (PyObject *)&PuringTransferModeCtxType) < 0)
         return -1;
-    }
-    if (PyModule_AddObjectRef(m, "ExecutionContextCtx", (PyObject *)&PuringExecutionContextCtxType) < 0) {
+
+    if (PyModule_AddObjectRef(m, "ExecutionContextCtx", (PyObject *)&PuringExecutionContextCtxType) < 0)
         return -1;
-    }
 
     PyObject *resolve_flags = create_resolve_enum();
     if (!resolve_flags)
         return -1;
+
     if (PyModule_AddObject(m, "ResolveFlags", resolve_flags) < 0) {
         Py_DECREF(resolve_flags);
         return -1;

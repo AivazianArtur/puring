@@ -259,11 +259,11 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int backlog = 0;
+    int backlog = 1;
     PyObject *timeout_params_obj = NULL;
 
     static const char *kwlist[] = {"backlog", "timeout_params", NULL};
-    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "i|O", (char **)kwlist, &backlog, &timeout_params_obj))) {
+    if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "|iO", (char **)kwlist, &backlog, &timeout_params_obj))) {
         return NULL;
     }
     TimeoutParams timeout_params = {0};

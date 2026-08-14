@@ -38,22 +38,23 @@ recv_dispatcher(
     TimeoutParams timeout_params
 ) {
     int result;
-    int buf_idx;
+    // int buf_idx;
     switch (buffer_payload->mode) {
-    case FIXED:
-        buf_idx = get_buffer_idx(buffer_payload->idx_registry);
-        buffer_payload->buf_idx = buf_idx;
-        result = puring_recv_fixed(
-            self->loop->ring,
-            request_idx,
-            self->sock_fd,
-            buffer_payload->linear->buffer,
-            buffer_payload->linear->len,
-            is_poll_first,
-            buf_idx,
-            timeout_params
-        );
-        break;
+    // Works on modern distros with Jule2026 path with https://lwn.net/Articles/1077014/
+    // case FIXED:
+    //     buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+    //     buffer_payload->buf_idx = buf_idx;
+    //     result = puring_recv_fixed(
+    //         self->loop->ring,
+    //         request_idx,
+    //         self->sock_fd,
+    //         buffer_payload->linear->buffer,
+    //         buffer_payload->linear->len,
+    //         is_poll_first,
+    //         buf_idx,
+    //         timeout_params
+    //     );
+    //     break;
     case PROVIDED:
     case BUF_RING:
         if (stream_strategy == MULTISHOT) {
@@ -80,6 +81,7 @@ recv_dispatcher(
         break;
     case NORMAL_BUF:
     case BUF_NO_VAL:
+    case FIXED: // TEMP
     default:
         result = puring_recv(
             self->loop->ring,
@@ -105,22 +107,23 @@ recvmsg_dispatcher(
     TimeoutParams timeout_params
 ) {
     int result;
-    int buf_idx;
+    // int buf_idx;
     switch (buffer_payload->mode) {
-    case FIXED:
-        buf_idx = get_buffer_idx(buffer_payload->idx_registry);
-        buffer_payload->buf_idx = buf_idx;
-        result = puring_recvmsg_fixed(
-            self->loop->ring,
-            request_idx,
-            self->sock_fd,
-            buffer_payload->vector->iovecs,
-            (unsigned int)buffer_payload->vector->nr_vecs,
-            is_poll_first,
-            buf_idx,
-            timeout_params
-        );
-        break;
+    // Same as for recv
+    // case FIXED:
+    //     buf_idx = get_buffer_idx(buffer_payload->idx_registry);
+    //     buffer_payload->buf_idx = buf_idx;
+    //     result = puring_recvmsg_fixed(
+    //         self->loop->ring,
+    //         request_idx,
+    //         self->sock_fd,
+    //         buffer_payload->vector->iovecs,
+    //         (unsigned int)buffer_payload->vector->nr_vecs,
+    //         is_poll_first,
+    //         buf_idx,
+    //         timeout_params
+    //     );
+    //     break;
     case PROVIDED:
     case BUF_RING:
         if (stream_strategy == MULTISHOT) {
@@ -141,6 +144,7 @@ recvmsg_dispatcher(
         break;
     case NORMAL_BUF:
     case BUF_NO_VAL:
+    case FIXED: // TEMP
     default:
         result = puring_recvmsg(
             self->loop->ring,

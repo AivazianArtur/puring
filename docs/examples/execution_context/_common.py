@@ -15,20 +15,18 @@ async def simple_socket_example():
     await server_sock.listen(1)
     print(f'Server listening on {HOST}:{PORT}')
 
-    accept_future = server_sock.accept()
     client_sock = await puring.prep_socket()
 
     await client_sock.connect(HOST, PORT)
     print('Client connected')
 
-    server_conn = await accept_future
+    server_conn = await server_sock.accept()
     print(f'{server_conn = }')
     message = b'Hello from client!'
     await client_sock.send(message)
     print(f'Client sent message')
 
-    received_data_r = server_conn.recv()
-    received_data = await received_data_r
+    received_data = await server_conn.recv()
 
     result = received_data.decode()
     print(f'Server received: {result}')
@@ -38,3 +36,21 @@ async def simple_socket_example():
     await server_conn.close()
     await server_sock.close()
     print('Sockets closed')
+
+
+TEMPFILE = 'docs/assets/tempfile.txt'
+async def simple_file_example():
+    async with await puring.open_file(path=TEMPFILE) as uring_file:
+        print('File opened, fd:', uring_file)
+
+        data = b'Hello, puring!\n'
+        bytes_written = await uring_file.write(data=data)
+        print('Bytes written:', bytes_written)
+
+        read_data = await uring_file.read()
+
+        result = read_data.decode()
+        print('Read data:', result)
+        assert result == data.decode()
+
+    print('File closed')

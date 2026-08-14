@@ -455,6 +455,62 @@ ExecutionContextCtx_enter(ExecutionContextCtx *self, PyObject *Py_UNUSED(ignored
         PyErr_SetString(PyExc_ValueError, "Error while setting contextvar");
         return NULL;
     }
+
+    struct io_uring_buf_ring *buf_ring;
+    switch (self->buffer_payload->mode) {
+    case FIXED:
+        if (init_fixed_mode(
+                self->loop->ring, self->buffer_payload->vector->iovecs, self->buffer_payload->vector->nr_vecs
+            ) < 0) {
+            ContextVar_reset(token);
+            Py_DECREF(token);
+            PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize fixed buffers");
+            return NULL;
+        };
+        FixedBufferIdxRegistry *buffer_idx_registry = buffer_idx_registry_create(
+            (unsigned int)self->buffer_payload->amount
+        );
+        if (!buffer_idx_registry) {
+            ContextVar_reset(token);
+            Py_DECREF(token);
+            PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize provided buffers");
+            return NULL;
+        }
+
+        self->buffer_payload->idx_registry = buffer_idx_registry;
+        self->buffer_payload->vector = NULL;
+        self->buffer_payload->payload_type = PAYLOAD_LINEAR;
+        break;
+    case PROVIDED:
+        if (init_provided_mode(
+                self->loop->ring,
+                self->buffer_payload->linear->buffer,
+                (int)self->buffer_payload->linear->len,
+                self->buffer_payload->amount,
+                self->buffer_payload->bgid
+            ) < 0) {
+            PyErr_SetString(PyExc_RuntimeWarning, "Can not initialize provided buffers");
+            ContextVar_reset(token);
+            Py_DECREF(token);
+            return NULL;
+        }
+        break;
+    case BUF_RING:
+        buf_ring = init_buf_ring_mode(
+            self->loop->ring,
+            self->buffer_payload->linear->buffer,
+            (int)self->buffer_payload->linear->len,
+            self->buffer_payload->amount,
+            self->buffer_payload->bgid
+        );
+        self->buffer_payload->buf_ring = buf_ring;
+        break;
+    case BUF_NO_VAL:
+    case NORMAL_BUF:
+    default: // do nothing
+        ;
+    }
+
     self->token = token;
     Py_INCREF(self);
     return self;

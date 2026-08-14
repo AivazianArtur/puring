@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Python.h"
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
 #include "python_api/loop/loop.h"
 
 #include "macroses.h"
 #include "python_macroses.h"
-#include "queue_events/sqe/sqe.h"
+#include "ring/ring.h"
 
 PyObject *
 PuringLoop_timer(PyObject *self, PyObject *args, PyObject *kwargs);

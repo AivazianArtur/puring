@@ -39,3 +39,6 @@ void
 ring_destroy(struct io_uring *ring);
 int
 ring_prep_wakeup_read(struct io_uring *ring, int wakeup_fd, uint64_t *wakeup_buf);
+
+struct io_uring_sqe *
+create_sqe(struct io_uring *ring);

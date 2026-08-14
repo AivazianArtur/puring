@@ -8,7 +8,7 @@
 #include "python_api/execution_context/execution_context_enums.h"
 #include "python_api/buffers/buffers.h"
 
-#define DEFAULT_REGISTRY_SIZE 1024 * 10
+#define DEFAULT_REGISTRY_SIZE 25000
 
 typedef struct PuringSocket PuringSocket;
 typedef struct PuringFile PuringFile;

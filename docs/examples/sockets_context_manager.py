@@ -15,12 +15,11 @@ async def main():
         await server_sock.listen(1)
         print(f'Server listening on {HOST}:{PORT}')
 
-        accept_future = server_sock.accept()
-
         async with await puring.prep_socket() as client_sock:
             await client_sock.connect(HOST, PORT)
             print('Client connected')
 
+            accept_future = server_sock.accept()
             async with await accept_future as server_conn:
                 print(f'{server_conn = }')
 
