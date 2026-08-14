@@ -3,10 +3,9 @@
 ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FAivazianArtur%2Fpuring%2Frefs%2Fheads%2Fmain%2Fpyproject.toml) \
 ![GitHub Release](https://img.shields.io/github/v/release/AivazianArtur/puring)
 
-Puring allows true asynchronous file i/o natively for Python by bringing Event Loop based on [io_uring](https://unixism.net/loti/). Implemented in CPython.
+Puring brings true asynchronous file I/O to Python with a native event loop built on [io_uring](https://unixism.net/loti/), implemented directly in CPython.
 
-⚠️ Currently in active development phase, so API and internals may change and will be expanded.
-
+⚠️ Currently in active development, so API and internals may change and will be evolved.
 
 ## Quick Examples:
 ### Files:
