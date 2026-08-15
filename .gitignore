@@ -5,6 +5,7 @@ dist/
 .vscode/
 .idea/
 .pytest_cache/
+.wheelhouse/
 __pycache__/
 *.pyc
 *.pyo
