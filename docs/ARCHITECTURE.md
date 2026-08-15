@@ -55,19 +55,25 @@ Structure of this project is trying to be simple - we have pure c-layer and pure
 - Python-layer - By analogy it is layer, written with usage of CPython API and CPython objects.
 - Layer in between - for now here is really only one thing - registry. It is container to hold objects in between. I wish i could say that in between C-layer and Python-layer, but the meaning is not so. We are working with async nature and giving control of the operations to kernel, so we can do our things. To map the result of kernel with what was intended we need some sort of storage - this is registry. 
 
-### More project structure explanation. If you're not interested in contributing, you can [jump to next section](#python-objects)
+**More project structure explanation. If you're not interested in contributing, you can [jump to next section](#python-objects)**
 
-1. `Ring` \
+#### `Ring`
+
 Code is inside `/src/ring` folder, where you can find:
+
 - ring.c - contains initializer and destroyer of ring; and part of ring initialization separated into its own method.
-- sqe_helper.c - contains little wrapper for general SQE creation. \
-All methods inside `ring.c` are only part of the `loop` initialization and destruction process. \
+- sqe_helper.c - contains little wrapper for general SQE creation.
+
+All methods inside `ring.c` are only part of the `loop` initialization and destruction process.
+
 `SQE helper` is spread across C-layer objects only.
 
 > Lays entirely in C-layer.
 
-2. `Loop` \
+#### `Loop`
+
 Code is inside `src/python_api/loop`, where you can find:
+
 - loop.h - Defines `PuringLoop` object.
 - loop.c - API for `PuringLoop` and redefinitions of `BaseEventLoop` methods.
 - shutdown.c - Contains methods for shutting down the `PuringLoop`.
@@ -77,62 +83,72 @@ Code is inside `src/python_api/loop`, where you can find:
 > Initialization of most objects is happening inside `PuringLoop` construction and initialization, so desctruction too.
 > Lays entirely in Python-layer.
 
-3. `Reader` \
+#### `Reader`
+
 Code is inside `src/python_api/reader`, where is only:
+
 - on_ready.h - Handler of `Completion Queue` - serializing `CQE` results and setting asyncio feature result by mapping them via `registry`.
 
 > Lays entirely in Python-layer.
 
-4. `Registry` \
+#### `Registry`
+
 Code is inside `src/registry`, where you can see:
+
 - registry.h - Defines `RequestRegistry` and `RequestSlot` objects, that are spread around whole project, but mainly is Python API functions. They are internal objects, and its important to know what is inside these objects.
 - registry.c - Internal API for registry, works in O(1) Time complexity.
 
 > The only domain intended to be in between c and python layers.
 
-5. `OPS` \
+#### `OPS`
+
 Code is inside `src/ops/` AND `src/python_api/ops`. There you can see `Socket` subdomain and `File` subdomain.
+
 - `Socket`:
-  - src/ops/sockets/ 
-    - sockets.c - C API handlers for socket OPS
-    - fixed.c - C API handlers for socket OPS in Fixed buffer mode
-    - buffer_select.c - C API handlers for socket OPS in Provided and Buffer Ring buffer modes
-    - multishot.c - C API handlers for socket multishot OPS.
-    - zerocopy.c - C API handlers for socket zerocopy OPS.
-  - src/python_api/ops/sockets/
-    - sockets.h - Defines `Socket` object as `PuringSocket` struct.
-    - sockets.c - Public API handler for all socket operations.
-    - socket_ops_dispatcher.c - Helper functions to dispatch between same socket operations in different execution context.
-    - _helpers.c - Some utility helpers, mostly validators.
+    - src/ops/sockets/ 
+        - sockets.c - C API handlers for socket OPS
+        - fixed.c - C API handlers for socket OPS in Fixed buffer mode
+        - buffer_select.c - C API handlers for socket OPS in Provided and Buffer Ring buffer modes
+        - multishot.c - C API handlers for socket multishot OPS.
+        - zerocopy.c - C API handlers for socket zerocopy OPS.
+    - src/python_api/ops/sockets/
+        - sockets.h - Defines `Socket` object as `PuringSocket` struct.
+        - sockets.c - Public API handler for all socket operations.
+        - socket_ops_dispatcher.c - Helper functions to dispatch between same socket operations in different execution context.
+        - _helpers.c - Some utility helpers, mostly validators.
 - `File`:
-  - src/ops/files/
-    - files.c - C API handler for file OPS
-    - fixed.c - C API handler for file OPS in Fixed buffer mode
-    - buffer_select.c - C API handler for file OPS in Provided and Buffer Ring modes
-    - zerocopy.c - C API handler for file zerocopy OPS
-  - src/python_api/ops/files/
-    - files.h - Defines `File` object as `PuringFile` struct. 
-    - enums.c - Defines `ResolveFlags`, `StatxFlags` and `StatxMask` Enums for `open` operation and for now not implemented `statx` operation.
-    - files.c - Public API handler for all file operations
-    - files_ops_dispatcher.c - Helper functions to dispatch between same file operations in different execution context
-    - _helpers.c - Intended for some utility functions, for now there is only one for raising chain of exceptions
+     - src/ops/files/
+         - files.c - C API handler for file OPS
+         - fixed.c - C API handler for file OPS in Fixed buffer mode
+         - buffer_select.c - C API handler for file OPS in Provided and Buffer Ring modes
+         - zerocopy.c - C API handler for file zerocopy OPS
+    - src/python_api/ops/files/
+         - files.h - Defines `File` object as `PuringFile` struct. 
+         - enums.c - Defines `ResolveFlags`, `StatxFlags` and `StatxMask` Enums for `open` operation and for now not implemented `statx` operation.
+         - files.c - Public API handler for all file operations
+         - files_ops_dispatcher.c - Helper functions to dispatch between same file operations in different execution context
+         - _helpers.c - Intended for some utility functions, for now there is only one for raising chain of exceptions
 
  > This domain is mirrored in both c-layer and python-layer
 
-6. `Buffer` \
+#### `Buffer`
+
 Code is inside `src/python_api/buffers/` and `src/buffer_controllers/`, where we can see:
+
 - src/python_api/buffers/
-  - buffers.h - No external objects to use from Python is here, but there is one important internal object, wrapper of buffers - `BufferPayload`.
-  - buffers.c - Internal functions for different to wrap buffers in `BufferPayload` object. Some buffers are user inputs, other created by system. Buffer can be `linear` or `vectored`(iovecs), but `BufferPayload` *can* store both.
+    - buffers.h - No external objects to use from Python is here, but there is one important internal object, wrapper of buffers - `BufferPayload`.
+    - buffers.c - Internal functions for different to wrap buffers in `BufferPayload` object. Some buffers are user inputs, other created by system. Buffer can be `linear` or `vectored`(iovecs), but `BufferPayload` *can* store both.
 - src/buffer_controllers/
-  - buffer_controllers.h - Define IndexRegistry object for Fixed buffer mode - `FixedBufferIdxRegistry`.
-  - buffer_index.c - Internal API for `FixedBufferIdxRegistry`, works in O(1) Time complexity and built same way as main `Registry`.
-  - buffer_modes.c - There is `io_uring` concept - `BufferMode`. This is handler to create and destroy all types of `BufferMode`.
+    - buffer_controllers.h - Define IndexRegistry object for Fixed buffer mode - `FixedBufferIdxRegistry`.
+    - buffer_index.c - Internal API for `FixedBufferIdxRegistry`, works in O(1) Time complexity and built same way as main `Registry`.
+    - buffer_modes.c - There is `io_uring` concept - `BufferMode`. This is handler to create and destroy all types of `BufferMode`.
 
 > This domain is in both c-layer and python-layer, but not mirrored between themselves.
 
-7. `ExecutionContext` \
+#### `ExecutionContext`
+
 Code is inside `src/python/api/execution_context/`
+
 - execution_context.h - Provides important internal struct `ExecutionContext` and defines 4 Python object to operate inside context manager - `BufferModeCtx`, `StreamStrategyCtx`, `TransferModeCtx`, `ExecutionContextCtx`. All 4 are running execution context or only one dimension of execution context.
 - execution_context.c - Public API of context managers - `BufferModeCtx`, `StreamStrategyCtx`, `TransferModeCtx`, `ExecutionContextCtx`.
 - contextvar.c - To run execution context there is solution to use Python's `ContextVar`. Here lays controller of special `ContextVar` for `ExecutionContext`.
@@ -141,8 +157,10 @@ Code is inside `src/python/api/execution_context/`
 
 > Lays entirely in Python-layer.
 
-8. `Timer` \
+#### `Timer`
+
 Code is inside `src/timer` and `src/python_api/timer`, where we can see:
+
 - src/timer/
   - timer.c - C handler for timer operation and for timeout operation marking.
 - src/python_api/timer/
@@ -151,24 +169,25 @@ Code is inside `src/timer` and `src/python_api/timer`, where we can see:
 
 > This domain is partly mirrored in both c-layer and python-layer
 
-9. `Signals` \
+#### `Signals`
+
 Code is inside `src/python_api/signals` and `src/signals`, where we can see everything related. There is space to separate on CPython-layer and C-layer
 
 ## Python objects
 - Main:
-  - PuringLoop - Main object of library, by the way, users would not interact a lot with it. With initialization of loop there is initialization of all io_uring objects. Child of `BaseEventLoop` object with redefinition of loop's reader. For now custom reader is not really supporting every async operation through `io_uring` rings.
-  - File, internally is `PuringFile`. There is its own methods for every file operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Every operation is supported in `puring`, and `io_uring` specific operations, like `read` with `BUFFER_SELECT` `Buffer Mode`.
-  - Socket, internally is `PuringSocket`. There are its own methods for every socket operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Almost every(for now) operation is supported in `puring`, and `io_uring` specific operations, like `accept` with `MULTISHOT` `StreamStrategy`.
+    - PuringLoop - Main object of library, by the way, users would not interact a lot with it. With initialization of loop there is initialization of all io_uring objects. Child of `BaseEventLoop` object with redefinition of loop's reader. For now custom reader is not really supporting every async operation through `io_uring` rings.
+    - File, internally is `PuringFile`. There is its own methods for every file operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Every operation is supported in `puring`, and `io_uring` specific operations, like `read` with `BUFFER_SELECT` `Buffer Mode`.
+    - Socket, internally is `PuringSocket`. There are its own methods for every socket operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Almost every(for now) operation is supported in `puring`, and `io_uring` specific operations, like `accept` with `MULTISHOT` `StreamStrategy`.
 - Helpers:
-  - BufferModeCtx - Special object to implement Pythons context manager of `BufferMode`
-  - StreamStrategyCtx - Special object to implement Pythons context manager of `StreamStrategy`
-  - TransferModeCtx - Special object to implement Pythons context manager of `TransferMode`
-  - ExecutionContextCtx - Special object to implement special context manager, that includes inside itself previous 3.
+    - BufferModeCtx - Special object to implement Pythons context manager of `BufferMode`
+    - StreamStrategyCtx - Special object to implement Pythons context manager of `StreamStrategy`
+    - TransferModeCtx - Special object to implement Pythons context manager of `TransferMode`
+    - ExecutionContextCtx - Special object to implement special context manager, that includes inside itself previous 3.
 - Enums:
-  - BUFFER_MODE - Enumeration of all possible `buffer mode`s variations, including `NORMAL` mode.
-  - STREAM_STRATEGY - Enumeration of all possible `stream strategy`s variations, including `NORMAL` mode.
-  - TRANSFER_MODE - Enumeration of all possible `transfer mode`s variations, including `NORMAL` mode.
-  - PAYLOAD_TYPE - Enumeration of buffer types - could be `LINEAR`, `IOVECS` or both. Users mainly don't need this, as it detect automatically. But in some cases it could be useful.
-  - Resolve Flags - Is using for `File.open()` method only.
-  - Statx Flags - Flags for staticx operation. I tried to implement statx operation but faced some troubles, and in favour of time decided to delete method and implement it later, but to leave this enums for it. 
-  - StatxMask - Flags for statx operation. I tried to implement statx operation but faced some troubles, and in favour of time decided to delete method and implement it later, but to leave this enums for it. 
+    - BUFFER_MODE - Enumeration of all possible `buffer mode`s variations, including `NORMAL` mode.
+    - STREAM_STRATEGY - Enumeration of all possible `stream strategy`s variations, including `NORMAL` mode.
+    - TRANSFER_MODE - Enumeration of all possible `transfer mode`s variations, including `NORMAL` mode.
+    - PAYLOAD_TYPE - Enumeration of buffer types - could be `LINEAR`, `IOVECS` or both. Users mainly don't need this, as it detect automatically. But in some cases it could be useful.
+    - Resolve Flags - Is using for `File.open()` method only.
+    - Statx Flags - Flags for staticx operation. I tried to implement statx operation but faced some troubles, and in favour of time decided to delete method and implement it later, but to leave this enums for it. 
+    - StatxMask - Flags for statx operation. I tried to implement statx operation but faced some troubles, and in favour of time decided to delete method and implement it later, but to leave this enums for it. 

@@ -1,0 +1,49 @@
+site_name: puring
+site_description: High-performance io_uring wrapper for Python
+repo_url: https://github.com/AivazianArtur/puring
+
+docs_dir: docs_site
+site_dir: site
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - User Guide: user-guide.md
+  - Architecture: architecture.md
+  - Development: development.md
+  - API Reference:
+      - Overview: api.md
+      - PuringLoop: api/loop.md
+      - File: api/file.md
+      - Socket: api/socket.md
+      - Context Managers: api/context-managers.md
+      - Enums: api/enums.md
+      - Module Functions: api/module-functions.md

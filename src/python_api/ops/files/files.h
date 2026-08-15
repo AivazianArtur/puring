@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <linux/openat2.h>
+#ifndef RESOLVE_CACHED
+#define RESOLVE_CACHED 0x20
+#endif
 
 #include <liburing.h>
 

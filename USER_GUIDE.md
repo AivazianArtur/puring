@@ -1,4 +1,4 @@
-#### See more examples in [docs/examples](docs/examples)
+#### See more examples in [docs/examples](https://github.com/AivazianArtur/puring/tree/main/docs/examples)
 
 ## Installation
 First off, install library with
@@ -18,12 +18,13 @@ with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
 ## `File` and `Socket` Operations
 ### `File` operations
 `puring.File` object acts as interface to true asynchronous file operations in Python.
-**See full File API TODO: [locally]() and [remotely]()**
+**See full [File API](docs/API.md)**
 
 You can import it by
 > from puring import File
 
 Let's create simple example of writing and reading from file:
+
 1. Open file asynchronously
 > file = await puring.open_file(path='path/to/file.txt')
 2. Write to file, asynchronously. Better use bytes in v0.4.0
@@ -75,12 +76,13 @@ with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
 
 ### `Socket` operations
 `puring.Socket` object acts as interface to asynchronous socket operations in Python using `io_uring`, not `epoll`.
-**See full File API TODO: [locally]() and [remotely]()**
+**See full [Socket API](docs/API.md)**
 
 You can import it by
 > from puring import Socket
 
 Let's create simple example of sending message from one socket to another:
+
 1. Prepare socket
 > socket = await puring.prep_socket()
 2. Bind to socket
@@ -122,8 +124,10 @@ async def socket_simple_example():
 
 asyncio.run(socket_simple_example(), loop_factory=puring.PuringLoop)
 ```
-The example above creates two sockets: one for the server and one for the client. \
-The server socket is bound to `127.0.0.1:12878` and starts listening for incoming connections. \
+The example above creates two sockets: one for the server and one for the client.
+
+The server socket is bound to `127.0.0.1:12878` and starts listening for incoming connections.
+
 The client then connects to the server, after which the server accepts the connection and receives the message sent by the client.
 
 You can also use `asyncio.Runner` when you need more control over the event loop:
@@ -152,7 +156,8 @@ asyncio.run(socket_simple_example(), loop_factory=puring.PuringLoop)
 ```
 
 ## Execution Context
-To use advanced features, use different types of context managers.\
+To use advanced features, use different types of context managers.
+
 **Note that not all operations are supported in every context, but it will automatically dispatched to supported operation**
 
 ### TransferMode
@@ -181,8 +186,9 @@ There is `ONESHOT` and `MULTISHOT` values in `STREAM_STRATEGY` Enum
 
 ### BufferMode
 To use operations in zero-copy mode, use `PuringLoop.buffer_mode` context manager with `puring.BUFFER_MODE` Enum:
-#### Fixed buffer mode:
-**Note, FIXED buffer mode currently working only with files**
+#### Fixed buffer mode
+> Note, FIXED buffer mode currently working only with files
+
 ```python
 async def buffer_mode():
     loop = asyncio.get_running_loop()

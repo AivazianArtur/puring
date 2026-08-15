@@ -1,11 +1,31 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=72", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "puring"
 version = "0.3.0"
 requires-python = ">=3.12"
+authors = [
+  {name = "Aivazian Artur", email = "arcanwrok@gmail.com"},
+  {email = "aivazian.artur.artakovich@gmail.com"},
+]
+maintainers = [
+  {name = "Aivazian Artur", email = "arcanwrok@gmail.com"}
+]
+description = "High-Performance io_uring wrapper for Python"
+readme = "README.md"
+license = "Apache-2.0"
 
 [tool.setuptools]
-packages = []
+packages = ["puring-stubs"]
+
+[tool.setuptools.package-data]
+"puring-stubs" = ["py.typed", "*.pyi"]
+
+[tool.cibuildwheel]
+build = "cp312-* cp313-* cp314-*"
+skip = "*-musllinux_*"
+
+
+test-command = "python -c \"import puring\""

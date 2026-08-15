@@ -1,0 +1,36 @@
+name: Deploy docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "README.md"
+      - "USER_GUIDE.md"
+      - "docs/**"
+      - "mkdocs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install mkdocs-material
+        run: python -m pip install mkdocs-material
+
+      - name: Create symlinked docs_site
+        run: bash setup_symlinks.sh
+
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force

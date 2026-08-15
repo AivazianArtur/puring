@@ -1,13 +1,17 @@
 # Tested on Fedora 43
 
-LIBURING_DIR := requirements/liburing
+LIBURING_DIR := vendor/liburing
 LIBURING_LIB := $(LIBURING_DIR)/src/liburing.a
+STUBS_DIR := puring-stubs
+STUBTEST_ALLOWLIST := stubtest_allowlist.txt
 
 PYTHON := python3
 VENV := .venv
 PIP := $(VENV)/bin/pip
 PY := $(VENV)/bin/python
 VENV_STAMP := $(VENV)/.stamp
+CIBUILDWHEEL := $(PY) -m cibuildwheel
+WHEELHOUSE := wheelhouse
 
 EXAMPLES_DIR := docs/examples
 TESTS_DIR := tests
@@ -65,10 +69,10 @@ CTESTS_INCLUDES := \
     -I $(SRC)/buffer_controllers \
     -I $(SRC)/ring \
     -I $(SRC)/timer \
-    -isystem requirements/liburing/include \
-    -isystem requirements/liburing/src/include \
-    -isystem requirements/liburing/src \
-    -isystem requirements/liburing
+    -isystem vendor/liburing/include \
+    -isystem vendor/liburing/src/include \
+    -isystem vendor/liburing/src \
+    -isystem vendor/liburing
 
 ASAN_LIB := $(shell \
 	if command -v ldconfig >/dev/null 2>&1; then \
@@ -98,17 +102,28 @@ check-submodule:
 		echo "Error: Failed to initialize submodule."; \
 		exit 1; \
 	fi
+	@if [ ! -f "$(LIBURING_DIR)/src/include/liburing/compat.h" ]; then \
+		echo "liburing not configured. Running configure..."; \
+		cd $(LIBURING_DIR) && ./configure; \
+	fi
 
 
 $(VENV_STAMP): Makefile
 	@echo "Creating/updating virtualenv..."
 	$(PYTHON) -m venv $(VENV)
-	$(PIP) install --upgrade pip setuptools wheel build pytest
+	$(PIP) install --upgrade pip setuptools wheel cibuildwheel pytest mypy twine build
 	touch $(VENV_STAMP)
 
 
 venv: install-python-venv $(VENV_STAMP)
 
+stage: venv
+	@echo "Building Linux wheels with cibuildwheel..."
+	rm -rf $(WHEELHOUSE)
+	$(CIBUILDWHEEL) --platform linux --output-dir $(WHEELHOUSE)
+	@echo ""
+	@echo "Wheels:"
+	@ls -lh $(WHEELHOUSE)
 
 ifeq ($(PKG_MANAGER),apt)
 install-python-venv:
@@ -174,7 +189,7 @@ endif
 
 $(LIBURING_LIB): check-submodule
 	@echo "Building liburing..."
-	$(MAKE) -C $(LIBURING_DIR)
+	CFLAGS= LDFLAGS= $(MAKE) -C $(LIBURING_DIR) library
 
 
 deps: install-python-dev venv $(LIBURING_LIB)
@@ -376,9 +391,9 @@ test-c-registry-asan: $(LIBURING_LIB)
 	./$(CTESTS_REGISTRY_BIN)_asan; status=$$?; rm -f $(CTESTS_REGISTRY_BIN)_asan; exit $$status
 	@echo "========"
 
-test-all: test-python test-c-files test-c-sockets test-c-buffers test-c-registry
+test-all: test-python test-c-files test-c-sockets test-c-buffers test-c-registry stubs-check
 	@echo "========"
-	@echo "All tests (Python + C) passed"
+	@echo "All tests (Python + C + stubs) passed"
 	@echo "========"
 
 test-all-asan: test-python-asan test-c-files-asan test-c-sockets-asan test-c-buffers-asan test-c-registry-asan
@@ -417,10 +432,10 @@ lint-aggressive: dev-deps
 	-Wfloat-equal \
 	-fstack-protector-strong \
 	-fno-omit-frame-pointer \
-	-isystem requirements/liburing/include \
-	-isystem requirements/liburing/src/include \
-	-isystem requirements/liburing/src \
-	-isystem requirements/liburing" \
+	-isystem vendor/liburing/include \
+	-isystem vendor/liburing/src/include \
+	-isystem vendor/liburing/src \
+	-isystem vendor/liburing" \
 	$(PY) setup.py build_ext --inplace
 
 	@echo "========"
@@ -446,6 +461,50 @@ lint-cppcheck: dev-deps
 
 	@echo "========"
 
+DOCS_STAMP := $(VENV)/.docs-stamp
+
+$(DOCS_STAMP): $(VENV_STAMP)
+	@echo "Installing mkdocs-material..."
+	$(PIP) install mkdocs-material
+	touch $(DOCS_STAMP)
+
+docs-deps: venv $(DOCS_STAMP)
+
+docs-serve: docs-deps
+	bash setup_symlinks.sh
+	$(PY) -m mkdocs serve
+
+stubtest: install
+	@echo "START STUBTEST[.pyi vs runtime API]"
+	@echo "--------"
+	$(PY) -m mypy.stubtest puring \
+		--allowlist $(STUBTEST_ALLOWLIST) \
+		--concise
+	@echo "========"
+
+check-stubs: install
+	@echo "START MYPY[examples against stubs]"
+	@echo "--------"
+	$(PY) -m mypy --strict $(EXAMPLES_DIR)
+	@echo "========"
+
+stubs-check: stubtest check-stubs
+
+
+sdist: venv
+	$(PY) -m build --sdist
+
+dist-check: stage sdist
+	@echo "START TWINE CHECK"
+	@echo "--------"
+	$(PY) -m twine check $(WHEELHOUSE)/*.whl dist/*.tar.gz
+	@echo "========"
+
+publish-test: dist-check
+	$(PY) -m twine upload --repository testpypi $(WHEELHOUSE)/*.whl dist/*.tar.gz
+
+publish: dist-check
+	$(PY) -m twine upload $(WHEELHOUSE)/*.whl dist/*.tar.gz
 
 clean:
 	rm -rf build dist *.egg-info $(VENV)
@@ -460,10 +519,13 @@ help:
 	@echo "  make clean                - clean everything"
 	@echo ""
 	@echo "── Lint ────────────────────────────────────────"
-	@echo "  make lint         - check code with linter and formatter. 
+	@echo "  make lint         - check code with linter and formatter.
 	@echo ""
 	@echo "── Examples ────────────────────────────────────────"
 	@echo "  make run-examples         - run all docs/examples/*.py under ASan"
+	@echo ""
+	@echo "── Docs ────────────────────────────────────────────"
+	@echo "  make docs-serve           - serve mkdocs site locally at 127.0.0.1:8000"
 	@echo ""
 	@echo "── Tests ───────────────────────────────────────────"
 	@echo "  make test-python                 - run pytest (Python only)"
@@ -482,11 +544,13 @@ help:
 	@echo "── Sanitizers ─────────────────────────────────────"
 	@echo "  ASAN_LIB=$(ASAN_LIB)"
 
-.PHONY: all deps dev-deps build install clean help check-submodule venv \
+.PHONY: all deps dev-deps build stage install clean help check-submodule venv \
         install-python-venv install-python-dev install-dev-tools \
         run-examples sanitize test-python test-python-asan test-python-asan-one \
         build-c-tests-files build-c-tests-sockets build-c-tests-buffers build-c-tests-registry \
         test-c-files test-c-files-asan test-c-sockets test-c-sockets-asan \
         test-c-buffers test-c-buffers-asan test-c-registry test-c-registry-asan \
         test-all test-all-asan \
-        lint lint-formatter lint-aggressive lint-cppcheck
+        lint lint-formatter lint-aggressive lint-cppcheck \
+        stubtest check-stubs stubs-check sdist dist-check publish publish-test \
+        docs-deps docs-serve
