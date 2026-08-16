@@ -18,8 +18,8 @@ readme = "README.md"
 license = {file = "LICENSE"}
 
 [project.urls]
-Homepage = "https://example.com"
-Documentation = "https://readthedocs.org"
+#Homepage = "https://example.com"
+#Documentation = "https://readthedocs.org"
 Repository = "https://github.com/AivazianArtur/puring.git"
 Issues = "https://github.com/AivazianArtur/puring/issues"
 Changelog = "https://github.com/AivazianArtur/puring/blob/main/CHANGELOG.md"
