@@ -1,11 +1,13 @@
-#### See more examples in [docs/examples](https://github.com/AivazianArtur/puring/tree/main/docs/examples)
+# User guide
 
-## Installation
+**See more examples in [docs/examples](https://github.com/AivazianArtur/puring/tree/main/docs/examples)**
+
+### Installation
 First off, install library with
 ```python
 pip install puring
 ```
-## Initialize `PuringLoop`
+### Initialize `PuringLoop`
 To start using `puring` user need to initialize special `io_uring` loop - `PuringLoop` \
 Its quite simple:
 ```python
@@ -18,8 +20,8 @@ with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
     runner.run(main())
 ```
 
-## `File` and `Socket` Operations
-### `File` operations
+### `File` and `Socket` Operations
+#### `File` operations
 `puring.File` object acts as interface to true asynchronous file operations in Python.
 **See full [File API](docs/API.md)**
 
@@ -56,7 +58,8 @@ async def file_simple_example():
     await file.close()
 ```
 
-**Important note** - you can await this function only with new `PuringLoop` loop. \
+**Important note** - you can await this function only with new `PuringLoop` loop.
+
 See how easy it is actually to combine everything we know so far:
 ```python
 import puring
@@ -87,7 +90,7 @@ with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
     runner.run(file_simple_example())
 ```
 
-### `Socket` operations
+#### `Socket` operations
 `puring.Socket` object acts as interface to asynchronous socket operations in Python using `io_uring`, not `epoll`.
 **See full [Socket API](docs/API.md)**
 
@@ -185,12 +188,12 @@ async def socket_simple_example():
 asyncio.run(socket_simple_example(), loop_factory=puring.PuringLoop)
 ```
 
-## Execution Context
+### Execution Context
 To use advanced features, use different types of context managers.
 
 **Note that not all operations are supported in every context, but it will automatically dispatched to supported operation**
 
-### TransferMode
+#### TransferMode
 To use operations in zero-copy mode, use `PuringLoop.transfer_mode` context manager, with `puring.TRANSFER_MODE` Enum:
 ```python
 async def transfer_mode():
@@ -202,7 +205,7 @@ asyncio.run(transfer_mode(), loop_factory=puring.PuringLoop)
 ```
 There are `NORMAL` and `ZERO_COPY` values in `TRANSFER_MODE` Enum
 
-### StreamStrategy
+#### StreamStrategy
 To use Multishot operations, use `stream_strategy` context manager, with `puring.STREAM_STRATEGY` Enum. In v0.4.0 its better to not use it: 
 ```python
 async def stream_strategy():
@@ -214,9 +217,9 @@ asyncio.run(stream_strategy(), loop_factory=puring.PuringLoop)
 ```
 There are `ONESHOT` and `MULTISHOT` values in `STREAM_STRATEGY` Enum
 
-### BufferMode
+#### BufferMode
 To use operations in zero-copy mode, use `PuringLoop.buffer_mode` context manager with `puring.BUFFER_MODE` Enum:
-#### Fixed buffer mode
+##### Fixed buffer mode
 > Note, FIXED buffer mode currently working only with files
 
 ```python
@@ -231,7 +234,7 @@ asyncio.run(buffer_mode(), loop_factory=puring.PuringLoop)
 
 There are `NORMAL`, `FIXED`, `PROVIDED` and `BUF_RING` values in `BUFFER_MODE` Enum
 
-### ExecutionContext
+#### ExecutionContext
 To set context manager with different types of all regimes above - use `PuringLoop.execution_context` context manager:
 ```python
 async def execution_context():

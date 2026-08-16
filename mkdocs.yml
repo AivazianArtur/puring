@@ -25,8 +25,10 @@ markdown_extensions:
 nav:
   - Home: index.md
   - User Guide: user-guide.md
+  - Shortly about io_uring: io-uring.md
   - Architecture: architecture.md
   - Development: development.md
+  - Benchmark analysis: benchmarks-analysis.md
   - API Reference:
       - Overview: api.md
       - PuringLoop: api/loop.md

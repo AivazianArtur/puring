@@ -1,4 +1,6 @@
-## Principles:
+# Architecture info
+
+## Development principles
   - Strong layers between Python interface and C-functionality
   - Trying to stick to Domain Driven Development
 
