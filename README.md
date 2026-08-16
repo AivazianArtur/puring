@@ -39,7 +39,7 @@ async def main():
 asyncio.run(main(), loop_factory=puring.PuringLoop)
 ```
 
-**See the whole [user guide](USER_GUIDE.md)**
+**See the whole [user guide](docs/USER_GUIDE.md)**
 
 **See [API page](docs/API.md)**
 
@@ -140,7 +140,9 @@ Structure of this project is trying to be simple - we have pure c-layer and pure
 To read about implementation details, go to [architecture page](docs/ARCHITECTURE.md)
 
 ## Contributing
+
 We are looking for help with:
+
 1. Propose new features. You can choose something from our [roadmap](docs/ROADMAP.md) - you can add new checks yourself, but create an issue first.
 2. Testing on different Linux Distros/Kernels. If you'll find some issues - create some on GitHub.
 3. Sharing experience in memory management, libraries architecture, cpython, io_uring, epoll and many other things.
