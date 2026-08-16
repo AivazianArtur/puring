@@ -53,10 +53,10 @@ jobs:
           -Wfloat-equal \
           -fstack-protector-strong \
           -fno-omit-frame-pointer \
-          -isystem requirements/liburing/include \
-          -isystem requirements/liburing/src/include \
-          -isystem requirements/liburing/src \
-          -isystem requirements/liburing" \
+          -isystem vendor/liburing/include \
+          -isystem vendor/liburing/src/include \
+          -isystem vendor/liburing/src \
+          -isystem vendor/liburing" \
           python3 setup.py build_ext --inplace
  
   linter-cppcheck:

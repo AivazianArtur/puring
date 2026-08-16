@@ -122,11 +122,11 @@ systems. On other package managers, install the equivalents manually.
 
 ## Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `Makefile` | All build/test/lint automation |
-| `requirements/liburing` | `liburing` git submodule |
-| `setup.py` | Python extension build config |
+| File              | Purpose |
+|-------------------|---------|
+| `Makefile`        | All build/test/lint automation |
+| `vendor/liburing` | `liburing` git submodule |
+| `setup.py`        | Python extension build config |
 
 ## Quality Check Details
 
