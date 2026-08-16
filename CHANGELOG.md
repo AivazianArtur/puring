@@ -17,6 +17,9 @@
 - Initial Python and C tests (AI generated)
 - Added benchmarks (AI generated)
 - Initial documentation written and build for contributing
+- Build via cbuildwheel
+- mkdocs generation
+- CI: `docs` and `wheels` pipes
 ### Updated
 - Makefile: fixed sanitaizer stage, added new stages.
 - GitHub CI: partly added tests stage
