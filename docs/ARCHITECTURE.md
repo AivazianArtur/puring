@@ -50,7 +50,9 @@ Main challenge to bring `io_uring` in Python was to connect Python event loop an
 9. `Signals` - to process cancellation commands, like ctrl-z. 
 
 ### Structure
+
 Structure of this project is trying to be simple - we have pure c-layer and pure python-layer and layer in between.
+
 - C-layer - Functionality written entirely in C and basically wrappers aroung liburing API
 - Python-layer - By analogy it is layer, written with usage of CPython API and CPython objects.
 - Layer in between - for now here is really only one thing - registry. It is container to hold objects in between. I wish i could say that in between C-layer and Python-layer, but the meaning is not so. We are working with async nature and giving control of the operations to kernel, so we can do our things. To map the result of kernel with what was intended we need some sort of storage - this is registry. 

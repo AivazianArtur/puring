@@ -1,29 +1,17 @@
 site_name: puring
 site_description: High-performance io_uring wrapper for Python
 repo_url: https://github.com/AivazianArtur/puring
+edit_uri: ''
 
 docs_dir: docs_site
 site_dir: site
 
 theme:
-  name: material
-  palette:
-    - scheme: default
-      primary: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - scheme: slate
-      primary: indigo
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
-  features:
-    - navigation.tabs
-    - navigation.sections
-    - navigation.indexes
-    - content.code.copy
-    - content.code.annotate
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - rust
 
 markdown_extensions:
   - admonition

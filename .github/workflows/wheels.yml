@@ -79,7 +79,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     environment: pypi
     permissions:
-      id-token: write  # OIDC trusted publishing — токен PyPI в секретах не нужен
+      id-token: write
 
     steps:
       - name: Download wheels
