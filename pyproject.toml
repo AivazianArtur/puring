@@ -25,10 +25,10 @@ Issues = "https://github.com/AivazianArtur/puring/issues"
 Changelog = "https://github.com/AivazianArtur/puring/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["puring-stubs"]
+packages = ["puring_stubs"]
 
 [tool.setuptools.package-data]
-"puring-stubs" = ["py.typed", "*.pyi"]
+"puring_stubs" = ["py.typed", "*.pyi"]
 
 [tool.cibuildwheel]
 build = "cp312-* cp313-* cp314-*"

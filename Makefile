@@ -2,7 +2,7 @@
 
 LIBURING_DIR := vendor/liburing
 LIBURING_LIB := $(LIBURING_DIR)/src/liburing.a
-STUBS_DIR := puring-stubs
+STUBS_DIR := puring_stubs
 STUBTEST_ALLOWLIST := stubtest_allowlist.txt
 
 PYTHON := python3
