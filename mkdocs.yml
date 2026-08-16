@@ -1,0 +1,39 @@
+site_name: puring
+site_description: High-performance io_uring wrapper for Python
+repo_url: https://github.com/AivazianArtur/puring
+edit_uri: ''
+
+docs_dir: docs_site
+site_dir: site
+
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - rust
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - User Guide: user-guide.md
+  - Shortly about io_uring: io-uring.md
+  - Architecture: architecture.md
+  - Development: development.md
+  - Benchmark analysis: benchmarks-analysis.md
+  - API Reference:
+      - Overview: api.md
+      - PuringLoop: api/loop.md
+      - File: api/file.md
+      - Socket: api/socket.md
+      - Context Managers: api/context-managers.md
+      - Enums: api/enums.md
+      - Module Functions: api/module-functions.md

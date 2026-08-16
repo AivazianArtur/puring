@@ -4,7 +4,16 @@ int
 set_signals_handler(struct io_uring *ring) {
     int pipefd[2];
     pipe2(pipefd, O_NONBLOCK);
-    PySignal_SetWakeupFd(pipefd[1]);
+
+    PyObject *signal_module = PyImport_ImportModule("signal");
+    if (!signal_module) {
+        return 0;
+    }
+    PyObject *result = PyObject_CallMethod(signal_module, "set_wakeup_fd", "i", pipefd[1]);
+    Py_DECREF(signal_module);
+    if (!result)
+        return 0;
+    Py_DECREF(result);
 
     struct io_uring_sqe *sqe = create_sqe(ring);
     io_uring_prep_poll_add(sqe, pipefd[0], POLLIN);

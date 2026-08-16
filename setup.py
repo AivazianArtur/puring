@@ -1,12 +1,39 @@
 import os
-from setuptools import setup, Extension
+import subprocess
+from setuptools import Extension, setup
 from pathlib import Path
 
-sources = [str(p) for p in Path('src').rglob('*.c')]
-headers = sorted({str(p.parent) for p in Path('src').rglob('*.h')})
-headers = headers + ['requirements/liburing/src/include']
 
-ldflags = os.environ.get('LDFLAGS', "").split()
+ROOT = Path(__file__).resolve().parent
+SRC_DIR = ROOT / 'src'
+
+LIBURING_DIR = ROOT / 'vendor' / 'liburing'
+LIBURING_LIB = LIBURING_DIR / 'src' / 'liburing.a'
+
+
+def build_liburing() -> None:
+    env = os.environ.copy()
+    env.pop('CFLAGS', None)
+    env.pop('LDFLAGS', None)
+    subprocess.run(['./configure'], cwd=str(LIBURING_DIR), check=True, env=env)
+    subprocess.run(
+        ['make', '-C', str(LIBURING_DIR), 'library'],
+        check=True,
+        env=env,
+    )
+
+build_liburing()
+
+
+def rel(path: Path) -> str:
+    return os.path.relpath(str(path), str(ROOT))
+
+
+sources = [rel(path) for path in SRC_DIR.rglob('*.c')]
+include_dirs = sorted({
+    rel(path.parent) for path in SRC_DIR.rglob('*.h')
+})
+include_dirs += [rel(LIBURING_DIR / 'src' / 'include')]
 
 extra_compile_args = []
 if os.environ.get('PURING_DEBUG'):
@@ -16,9 +43,8 @@ if os.environ.get('PURING_DEBUG'):
 ext = Extension(
     'puring',
     sources=sources,
-    include_dirs=headers,
-    extra_objects=['requirements/liburing/src/liburing.a'],
-    extra_link_args=ldflags,
+    include_dirs=include_dirs,
+    extra_objects=[rel(LIBURING_LIB)],
     extra_compile_args=extra_compile_args,
 )
 

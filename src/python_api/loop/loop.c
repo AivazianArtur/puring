@@ -80,7 +80,7 @@ PuringLoop_init(
         return -1;
     }
 
-    self->loop_tid = gettid();
+    self->loop_tid = (pid_t)syscall(SYS_gettid);
     PyObject *contextvar = ContextVar_init();
     if (!contextvar) {
         PyErr_SetString(PyExc_RuntimeError, "Failed to register required contextvar");

@@ -1,13 +1,18 @@
-#### See more examples in [docs/examples](docs/examples)
+# User guide
 
-## Installation
+**See more examples in [docs/examples](https://github.com/AivazianArtur/puring/tree/main/docs/examples)**
+
+### Installation
 First off, install library with
-> pip install puring
-
-## Initialize `PuringLoop`
+```python
+pip install puring
+```
+### Initialize `PuringLoop`
 To start using `puring` user need to initialize special `io_uring` loop - `PuringLoop` \
 Its quite simple:
-> asyncio.run(main(), loop_factory=puring.PuringLoop)
+```python
+asyncio.run(main(), loop_factory=puring.PuringLoop)
+```
 
 Or with Runner:
 ```python
@@ -15,23 +20,34 @@ with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
     runner.run(main())
 ```
 
-## `File` and `Socket` Operations
-### `File` operations
+### `File` and `Socket` Operations
+#### `File` operations
 `puring.File` object acts as interface to true asynchronous file operations in Python.
-**See full File API TODO: [locally]() and [remotely]()**
+**See full [File API](docs/API.md)**
 
 You can import it by
-> from puring import File
-
+```python
+from puring import File
+``` 
 Let's create simple example of writing and reading from file:
+
 1. Open file asynchronously
-> file = await puring.open_file(path='path/to/file.txt')
+```python
+file = await puring.open_file(path='path/to/file.txt')
+``` 
 2. Write to file, asynchronously. Better use bytes in v0.4.0
-> await file.write(data=b'Hello puring!\n')
+```python
+await file.write(data=b'Hello puring!\n')
+```
 3. Read from file, again - asynchronously
-> result_data = await file.read()
+```python
+result_data = await file.read()
+```
 4. Closing file asynchronously 
-> await file.close()
+```python
+await file.close()
+```
+
 
 Now lets put it inside function:
 ```python
@@ -42,7 +58,8 @@ async def file_simple_example():
     await file.close()
 ```
 
-**Important note** - you can await this function only with new `PuringLoop` loop. \
+**Important note** - you can await this function only with new `PuringLoop` loop.
+
 See how easy it is actually to combine everything we know so far:
 ```python
 import puring
@@ -73,30 +90,48 @@ with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
     runner.run(file_simple_example())
 ```
 
-### `Socket` operations
+#### `Socket` operations
 `puring.Socket` object acts as interface to asynchronous socket operations in Python using `io_uring`, not `epoll`.
-**See full File API TODO: [locally]() and [remotely]()**
+**See full [Socket API](docs/API.md)**
 
 You can import it by
-> from puring import Socket
+```python
+from puring import Socket
+```
 
 Let's create simple example of sending message from one socket to another:
-1. Prepare socket
-> socket = await puring.prep_socket()
-2. Bind to socket
-> await socket.bind('127.0.0.1', 12878)
-3. Listen socket
-> await socket.listen()
-4. Accept an incoming connection
-> connection = await socket.accept()
-5. Receive data from the connection
-> await connection.recv()
-6. Send data through a socket
-> await socket.send(data)
-7. Close the socket asynchronously
-> await socket.close()
 
-Now let's put everything together into a simple client-server example,
+1. Prepare socket
+```python
+socket = await puring.prep_socket()
+```
+2. Bind to socket
+```python
+await socket.bind('127.0.0.1', 12878)
+```
+3. Listen socket
+```python
+await socket.listen()
+```
+4. Accept an incoming connection
+```python
+connection = await socket.accept()
+```
+5. Receive data from the connection
+```python
+await connection.recv()
+```
+6. Send data through a socket
+```python
+await socket.send(data)
+```
+7. Close the socket asynchronously
+```python
+await socket.close()
+```
+
+Now let's put everything together into a simple client-server example;
+
 As with file operations, socket operations must be executed using the `PuringLoop`:
 
 ```python
@@ -122,8 +157,10 @@ async def socket_simple_example():
 
 asyncio.run(socket_simple_example(), loop_factory=puring.PuringLoop)
 ```
-The example above creates two sockets: one for the server and one for the client. \
-The server socket is bound to `127.0.0.1:12878` and starts listening for incoming connections. \
+The example above creates two sockets: one for the server and one for the client.
+
+The server socket is bound to `127.0.0.1:12878` and starts listening for incoming connections.
+
 The client then connects to the server, after which the server accepts the connection and receives the message sent by the client.
 
 You can also use `asyncio.Runner` when you need more control over the event loop:
@@ -151,11 +188,12 @@ async def socket_simple_example():
 asyncio.run(socket_simple_example(), loop_factory=puring.PuringLoop)
 ```
 
-## Execution Context
-To use advanced features, use different types of context managers.\
+### Execution Context
+To use advanced features, use different types of context managers.
+
 **Note that not all operations are supported in every context, but it will automatically dispatched to supported operation**
 
-### TransferMode
+#### TransferMode
 To use operations in zero-copy mode, use `PuringLoop.transfer_mode` context manager, with `puring.TRANSFER_MODE` Enum:
 ```python
 async def transfer_mode():
@@ -165,9 +203,9 @@ async def transfer_mode():
 
 asyncio.run(transfer_mode(), loop_factory=puring.PuringLoop)
 ```
-There is `NORMAL` and `ZERO_COPY` values in `TRANSFER_MODE` Enum
+There are `NORMAL` and `ZERO_COPY` values in `TRANSFER_MODE` Enum
 
-### StreamStrategy
+#### StreamStrategy
 To use Multishot operations, use `stream_strategy` context manager, with `puring.STREAM_STRATEGY` Enum. In v0.4.0 its better to not use it: 
 ```python
 async def stream_strategy():
@@ -177,12 +215,13 @@ async def stream_strategy():
 
 asyncio.run(stream_strategy(), loop_factory=puring.PuringLoop)
 ```
-There is `ONESHOT` and `MULTISHOT` values in `STREAM_STRATEGY` Enum
+There are `ONESHOT` and `MULTISHOT` values in `STREAM_STRATEGY` Enum
 
-### BufferMode
+#### BufferMode
 To use operations in zero-copy mode, use `PuringLoop.buffer_mode` context manager with `puring.BUFFER_MODE` Enum:
-#### Fixed buffer mode:
-**Note, FIXED buffer mode currently working only with files**
+##### Fixed buffer mode
+> Note, FIXED buffer mode currently working only with files
+
 ```python
 async def buffer_mode():
     loop = asyncio.get_running_loop()
@@ -193,9 +232,9 @@ async def buffer_mode():
 asyncio.run(buffer_mode(), loop_factory=puring.PuringLoop)
 ```
 
-There is `NORMAL`, `FIXED`, `PROVIDED` and `BUF_RING` values in `BUFFER_MODE` Enum
+There are `NORMAL`, `FIXED`, `PROVIDED` and `BUF_RING` values in `BUFFER_MODE` Enum
 
-### ExecutionContext
+#### ExecutionContext
 To set context manager with different types of all regimes above - use `PuringLoop.execution_context` context manager:
 ```python
 async def execution_context():

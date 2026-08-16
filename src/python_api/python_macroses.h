@@ -2,10 +2,13 @@
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
 
 #define ASSERT_LOOP_THREAD(loop)                                                                                       \
     do {                                                                                                               \
-        if ((loop)->loop_tid != gettid()) {                                                                            \
+        if ((loop)->loop_tid != (pid_t)syscall(SYS_gettid)) {                                                          \
             PyErr_SetString(PyExc_RuntimeError, "io_uring operation called from wrong thread");                        \
             return NULL;                                                                                               \
         }                                                                                                              \

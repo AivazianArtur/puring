@@ -36,7 +36,7 @@
     - [X] Python-layer.
     - [X] C-layer.
 - [X] Add initial documentation.
-- [ ] Publish library on PyPI (`pip` installable).
+- [X] Publish library on PyPI (`pip` installable).
 
 ## v0.5.0 - Async Runtime & Architecture
 - [ ] Run reader in separate thread.

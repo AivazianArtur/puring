@@ -31,7 +31,7 @@ jobs:
           sudo ./llvm.sh 21
           sudo apt install -y clang-21 python3-dev
       - name: Build liburing
-        run: cd requirements/liburing && make
+        run: cd vendor/liburing && make
       - name: Build with aggressive flags
         run: |
           CC=clang-21 CFLAGS="-O0 -g3 \
@@ -53,10 +53,10 @@ jobs:
           -Wfloat-equal \
           -fstack-protector-strong \
           -fno-omit-frame-pointer \
-          -isystem requirements/liburing/include \
-          -isystem requirements/liburing/src/include \
-          -isystem requirements/liburing/src \
-          -isystem requirements/liburing" \
+          -isystem vendor/liburing/include \
+          -isystem vendor/liburing/src/include \
+          -isystem vendor/liburing/src \
+          -isystem vendor/liburing" \
           python3 setup.py build_ext --inplace
  
   linter-cppcheck:

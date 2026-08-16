@@ -5,6 +5,7 @@ dist/
 .vscode/
 .idea/
 .pytest_cache/
+wheelhouse/
 __pycache__/
 *.pyc
 *.pyo
@@ -16,3 +17,5 @@ cpp-check-results/
 
 docs/assets/testfiles.txt
 docs/assets/tempfile.txt
+docs_site/
+

@@ -122,11 +122,11 @@ systems. On other package managers, install the equivalents manually.
 
 ## Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `Makefile` | All build/test/lint automation |
-| `requirements/liburing` | `liburing` git submodule |
-| `setup.py` | Python extension build config |
+| File              | Purpose |
+|-------------------|---------|
+| `Makefile`        | All build/test/lint automation |
+| `vendor/liburing` | `liburing` git submodule |
+| `setup.py`        | Python extension build config |
 
 ## Quality Check Details
 
@@ -220,17 +220,20 @@ make install
 ```
 ## Notes about memory management
 While in not little C-project memory handling could easily make project fragile, when you are bridging it with CPython memory management it just causes headaches.
+
 So you must know that
+
 - Event loop and ring are linked
 - That's why (almost) all objects are linked through them
 - And there are two types of objects:
-  - Pure C-objects. This objects we should handle through standard allocation methods
-  - CPython objects - they should be allocated/deacllocated only with CPython instrumentation
+    - Pure C-objects. This objects we should handle through standard allocation methods 
+      - CPython objects - they should be allocated/deacllocated only with CPython instrumentation
 - There are cases when it's better to handle objects manually in C and their nature is C, but they need to be pushed in Python memory. There is CPython `Capsule` for this case, better not to multiply Python objects
 
 ## Notes about style
-Style could be inconsistent, because some things clang formatter cant fix, but style of project has formed at time and some artifacts was left.
-1. One-line returners are better:
+Style could be inconsistent, because: some things clang formatter cant fix; and style of project has been distillated at time and some artifacts are still left in project.
+
+1.One-line returners are better:
 ```
 if (!example)
     return NULL;
