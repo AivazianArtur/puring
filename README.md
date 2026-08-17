@@ -93,7 +93,7 @@ While working with code, dont forget to
 
 ## Architecture
 ### io_uring
-uringio is written natively in CPython and brings the new event loop, based on io_uring.
+uringio is written natively as C extension for CPython and brings the new event loop, based on io_uring.
 
 What is io_uring and how it works, explained shortly by us - [here](docs/IO_URING.md)
 
