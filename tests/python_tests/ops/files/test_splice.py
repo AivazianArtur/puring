@@ -2,11 +2,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import aio_uring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
 @pytest.fixture
@@ -27,14 +27,14 @@ def temp_file_path(tmp_path):
         pytest_param(src=1, dst=1, count=None, id='count_none'),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_splice__validation_error(
     temp_file_path,
     src,
     dst,
     count,
 ):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     with pytest.raises(TypeError):
         uring_file.splice(
@@ -57,14 +57,14 @@ async def test_splice__validation_error(
         pytest_param(offset_src=0, offset_dst=0, flag=None, id='flag_none'),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_splice__optional_args_validation(
     temp_file_path,
     offset_src,
     offset_dst,
     flag,
 ):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     with pytest.raises(TypeError):
         uring_file.splice(
@@ -79,9 +79,9 @@ async def test_splice__optional_args_validation(
     await uring_file.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_splice__closed_file_raises_error(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     await uring_file.close()
 
@@ -93,9 +93,9 @@ async def test_splice__closed_file_raises_error(temp_file_path):
         )
 
 
-@aio_uring_test
+@uringio_test
 async def test_splice__accepts_all_optional_arguments(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     assert uring_file.splice(
         src=0,

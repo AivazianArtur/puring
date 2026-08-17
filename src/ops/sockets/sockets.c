@@ -23,7 +23,7 @@ prep_socket(struct io_uring *ring, int request_idx, int domain, int type, const 
 }
 
 int
-aio_uring_bind(
+uringio_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -48,7 +48,7 @@ aio_uring_bind(
 }
 
 int
-aio_uring_connect(
+uringio_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -72,7 +72,7 @@ aio_uring_connect(
 }
 
 int
-aio_uring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params) {
+uringio_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_listen(sqe, fd, backlog);
@@ -89,7 +89,7 @@ aio_uring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, co
 }
 
 int
-aio_uring_accept(
+uringio_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -114,7 +114,7 @@ aio_uring_accept(
 }
 
 int
-aio_uring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params) {
+uringio_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_close(sqe, sockfd);
@@ -131,7 +131,7 @@ aio_uring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const
 }
 
 int
-aio_uring_send(
+uringio_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -161,7 +161,7 @@ aio_uring_send(
 }
 
 int
-aio_uring_recv(
+uringio_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -191,7 +191,7 @@ aio_uring_recv(
 }
 
 int
-aio_uring_sendto(
+uringio_sendto(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -223,7 +223,7 @@ aio_uring_sendto(
 }
 
 int
-aio_uring_recvfrom(
+uringio_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -270,7 +270,7 @@ aio_uring_recvfrom(
 }
 
 int
-aio_uring_sendmsg(
+uringio_sendmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -315,7 +315,7 @@ aio_uring_sendmsg(
 }
 
 int
-aio_uring_recvmsg(
+uringio_recvmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,

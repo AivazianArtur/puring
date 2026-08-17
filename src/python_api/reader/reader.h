@@ -13,4 +13,4 @@
 #include "signals/signals.h"
 
 void
-on_uring_ready(AioUringLoop *self);
+on_uring_ready(UringioLoop *self);

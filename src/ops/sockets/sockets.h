@@ -22,7 +22,7 @@ int
 prep_socket(struct io_uring *ring, int request_idx, int domain, int type, const struct TimeoutParams timeout_params);
 
 int
-aio_uring_bind(
+uringio_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -32,7 +32,7 @@ aio_uring_bind(
 );
 
 int
-aio_uring_connect(
+uringio_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -42,10 +42,10 @@ aio_uring_connect(
 );
 
 int
-aio_uring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params);
+uringio_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params);
 
 int
-aio_uring_accept(
+uringio_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -56,10 +56,10 @@ aio_uring_accept(
 );
 
 int
-aio_uring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params);
+uringio_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params);
 
 int
-aio_uring_send(
+uringio_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -70,7 +70,7 @@ aio_uring_send(
 );
 
 int
-aio_uring_recv(
+uringio_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -81,7 +81,7 @@ aio_uring_recv(
 );
 
 int
-aio_uring_sendto(
+uringio_sendto(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -94,7 +94,7 @@ aio_uring_sendto(
 );
 
 int
-aio_uring_recvfrom(
+uringio_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -108,7 +108,7 @@ aio_uring_recvfrom(
 );
 
 int
-aio_uring_sendmsg(
+uringio_sendmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -121,7 +121,7 @@ aio_uring_sendmsg(
 );
 
 int
-aio_uring_recvmsg(
+uringio_recvmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -132,7 +132,7 @@ aio_uring_recvmsg(
 );
 
 int
-aio_uring_recv_fixed(
+uringio_recv_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -144,7 +144,7 @@ aio_uring_recv_fixed(
 );
 
 int
-aio_uring_send_zc(
+uringio_send_zc(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -155,7 +155,7 @@ aio_uring_send_zc(
 );
 
 int
-aio_uring_send_zc_fixed(
+uringio_send_zc_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -167,7 +167,7 @@ aio_uring_send_zc_fixed(
 );
 
 int
-aio_uring_sendmsg_zc(
+uringio_sendmsg_zc(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -181,7 +181,7 @@ aio_uring_sendmsg_zc(
 );
 
 int
-aio_uring_recvmsg_fixed(
+uringio_recvmsg_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -193,7 +193,7 @@ aio_uring_recvmsg_fixed(
 );
 
 int
-aio_uring_recv_buffer_select(
+uringio_recv_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -204,7 +204,7 @@ aio_uring_recv_buffer_select(
 );
 
 int
-aio_uring_recvmsg_buffer_select(
+uringio_recvmsg_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -214,7 +214,7 @@ aio_uring_recvmsg_buffer_select(
 );
 
 int
-aio_uring_accept_multishot(
+uringio_accept_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -225,7 +225,7 @@ aio_uring_accept_multishot(
 );
 
 int
-aio_uring_recv_multishot(
+uringio_recv_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -236,7 +236,7 @@ aio_uring_recv_multishot(
 );
 
 int
-aio_uring_recvmsg_multishot(
+uringio_recvmsg_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -247,7 +247,7 @@ aio_uring_recvmsg_multishot(
 );
 
 RecvMsgMultishotResult
-aio_uring_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len);
+uringio_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len);
 
 bool
-is_aio_uring_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe);
+is_uringio_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe);

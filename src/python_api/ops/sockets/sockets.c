@@ -1,12 +1,12 @@
 #include "python_api/ops/sockets/sockets.h"
 
 PyObject *
-AioUring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_IS_AIO_URING();
+Uringio_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
+    ASSERT_LOOP_IS_URINGIO();
     ASSERT_LOOP_THREAD(running_loop);
     ASSERT_RING_LOOP_IS_CLOSING(running_loop);
 
-    AioUringSocket *sock = PyObject_GC_New(AioUringSocket, &AioUringSocketType);
+    UringioSocket *sock = PyObject_GC_New(UringioSocket, &UringioSocketType);
     if (!sock) {
         return PyErr_NoMemory();
     }
@@ -66,19 +66,19 @@ AioUring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwar
 }
 
 int
-AioUringSocket_traverse(AioUringSocket *self, visitproc visit, void *arg) {
+UringioSocket_traverse(UringioSocket *self, visitproc visit, void *arg) {
     Py_VISIT(self->loop);
     return 0;
 }
 
 int
-AioUringSocket_clear(AioUringSocket *self) {
+UringioSocket_clear(UringioSocket *self) {
     Py_CLEAR(self->loop);
     return 0;
 }
 
 PyObject *
-AioUringSocket_aenter(AioUringSocket *self, PyObject *Py_UNUSED(ignored)) {
+UringioSocket_aenter(UringioSocket *self, PyObject *Py_UNUSED(ignored)) {
     PyObject *future = create_future(self->loop);
     if (!future)
         return NULL;
@@ -89,7 +89,7 @@ AioUringSocket_aenter(AioUringSocket *self, PyObject *Py_UNUSED(ignored)) {
 }
 
 PyObject *
-AioUringSocket_aexit(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_aexit(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *exc_type = NULL;
     PyObject *exc_val = NULL;
     PyObject *exc_tb = NULL;
@@ -123,7 +123,7 @@ AioUringSocket_aexit(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 
     self->closed = 1;
 
-    int result = aio_uring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
+    int result = uringio_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
     PyObject *validated_result = _check_sockets_result(result, self, request_idx, future);
     if (!validated_result) {
         self->closed = 0;
@@ -136,14 +136,14 @@ AioUringSocket_aexit(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 void
-AioUringSocket_dealloc(AioUringSocket *self) {
+UringioSocket_dealloc(UringioSocket *self) {
     PyObject_GC_UnTrack(self);
     self->closed = true;
     if (self->addr) {
         free(self->addr);
         self->addr = NULL;
     }
-    AioUringSocket_clear(self);
+    UringioSocket_clear(self);
     freefunc free_func = PyType_GetSlot(Py_TYPE(self), Py_tp_free);
     if (free_func) {
         free_func(self);
@@ -153,7 +153,7 @@ AioUringSocket_dealloc(AioUringSocket *self) {
 }
 
 PyObject *
-AioUringSocket_bind(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_bind(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -194,7 +194,7 @@ AioUringSocket_bind(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_bind(
+    int result = uringio_bind(
         self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, addrlen, timeout_params
     );
 
@@ -203,7 +203,7 @@ AioUringSocket_bind(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringSocket_connect(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_connect(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -243,7 +243,7 @@ AioUringSocket_connect(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_connect(
+    int result = uringio_connect(
         self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, addrlen, timeout_params
     );
     free(addr);
@@ -251,7 +251,7 @@ AioUringSocket_connect(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringSocket_listen(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_listen(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -283,12 +283,12 @@ AioUringSocket_listen(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, timeout_params);
+    int result = uringio_listen(self->loop->ring, request_idx, self->sock_fd, backlog, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
 PyObject *
-AioUringSocket_accept(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_accept(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -338,7 +338,7 @@ AioUringSocket_accept(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringSocket_close(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_close(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -368,7 +368,7 @@ AioUringSocket_close(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     self->closed = true;
-    int result = aio_uring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
+    int result = uringio_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
     PyObject *validated_result = _check_sockets_result(result, self, request_idx, future);
     if (!validated_result) {
         self->closed = false;
@@ -377,7 +377,7 @@ AioUringSocket_close(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringSocket_send(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_send(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -425,7 +425,7 @@ AioUringSocket_send(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringSocket_recv(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_recv(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -475,7 +475,7 @@ AioUringSocket_recv(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringSocket_sendto(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_sendto(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -529,7 +529,7 @@ AioUringSocket_sendto(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_sendto(
+    int result = uringio_sendto(
         self->loop->ring,
         request_idx,
         self->sock_fd,
@@ -545,7 +545,7 @@ AioUringSocket_sendto(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringSocket_recvfrom(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_recvfrom(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -623,7 +623,7 @@ AioUringSocket_recvfrom(AioUringSocket *self, PyObject *args, PyObject *kwargs) 
         return NULL;
     }
 
-    int result = aio_uring_recvfrom(
+    int result = uringio_recvfrom(
         self->loop->ring,
         request_idx,
         self->sock_fd,
@@ -640,7 +640,7 @@ AioUringSocket_recvfrom(AioUringSocket *self, PyObject *args, PyObject *kwargs) 
 }
 
 PyObject *
-AioUringSocket_sendmsg(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_sendmsg(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -721,7 +721,7 @@ AioUringSocket_sendmsg(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringSocket_recvmsg(AioUringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_recvmsg(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {

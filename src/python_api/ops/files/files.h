@@ -23,67 +23,67 @@
 #include "python_api/timer/timer.h"
 #include "python_macroses.h"
 
-extern PyTypeObject *AioUringLoopType;
-extern PyTypeObject AioUringFileType;
+extern PyTypeObject *UringioLoopType;
+extern PyTypeObject UringioFileType;
 
-typedef struct AioUringFile {
+typedef struct UringioFile {
     PyObject_HEAD
 
         int fd;
-    AioUringLoop *loop;
+    UringioLoop *loop;
     bool closed;
-} AioUringFile;
+} UringioFile;
 
 PyObject *
-AioUring_open(PyObject *module, PyObject *args, PyObject *kwargs);
+Uringio_open(PyObject *module, PyObject *args, PyObject *kwargs);
 
 int
-AioUringFile_traverse(AioUringFile *self, visitproc visit, void *arg);
+UringioFile_traverse(UringioFile *self, visitproc visit, void *arg);
 
 int
-AioUringFile_clear(AioUringFile *self);
+UringioFile_clear(UringioFile *self);
 
 PyObject *
-AioUringFile_aenter(AioUringFile *self, PyObject *Py_UNUSED(ignored));
+UringioFile_aenter(UringioFile *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-AioUringFile_aexit(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_aexit(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 void
-AioUringFile_dealloc(AioUringFile *self);
+UringioFile_dealloc(UringioFile *self);
 
 PyObject *
-AioUringFile_read(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_read(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_readv(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_readv(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_readv_raw(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_readv_raw(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_write(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_write(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_writev(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_writev(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_writev_raw(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_writev_raw(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_close(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_close(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_fsync(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_fsync(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_fdatasync(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_fdatasync(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-AioUringFile_splice(AioUringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_splice(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-_check_file_result(int result, AioUringFile *file, int request_idx, PyObject *future);
+_check_file_result(int result, UringioFile *file, int request_idx, PyObject *future);
 
 PyObject *
 create_resolve_enum(void);
@@ -97,7 +97,7 @@ _raise_file_exception_group(PyObject *body_exc_type, PyObject *body_exc_val, PyO
 
 int
 read_dispatcher(
-    AioUringFile *self,
+    UringioFile *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream,
     int request_idx,
@@ -108,7 +108,7 @@ read_dispatcher(
 
 int
 readv_dispatcher(
-    AioUringFile *self,
+    UringioFile *self,
     BufferPayload *buffer_payload,
     int request_idx,
     int offset,
@@ -118,5 +118,5 @@ readv_dispatcher(
 
 int
 write_dispatcher(
-    AioUringFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
+    UringioFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
 );

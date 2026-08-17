@@ -26,7 +26,7 @@ open_file(
 );
 
 int
-aio_uring_read(
+uringio_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -37,7 +37,7 @@ aio_uring_read(
 );
 
 int
-aio_uring_readv(
+uringio_readv(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -50,7 +50,7 @@ aio_uring_readv(
 );
 
 int
-aio_uring_write(
+uringio_write(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -61,7 +61,7 @@ aio_uring_write(
 );
 
 int
-aio_uring_writev(
+uringio_writev(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -74,7 +74,7 @@ aio_uring_writev(
 );
 
 int
-aio_uring_close_file(
+uringio_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -83,7 +83,7 @@ aio_uring_close_file(
 );
 
 int
-aio_uring_fsync(
+uringio_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -92,7 +92,7 @@ aio_uring_fsync(
 );
 
 int
-aio_uring_fdatasync(
+uringio_fdatasync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -101,7 +101,7 @@ aio_uring_fdatasync(
 );
 
 int
-aio_uring_splice(
+uringio_splice(
     struct io_uring *ring,
     int request_idx,
     int fd_in,
@@ -115,7 +115,7 @@ aio_uring_splice(
 );
 
 int
-aio_uring_read_fixed(
+uringio_read_fixed(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -127,7 +127,7 @@ aio_uring_read_fixed(
 );
 
 int
-aio_uring_write_fixed(
+uringio_write_fixed(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -139,7 +139,7 @@ aio_uring_write_fixed(
 );
 
 int
-aio_uring_read_buffer_select(
+uringio_read_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -150,7 +150,7 @@ aio_uring_read_buffer_select(
 );
 
 int
-aio_uring_readv_buffer_select(
+uringio_readv_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -162,6 +162,6 @@ aio_uring_readv_buffer_select(
 );
 
 int
-aio_uring_read_multishot(
+uringio_read_multishot(
     struct io_uring *ring, int request_idx, int fd, int offset, int bgid, const struct TimeoutParams timeout_params
 );

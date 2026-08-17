@@ -29,7 +29,7 @@ static const TimeoutParams NO_TIMEOUT = {0, 0, false};
 
 static inline char *
 make_temp_file(const char *content, size_t len) {
-    char *path = strdup("/tmp/aio_uring_ctest_XXXXXX");
+    char *path = strdup("/tmp/uringio_ctest_XXXXXX");
     int fd = mkstemp(path);
     if (fd < 0) {
         free(path);

@@ -15,7 +15,7 @@ test_open_file__creates_new_file_with_default_flags(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
-    char path[] = "/tmp/aio_uring_ctest_open_XXXXXX";
+    char path[] = "/tmp/uringio_ctest_open_XXXXXX";
     int tmp_fd = mkstemp(path);
     TEST_ASSERT(tmp_fd >= 0, "mkstemp failed");
     close(tmp_fd);
@@ -40,7 +40,7 @@ test_open_file__explicit_rdonly_on_existing_file(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
-    const char *content = "hello aio_uring";
+    const char *content = "hello uringio";
     char *path = make_temp_file(content, strlen(content));
     TEST_ASSERT(path != NULL, "make_temp_file failed");
 
@@ -61,7 +61,7 @@ test_open_file__nonexistent_without_creat_fails(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
-    const char *path = "/tmp/aio_uring_ctest_does_not_exist_xyz";
+    const char *path = "/tmp/uringio_ctest_does_not_exist_xyz";
     unlink(path);
 
     int ret = open_file(&ring, 1, AT_FDCWD, path, O_WRONLY, 0, 0, NO_TIMEOUT);
@@ -92,7 +92,7 @@ test_open_file__O_RDONLY_dont_collides_with_sentinel(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
-    int ret = open_file(&ring, 1, AT_FDCWD, "/tmp/aio_uring_ctest_rdonly_no_collision_xyz", O_RDONLY, 0, 0644, NO_TIMEOUT);
+    int ret = open_file(&ring, 1, AT_FDCWD, "/tmp/uringio_ctest_rdonly_no_collision_xyz", O_RDONLY, 0, 0644, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit should succeed");
 
     int res = wait_one_cqe(&ring);
@@ -101,10 +101,10 @@ test_open_file__O_RDONLY_dont_collides_with_sentinel(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_read ---------- */
+/* ---------- uringio_read ---------- */
 
 static void
-test_aio_uring_read__success_reads_full_content(void) {
+test_uringio_read__success_reads_full_content(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -116,8 +116,8 @@ test_aio_uring_read__success_reads_full_content(void) {
     TEST_ASSERT(fd >= 0, "posix open failed");
 
     char buf[16] = {0};
-    int ret = aio_uring_read(&ring, 1, fd, buf, sizeof(buf), 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_read submit should succeed");
+    int ret = uringio_read(&ring, 1, fd, buf, sizeof(buf), 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_read submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == (int)strlen(content), "should read exactly len(content) bytes");
@@ -130,7 +130,7 @@ test_aio_uring_read__success_reads_full_content(void) {
 }
 
 static void
-test_aio_uring_read__respects_offset(void) {
+test_uringio_read__respects_offset(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -142,8 +142,8 @@ test_aio_uring_read__respects_offset(void) {
     TEST_ASSERT(fd >= 0, "posix open failed");
 
     char buf[16] = {0};
-    int ret = aio_uring_read(&ring, 1, fd, buf, sizeof(buf), 5, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_read submit should succeed");
+    int ret = uringio_read(&ring, 1, fd, buf, sizeof(buf), 5, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_read submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 5, "should read remaining 5 bytes from offset 5");
@@ -156,7 +156,7 @@ test_aio_uring_read__respects_offset(void) {
 }
 
 static void
-test_aio_uring_read__zero_size_reads_nothing(void) {
+test_uringio_read__zero_size_reads_nothing(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -167,8 +167,8 @@ test_aio_uring_read__zero_size_reads_nothing(void) {
     TEST_ASSERT(fd >= 0, "posix open failed");
 
     char buf[4] = {0};
-    int ret = aio_uring_read(&ring, 1, fd, buf, 0, 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_read submit should succeed even with size 0");
+    int ret = uringio_read(&ring, 1, fd, buf, 0, 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_read submit should succeed even with size 0");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 0, "reading with size 0 should return 0 bytes");
@@ -180,12 +180,12 @@ test_aio_uring_read__zero_size_reads_nothing(void) {
 }
 
 static void
-test_aio_uring_read__invalid_fd_returns_ebadf(void) {
+test_uringio_read__invalid_fd_returns_ebadf(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
     char buf[16] = {0};
-    int ret = aio_uring_read(&ring, 1, 9999 /* not a valid fd */, buf, sizeof(buf), 0, NO_TIMEOUT);
+    int ret = uringio_read(&ring, 1, 9999 /* not a valid fd */, buf, sizeof(buf), 0, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -195,23 +195,23 @@ test_aio_uring_read__invalid_fd_returns_ebadf(void) {
 }
 
 static void
-test_aio_uring_read__sqe_unavailable_returns_minus_one(void) {
+test_uringio_read__sqe_unavailable_returns_minus_one(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
     exhaust_sq(&ring);
 
     char buf[16];
-    int ret = aio_uring_read(&ring, 1, 0, buf, sizeof(buf), 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == -1, "aio_uring_read should fail fast when SQ is exhausted");
+    int ret = uringio_read(&ring, 1, 0, buf, sizeof(buf), 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == -1, "uringio_read should fail fast when SQ is exhausted");
 
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_readv ---------- */
+/* ---------- uringio_readv ---------- */
 
 static void
-test_aio_uring_readv__success_across_multiple_buffers(void) {
+test_uringio_readv__success_across_multiple_buffers(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -231,8 +231,8 @@ test_aio_uring_readv__success_across_multiple_buffers(void) {
         {.iov_base = buf3, .iov_len = 4},
     };
 
-    int ret = aio_uring_readv(&ring, 1, fd, iov, 3, 0, 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_readv submit should succeed");
+    int ret = uringio_readv(&ring, 1, fd, iov, 3, 0, 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_readv submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 12, "should read exactly 12 bytes total");
@@ -247,7 +247,7 @@ test_aio_uring_readv__success_across_multiple_buffers(void) {
 }
 
 static void
-test_aio_uring_readv__short_read_on_small_file(void) {
+test_uringio_readv__short_read_on_small_file(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -265,8 +265,8 @@ test_aio_uring_readv__short_read_on_small_file(void) {
         {.iov_base = buf2, .iov_len = 4},
     };
 
-    int ret = aio_uring_readv(&ring, 1, fd, iov, 2, 0, 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_readv submit should succeed");
+    int ret = uringio_readv(&ring, 1, fd, iov, 2, 0, 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_readv submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 2, "short read should report only actual bytes read");
@@ -279,7 +279,7 @@ test_aio_uring_readv__short_read_on_small_file(void) {
 }
 
 static void
-test_aio_uring_readv__zero_vecs(void) {
+test_uringio_readv__zero_vecs(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -289,8 +289,8 @@ test_aio_uring_readv__zero_vecs(void) {
     int fd = open(path, O_RDONLY);
     TEST_ASSERT(fd >= 0, "posix open failed");
 
-    int ret = aio_uring_readv(&ring, 1, fd, NULL, 0, 0, 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_readv submit should succeed even with 0 vecs");
+    int ret = uringio_readv(&ring, 1, fd, NULL, 0, 0, 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_readv submit should succeed even with 0 vecs");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 0, "readv with 0 iovecs should report 0 bytes");
@@ -302,14 +302,14 @@ test_aio_uring_readv__zero_vecs(void) {
 }
 
 static void
-test_aio_uring_readv__invalid_fd_returns_ebadf(void) {
+test_uringio_readv__invalid_fd_returns_ebadf(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
     char buf[4];
     struct iovec iov = {.iov_base = buf, .iov_len = sizeof(buf)};
 
-    int ret = aio_uring_readv(&ring, 1, 9999, &iov, 1, 0, 0, NO_TIMEOUT);
+    int ret = uringio_readv(&ring, 1, 9999, &iov, 1, 0, 0, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -318,10 +318,10 @@ test_aio_uring_readv__invalid_fd_returns_ebadf(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_write ---------- */
+/* ---------- uringio_write ---------- */
 
 static void
-test_aio_uring_write__success_writes_content(void) {
+test_uringio_write__success_writes_content(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -332,8 +332,8 @@ test_aio_uring_write__success_writes_content(void) {
     TEST_ASSERT(fd >= 0, "posix open failed");
 
     char data[] = "written via io_uring";
-    int ret = aio_uring_write(&ring, 1, fd, data, (unsigned)strlen(data), 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_write submit should succeed");
+    int ret = uringio_write(&ring, 1, fd, data, (unsigned)strlen(data), 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_write submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == (int)strlen(data), "should write exactly len(data) bytes");
@@ -352,7 +352,7 @@ test_aio_uring_write__success_writes_content(void) {
 }
 
 static void
-test_aio_uring_write__respects_offset(void) {
+test_uringio_write__respects_offset(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -363,8 +363,8 @@ test_aio_uring_write__respects_offset(void) {
     TEST_ASSERT(fd >= 0, "posix open failed");
 
     char data[] = "YYY";
-    int ret = aio_uring_write(&ring, 1, fd, data, 3, 5, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_write submit should succeed");
+    int ret = uringio_write(&ring, 1, fd, data, 3, 5, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_write submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 3, "should write exactly 3 bytes");
@@ -382,12 +382,12 @@ test_aio_uring_write__respects_offset(void) {
 }
 
 static void
-test_aio_uring_write__invalid_fd_returns_ebadf(void) {
+test_uringio_write__invalid_fd_returns_ebadf(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
     char data[] = "x";
-    int ret = aio_uring_write(&ring, 1, 9999, data, 1, 0, NO_TIMEOUT);
+    int ret = uringio_write(&ring, 1, 9999, data, 1, 0, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -396,10 +396,10 @@ test_aio_uring_write__invalid_fd_returns_ebadf(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_writev ---------- */
+/* ---------- uringio_writev ---------- */
 
 static void
-test_aio_uring_writev__success_from_multiple_buffers(void) {
+test_uringio_writev__success_from_multiple_buffers(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -416,8 +416,8 @@ test_aio_uring_writev__success_from_multiple_buffers(void) {
         {.iov_base = part2, .iov_len = strlen(part2)},
     };
 
-    int ret = aio_uring_writev(&ring, 1, fd, iov, 2, 0, 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_writev submit should succeed");
+    int ret = uringio_writev(&ring, 1, fd, iov, 2, 0, 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_writev submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 11, "should write exactly 11 bytes total");
@@ -435,14 +435,14 @@ test_aio_uring_writev__success_from_multiple_buffers(void) {
 }
 
 static void
-test_aio_uring_writev__invalid_fd_returns_ebadf(void) {
+test_uringio_writev__invalid_fd_returns_ebadf(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
     char data[] = "x";
     struct iovec iov = {.iov_base = data, .iov_len = 1};
 
-    int ret = aio_uring_writev(&ring, 1, 9999, &iov, 1, 0, 0, NO_TIMEOUT);
+    int ret = uringio_writev(&ring, 1, 9999, &iov, 1, 0, 0, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -451,10 +451,10 @@ test_aio_uring_writev__invalid_fd_returns_ebadf(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_close_file ---------- */
+/* ---------- uringio_close_file ---------- */
 
 static void
-test_aio_uring_close_file__success_closes_fd(void) {
+test_uringio_close_file__success_closes_fd(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -464,8 +464,8 @@ test_aio_uring_close_file__success_closes_fd(void) {
     int fd = open(path, O_RDONLY);
     TEST_ASSERT(fd >= 0, "posix open failed");
 
-    int ret = aio_uring_close_file(&ring, 1, fd, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_close_file submit should succeed");
+    int ret = uringio_close_file(&ring, 1, fd, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_close_file submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 0, "close should succeed with res == 0");
@@ -478,11 +478,11 @@ test_aio_uring_close_file__success_closes_fd(void) {
 }
 
 static void
-test_aio_uring_close_file__invalid_fd_returns_ebadf(void) {
+test_uringio_close_file__invalid_fd_returns_ebadf(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
-    int ret = aio_uring_close_file(&ring, 1, 9999, NO_TIMEOUT);
+    int ret = uringio_close_file(&ring, 1, 9999, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -491,10 +491,10 @@ test_aio_uring_close_file__invalid_fd_returns_ebadf(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_fsync / aio_uring_fdatasync ---------- */
+/* ---------- uringio_fsync / uringio_fdatasync ---------- */
 
 static void
-test_aio_uring_fsync__success_on_regular_file(void) {
+test_uringio_fsync__success_on_regular_file(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -504,8 +504,8 @@ test_aio_uring_fsync__success_on_regular_file(void) {
     int fd = open(path, O_RDWR);
     TEST_ASSERT(fd >= 0, "posix open failed");
 
-    int ret = aio_uring_fsync(&ring, 1, fd, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_fsync submit should succeed");
+    int ret = uringio_fsync(&ring, 1, fd, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_fsync submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 0, "fsync on regular file should succeed");
@@ -517,7 +517,7 @@ test_aio_uring_fsync__success_on_regular_file(void) {
 }
 
 static void
-test_aio_uring_fdatasync__success_on_regular_file(void) {
+test_uringio_fdatasync__success_on_regular_file(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -527,8 +527,8 @@ test_aio_uring_fdatasync__success_on_regular_file(void) {
     int fd = open(path, O_RDWR);
     TEST_ASSERT(fd >= 0, "posix open failed");
 
-    int ret = aio_uring_fdatasync(&ring, 1, fd, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_fdatasync submit should succeed");
+    int ret = uringio_fdatasync(&ring, 1, fd, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_fdatasync submit should succeed");
 
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 0, "fdatasync on regular file should succeed");
@@ -540,11 +540,11 @@ test_aio_uring_fdatasync__success_on_regular_file(void) {
 }
 
 static void
-test_aio_uring_fsync__invalid_fd_returns_ebadf(void) {
+test_uringio_fsync__invalid_fd_returns_ebadf(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
-    int ret = aio_uring_fsync(&ring, 1, 9999, NO_TIMEOUT);
+    int ret = uringio_fsync(&ring, 1, 9999, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -553,10 +553,10 @@ test_aio_uring_fsync__invalid_fd_returns_ebadf(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_splice ---------- */
+/* ---------- uringio_splice ---------- */
 
 static void
-test_aio_uring_splice__file_to_pipe_to_file(void) {
+test_uringio_splice__file_to_pipe_to_file(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -574,13 +574,13 @@ test_aio_uring_splice__file_to_pipe_to_file(void) {
     TEST_ASSERT(pipe(pipefd) == 0, "pipe() failed");
 
     /* file -> pipe */
-    int ret1 = aio_uring_splice(&ring, 1, src_fd, 0, pipefd[1], -1, (int)len, 0, NO_TIMEOUT);
+    int ret1 = uringio_splice(&ring, 1, src_fd, 0, pipefd[1], -1, (int)len, 0, NO_TIMEOUT);
     TEST_ASSERT(ret1 == 1, "splice file->pipe submit should succeed");
     int res1 = wait_one_cqe(&ring);
     TEST_ASSERT(res1 == (int)len, "splice file->pipe should move all bytes");
 
     /* pipe -> file */
-    int ret2 = aio_uring_splice(&ring, 2, pipefd[0], -1, dst_fd, 0, (int)len, 0, NO_TIMEOUT);
+    int ret2 = uringio_splice(&ring, 2, pipefd[0], -1, dst_fd, 0, (int)len, 0, NO_TIMEOUT);
     TEST_ASSERT(ret2 == 1, "splice pipe->file submit should succeed");
     int res2 = wait_one_cqe(&ring);
     TEST_ASSERT(res2 == (int)len, "splice pipe->file should move all bytes");
@@ -604,14 +604,14 @@ test_aio_uring_splice__file_to_pipe_to_file(void) {
 }
 
 static void
-test_aio_uring_splice__invalid_fd_returns_error(void) {
+test_uringio_splice__invalid_fd_returns_error(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
     int pipefd[2];
     TEST_ASSERT(pipe(pipefd) == 0, "pipe() failed");
 
-    int ret = aio_uring_splice(&ring, 1, 9999, 0, pipefd[1], -1, 4, 0, NO_TIMEOUT);
+    int ret = uringio_splice(&ring, 1, 9999, 0, pipefd[1], -1, 4, 0, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -622,10 +622,10 @@ test_aio_uring_splice__invalid_fd_returns_error(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_read_buffer_select ---------- */
+/* ---------- uringio_read_buffer_select ---------- */
 
 static void
-test_aio_uring_read_buffer_select__success(void) {
+test_uringio_read_buffer_select__success(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -641,8 +641,8 @@ test_aio_uring_read_buffer_select__success(void) {
     int prov_res = provide_buffers_group(&ring, pool, sizeof(pool), 1, bgid);
     TEST_ASSERT(prov_res == 0, "provide_buffers should succeed");
 
-    int ret = aio_uring_read_buffer_select(&ring, 1, fd, (unsigned)strlen(content), 0, bgid, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_read_buffer_select submit should succeed");
+    int ret = uringio_read_buffer_select(&ring, 1, fd, (unsigned)strlen(content), 0, bgid, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_read_buffer_select submit should succeed");
 
     struct io_uring_cqe *cqe;
     TEST_ASSERT(io_uring_wait_cqe(&ring, &cqe) == 0, "wait_cqe failed");
@@ -658,7 +658,7 @@ test_aio_uring_read_buffer_select__success(void) {
 }
 
 static void
-test_aio_uring_read_buffer_select__invalid_fd_returns_ebadf(void) {
+test_uringio_read_buffer_select__invalid_fd_returns_ebadf(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -666,7 +666,7 @@ test_aio_uring_read_buffer_select__invalid_fd_returns_ebadf(void) {
     char pool[64];
     TEST_ASSERT(provide_buffers_group(&ring, pool, sizeof(pool), 1, bgid) == 0, "provide_buffers should succeed");
 
-    int ret = aio_uring_read_buffer_select(&ring, 1, 9999, sizeof(pool), 0, bgid, NO_TIMEOUT);
+    int ret = uringio_read_buffer_select(&ring, 1, 9999, sizeof(pool), 0, bgid, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -675,10 +675,10 @@ test_aio_uring_read_buffer_select__invalid_fd_returns_ebadf(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_readv_buffer_select ---------- */
+/* ---------- uringio_readv_buffer_select ---------- */
 
 static void
-test_aio_uring_readv_buffer_select__success(void) {
+test_uringio_readv_buffer_select__success(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -693,8 +693,8 @@ test_aio_uring_readv_buffer_select__success(void) {
     char pool[64];
     TEST_ASSERT(provide_buffers_group(&ring, pool, sizeof(pool), 1, bgid) == 0, "provide_buffers should succeed");
 
-    int ret = aio_uring_readv_buffer_select(&ring, 1, fd, (unsigned)strlen(content), 0, bgid, 0, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_readv_buffer_select submit should succeed");
+    int ret = uringio_readv_buffer_select(&ring, 1, fd, (unsigned)strlen(content), 0, bgid, 0, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_readv_buffer_select submit should succeed");
 
     struct io_uring_cqe *cqe;
     TEST_ASSERT(io_uring_wait_cqe(&ring, &cqe) == 0, "wait_cqe failed");
@@ -708,10 +708,10 @@ test_aio_uring_readv_buffer_select__success(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_read_fixed / aio_uring_write_fixed ---------- */
+/* ---------- uringio_read_fixed / uringio_write_fixed ---------- */
 
 static void
-test_aio_uring_write_fixed__then_read_fixed_roundtrip(void) {
+test_uringio_write_fixed__then_read_fixed_roundtrip(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -731,13 +731,13 @@ test_aio_uring_write_fixed__then_read_fixed_roundtrip(void) {
 
     unsigned len = (unsigned)strlen(write_buf);
 
-    int wret = aio_uring_write_fixed(&ring, 1, fd, write_buf, len, 0, /*buf_index=*/0, NO_TIMEOUT);
-    TEST_ASSERT(wret == 1, "aio_uring_write_fixed submit should succeed");
+    int wret = uringio_write_fixed(&ring, 1, fd, write_buf, len, 0, /*buf_index=*/0, NO_TIMEOUT);
+    TEST_ASSERT(wret == 1, "uringio_write_fixed submit should succeed");
     int wres = wait_one_cqe(&ring);
     TEST_ASSERT(wres == (int)len, "write_fixed should write exactly len bytes");
 
-    int rret = aio_uring_read_fixed(&ring, 2, fd, read_buf, len, 0, /*buf_index=*/1, NO_TIMEOUT);
-    TEST_ASSERT(rret == 1, "aio_uring_read_fixed submit should succeed");
+    int rret = uringio_read_fixed(&ring, 2, fd, read_buf, len, 0, /*buf_index=*/1, NO_TIMEOUT);
+    TEST_ASSERT(rret == 1, "uringio_read_fixed submit should succeed");
     int rres = wait_one_cqe(&ring);
     TEST_ASSERT(rres == (int)len, "read_fixed should read exactly len bytes");
     TEST_ASSERT(memcmp(read_buf, write_buf, len) == 0, "roundtrip content mismatch");
@@ -750,7 +750,7 @@ test_aio_uring_write_fixed__then_read_fixed_roundtrip(void) {
 }
 
 static void
-test_aio_uring_read_fixed__invalid_buf_index_returns_efault(void) {
+test_uringio_read_fixed__invalid_buf_index_returns_efault(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -763,7 +763,7 @@ test_aio_uring_read_fixed__invalid_buf_index_returns_efault(void) {
     struct iovec regs[1] = {{.iov_base = buf, .iov_len = sizeof(buf)}};
     TEST_ASSERT(io_uring_register_buffers(&ring, regs, 1) == 0, "register_buffers failed");
 
-    int ret = aio_uring_read_fixed(&ring, 1, fd, buf, 4, 0, 5, NO_TIMEOUT);
+    int ret = uringio_read_fixed(&ring, 1, fd, buf, 4, 0, 5, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -776,10 +776,10 @@ test_aio_uring_read_fixed__invalid_buf_index_returns_efault(void) {
     ring_destroy(&ring);
 }
 
-/* ---------- aio_uring_read_multishot ---------- */
+/* ---------- uringio_read_multishot ---------- */
 
 static void
-test_aio_uring_read_multishot__success_on_socket(void) {
+test_uringio_read_multishot__success_on_socket(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -802,8 +802,8 @@ test_aio_uring_read_multishot__success_on_socket(void) {
     }
     io_uring_buf_ring_advance(buf_ring, (int)nr_bufs);
 
-    int ret = aio_uring_read_multishot(&ring, 1, sv[0], -1, bgid, NO_TIMEOUT);
-    TEST_ASSERT(ret == 1, "aio_uring_read_multishot submit should succeed");
+    int ret = uringio_read_multishot(&ring, 1, sv[0], -1, bgid, NO_TIMEOUT);
+    TEST_ASSERT(ret == 1, "uringio_read_multishot submit should succeed");
 
     const char *msg = "multishot hello";
     TEST_ASSERT(write(sv[1], msg, strlen(msg)) == (ssize_t)strlen(msg), "socket write failed");
@@ -829,7 +829,7 @@ test_aio_uring_read_multishot__success_on_socket(void) {
 }
 
 static void
-test_aio_uring_read_multishot__regular_file_unsupported(void) {
+test_uringio_read_multishot__regular_file_unsupported(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -842,7 +842,7 @@ test_aio_uring_read_multishot__regular_file_unsupported(void) {
     char pool[64];
     TEST_ASSERT(provide_buffers_group(&ring, pool, sizeof(pool), 2, bgid) == 0, "provide_buffers should succeed");
 
-    int ret = aio_uring_read_multishot(&ring, 1, fd, 0, bgid, NO_TIMEOUT);
+    int ret = uringio_read_multishot(&ring, 1, fd, 0, bgid, NO_TIMEOUT);
     TEST_ASSERT(ret == 1, "submit itself should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -863,43 +863,43 @@ main(void) {
     RUN_TEST(test_open_file__nonexistent_without_creat_fails);
     RUN_TEST(test_open_file__sqe_unavailable_returns_minus_one);
 
-    RUN_TEST(test_aio_uring_read__success_reads_full_content);
-    RUN_TEST(test_aio_uring_read__respects_offset);
-    RUN_TEST(test_aio_uring_read__zero_size_reads_nothing);
-    RUN_TEST(test_aio_uring_read__invalid_fd_returns_ebadf);
-    RUN_TEST(test_aio_uring_read__sqe_unavailable_returns_minus_one);
+    RUN_TEST(test_uringio_read__success_reads_full_content);
+    RUN_TEST(test_uringio_read__respects_offset);
+    RUN_TEST(test_uringio_read__zero_size_reads_nothing);
+    RUN_TEST(test_uringio_read__invalid_fd_returns_ebadf);
+    RUN_TEST(test_uringio_read__sqe_unavailable_returns_minus_one);
 
-    RUN_TEST(test_aio_uring_readv__success_across_multiple_buffers);
-    RUN_TEST(test_aio_uring_readv__short_read_on_small_file);
-    RUN_TEST(test_aio_uring_readv__zero_vecs);
-    RUN_TEST(test_aio_uring_readv__invalid_fd_returns_ebadf);
+    RUN_TEST(test_uringio_readv__success_across_multiple_buffers);
+    RUN_TEST(test_uringio_readv__short_read_on_small_file);
+    RUN_TEST(test_uringio_readv__zero_vecs);
+    RUN_TEST(test_uringio_readv__invalid_fd_returns_ebadf);
 
-    RUN_TEST(test_aio_uring_write__success_writes_content);
-    RUN_TEST(test_aio_uring_write__respects_offset);
-    RUN_TEST(test_aio_uring_write__invalid_fd_returns_ebadf);
+    RUN_TEST(test_uringio_write__success_writes_content);
+    RUN_TEST(test_uringio_write__respects_offset);
+    RUN_TEST(test_uringio_write__invalid_fd_returns_ebadf);
 
-    RUN_TEST(test_aio_uring_writev__success_from_multiple_buffers);
-    RUN_TEST(test_aio_uring_writev__invalid_fd_returns_ebadf);
+    RUN_TEST(test_uringio_writev__success_from_multiple_buffers);
+    RUN_TEST(test_uringio_writev__invalid_fd_returns_ebadf);
 
-    RUN_TEST(test_aio_uring_close_file__success_closes_fd);
-    RUN_TEST(test_aio_uring_close_file__invalid_fd_returns_ebadf);
+    RUN_TEST(test_uringio_close_file__success_closes_fd);
+    RUN_TEST(test_uringio_close_file__invalid_fd_returns_ebadf);
 
-    RUN_TEST(test_aio_uring_fsync__success_on_regular_file);
-    RUN_TEST(test_aio_uring_fdatasync__success_on_regular_file);
-    RUN_TEST(test_aio_uring_fsync__invalid_fd_returns_ebadf);
+    RUN_TEST(test_uringio_fsync__success_on_regular_file);
+    RUN_TEST(test_uringio_fdatasync__success_on_regular_file);
+    RUN_TEST(test_uringio_fsync__invalid_fd_returns_ebadf);
 
-    RUN_TEST(test_aio_uring_splice__file_to_pipe_to_file);
-    RUN_TEST(test_aio_uring_splice__invalid_fd_returns_error);
+    RUN_TEST(test_uringio_splice__file_to_pipe_to_file);
+    RUN_TEST(test_uringio_splice__invalid_fd_returns_error);
 
-    RUN_TEST(test_aio_uring_read_buffer_select__success);
-    RUN_TEST(test_aio_uring_read_buffer_select__invalid_fd_returns_ebadf);
-    RUN_TEST(test_aio_uring_readv_buffer_select__success);
+    RUN_TEST(test_uringio_read_buffer_select__success);
+    RUN_TEST(test_uringio_read_buffer_select__invalid_fd_returns_ebadf);
+    RUN_TEST(test_uringio_readv_buffer_select__success);
 
-    RUN_TEST(test_aio_uring_write_fixed__then_read_fixed_roundtrip);
-    RUN_TEST(test_aio_uring_read_fixed__invalid_buf_index_returns_efault);
+    RUN_TEST(test_uringio_write_fixed__then_read_fixed_roundtrip);
+    RUN_TEST(test_uringio_read_fixed__invalid_buf_index_returns_efault);
 
-    RUN_TEST(test_aio_uring_read_multishot__success_on_socket);
-    RUN_TEST(test_aio_uring_read_multishot__regular_file_unsupported);
+    RUN_TEST(test_uringio_read_multishot__success_on_socket);
+    RUN_TEST(test_uringio_read_multishot__regular_file_unsupported);
     fprintf(stderr, "\n%d/%d tests passed\n", g_tests_run - g_tests_failed, g_tests_run);
     return g_tests_failed > 0 ? 1 : 0;
 }

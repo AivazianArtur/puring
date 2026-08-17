@@ -11,7 +11,7 @@ __pycache__/
 *.pyo
 *.pyd
 
-aio_uring.egg-info/
+uringio.egg-info/
 *.so
 cpp-check-results/
 

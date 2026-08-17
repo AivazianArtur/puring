@@ -1,7 +1,7 @@
 #include "sockets.h"
 
 int
-aio_uring_send_zc(
+uringio_send_zc(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -29,7 +29,7 @@ aio_uring_send_zc(
 }
 
 int
-aio_uring_send_zc_fixed(
+uringio_send_zc_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -58,7 +58,7 @@ aio_uring_send_zc_fixed(
 }
 
 int
-aio_uring_sendmsg_zc(
+uringio_sendmsg_zc(
     struct io_uring *ring,
     int request_idx,
     int sockfd,

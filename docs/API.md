@@ -4,9 +4,9 @@
 
 | Type | tp_doc |
 |---|---|
-| `AioUringLoop(asyncio.BaseEventLoop)` | Rings with python loop |
-| `File` | aio_uring file adapter |
-| `Socket` | aio_uring socket adapter |
+| `UringioLoop(asyncio.BaseEventLoop)` | Rings with python loop |
+| `File` | uringio file adapter |
+| `Socket` | uringio socket adapter |
 | `BufferModeCtx` | Buffer Mode helper for context manager |
 | `StreamStrategyCtx` | Stream Strategy helper for context manager |
 | `TransferModeCtx` | Transfer Mode helper for context manager |
@@ -32,4 +32,4 @@
 | `open_file` | Opens file and instantiate File object |
 | `prep_socket` | Opens socket and instantiate Socket object |
 
-See: [AioUringLoop](api/loop.md) · [File](api/file.md) · [Socket](api/socket.md) · [Context Managers](api/context-managers.md) · [Enums](api/enums.md) · [Module Functions](api/module-functions.md)
+See: [UringioLoop](api/loop.md) · [File](api/file.md) · [Socket](api/socket.md) · [Context Managers](api/context-managers.md) · [Enums](api/enums.md) · [Module Functions](api/module-functions.md)

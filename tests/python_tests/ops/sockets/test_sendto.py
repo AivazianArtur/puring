@@ -3,11 +3,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import aio_uring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
 @pytest_parametrize(
@@ -24,9 +24,9 @@ from tests.python_tests.tests_utils.runner import aio_uring_test
         pytest_param(data=b'x', host='127.0.0.1', port=0, domain=1.5, id='domain_wrong_type_float'),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_sendto__validation_error(data, host, port, domain):
-    sock = await aio_uring.prep_socket()
+    sock = await uringio.prep_socket()
 
     with pytest.raises(expected_exception=TypeError):
         sock.sendto(data=data, host=host, port=port, domain=domain)
@@ -34,9 +34,9 @@ async def test_sendto__validation_error(data, host, port, domain):
     await sock.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_sendto__no_req_params():
-    sock = await aio_uring.prep_socket()
+    sock = await uringio.prep_socket()
 
     with pytest.raises(expected_exception=TypeError):
         sock.sendto()
@@ -44,18 +44,18 @@ async def test_sendto__no_req_params():
     await sock.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_sendto__closed_socket_raises_error():
-    sock = await aio_uring.prep_socket()
+    sock = await uringio.prep_socket()
     await sock.close()
 
     with pytest.raises(expected_exception=OSError):
         await sock.sendto(data=b'hello', host='127.0.0.1', port=0, domain=socket.AF_INET)
 
 
-@aio_uring_test
+@uringio_test
 async def test_sendto__invalid_ip_raises_error():
-    sock = await aio_uring.prep_socket()
+    sock = await uringio.prep_socket()
 
     with pytest.raises(expected_exception=ConnectionRefusedError):
         sock.sendto(data=b'hello', host='not-an-ip-address', port=0, domain=socket.AF_INET)
@@ -63,7 +63,7 @@ async def test_sendto__invalid_ip_raises_error():
     await sock.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_sendto__success():
     # UDP: no listener required for the send itself to succeed at the
     # io_uring/socket level (unlike TCP connect).
@@ -71,7 +71,7 @@ async def test_sendto__success():
     server.bind(('127.0.0.1', 0))
     _, port = server.getsockname()
 
-    sock = await aio_uring.prep_socket(domain=socket.AF_INET, socktype=socket.SOCK_DGRAM)
+    sock = await uringio.prep_socket(domain=socket.AF_INET, socktype=socket.SOCK_DGRAM)
 
     data = b'hello via sendto'
     written = await sock.sendto(data=data, host='127.0.0.1', port=port, domain=socket.AF_INET)

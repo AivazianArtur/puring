@@ -1,7 +1,7 @@
 #include "loop.h"
 
 struct __kernel_timespec
-compute_timeout(AioUringLoop *self) {
+compute_timeout(UringioLoop *self) {
     struct __kernel_timespec ts = {0, 0};
 
     PyObject *ready = PyObject_GetAttrString((PyObject *)self, "_ready");
@@ -53,7 +53,7 @@ compute_timeout(AioUringLoop *self) {
 }
 
 void
-promote_scheduled(AioUringLoop *self) {
+promote_scheduled(UringioLoop *self) {
     PyObject *heapq = PyImport_ImportModule("heapq");
     if (!heapq) {
         return;
@@ -108,7 +108,7 @@ promote_scheduled(AioUringLoop *self) {
 }
 
 void
-drain_ready(AioUringLoop *self) {
+drain_ready(UringioLoop *self) {
     PyObject *ready = PyObject_GetAttrString((PyObject *)self, "_ready");
     if (!ready)
         return;

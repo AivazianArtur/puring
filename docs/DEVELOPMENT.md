@@ -1,6 +1,6 @@
 # Development Guide
 
-This guide outlines how to set up your environment, run tests, and submit Pull Requests for **aio_uring**.
+This guide outlines how to set up your environment, run tests, and submit Pull Requests for **uringio**.
 
 ## Quick Start
 
@@ -8,7 +8,7 @@ This guide outlines how to set up your environment, run tests, and submit Pull R
 
 ```bash
 git clone --recurse-submodules <repo-url>
-cd aio_uring
+cd uringio
 ```
 
 If you already cloned without `--recurse-submodules`, the build will initialize it
@@ -267,4 +267,4 @@ int example(void) {
 - [AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer)
 - [cppcheck](https://cppcheck.sourceforge.io/)
 
-If you face some problems, please leave an issue on [GitHub](https://github.com/AivazianArtur/aio_uring/issues)
+If you face some problems, please leave an issue on [GitHub](https://github.com/AivazianArtur/uringio/issues)

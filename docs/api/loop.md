@@ -1,6 +1,6 @@
-# AioUringLoop
+# UringioLoop
 
-`class AioUringLoop(asyncio.BaseEventLoop)` — Rings with python loop
+`class UringioLoop(asyncio.BaseEventLoop)` — Rings with python loop
 
 ```python
 __init__(self, registry_size: int = 0) -> None

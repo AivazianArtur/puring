@@ -3,15 +3,15 @@ import sys
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 import pytest
 
-from tests.python_tests.tests_utils.runner import aio_uring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
-@aio_uring_test
+@uringio_test
 async def test_socket_context_manager__closes_on_normal_exit():
-    sock = await aio_uring.prep_socket(domain=socket.AF_INET)
+    sock = await uringio.prep_socket(domain=socket.AF_INET)
 
     async with sock as ctx_sock:
         assert ctx_sock is sock
@@ -21,9 +21,9 @@ async def test_socket_context_manager__closes_on_normal_exit():
         sock.listen(backlog=1)
 
 
-@aio_uring_test
+@uringio_test
 async def test_socket_context_manager__closes_on_exception():
-    sock = await aio_uring.prep_socket(domain=socket.AF_INET)
+    sock = await uringio.prep_socket(domain=socket.AF_INET)
 
     with pytest.raises(expected_exception=ValueError):
         async with sock:
@@ -33,18 +33,18 @@ async def test_socket_context_manager__closes_on_exception():
         sock.listen(backlog=1)
 
 
-@aio_uring_test
+@uringio_test
 async def test_socket_context_manager__original_exception_propagates():
-    sock = await aio_uring.prep_socket(domain=socket.AF_INET)
+    sock = await uringio.prep_socket(domain=socket.AF_INET)
 
     with pytest.raises(expected_exception=ValueError, match='specific error'):
         async with sock:
             raise ValueError('specific error')
 
 
-@aio_uring_test
+@uringio_test
 async def test_socket_context_manager__aenter_returns_self():
-    sock = await aio_uring.prep_socket(domain=socket.AF_INET)
+    sock = await uringio.prep_socket(domain=socket.AF_INET)
 
     result = await sock.__aenter__()
     assert result is sock
@@ -52,9 +52,9 @@ async def test_socket_context_manager__aenter_returns_self():
     await sock.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_socket_context_manager__usable_for_bind_listen():
-    async with (await aio_uring.prep_socket(domain=socket.AF_INET)) as sock:
+    async with (await uringio.prep_socket(domain=socket.AF_INET)) as sock:
         await sock.bind(host='127.0.0.1', port=0)
         await sock.listen(backlog=1)
 

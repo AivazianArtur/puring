@@ -2,11 +2,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import aio_uring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
 @pytest.fixture
@@ -51,9 +51,9 @@ def temp_file_path(tmp_path):
         ),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_read__validation_error(temp_file_path, offset, size):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     with pytest.raises(expected_exception=TypeError):
         await uring_file.read(
@@ -64,9 +64,9 @@ async def test_read__validation_error(temp_file_path, offset, size):
     await uring_file.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_read__closed_file_raises_error(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
     await uring_file.close()
     with pytest.raises(expected_exception=BrokenPipeError):
         await uring_file.read()
@@ -112,9 +112,9 @@ async def test_read__closed_file_raises_error(temp_file_path):
         ),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_read__success(temp_file_path, offset, size):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     kwargs = {}
     if offset is not None:
@@ -125,9 +125,9 @@ async def test_read__success(temp_file_path, offset, size):
     assert uring_file.read(**kwargs)
 
 
-@aio_uring_test
+@uringio_test
 async def test_read__full_roundtrip(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
     data = await uring_file.read(size=1024)
     await uring_file.close()
 

@@ -1,6 +1,6 @@
 # Socket
 
-`class Socket` — aio_uring socket adapter
+`class Socket` — uringio socket adapter
 
 ## Methods
 

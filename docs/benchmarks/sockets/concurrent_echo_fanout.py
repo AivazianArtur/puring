@@ -17,7 +17,7 @@ except ImportError:
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 
 
 # ---- fd limit ------------------------------------------------------
@@ -238,14 +238,14 @@ async def uvloop_fanout(n, port):
 
 
 # ---------------------------------------------------------------------
-# 4. aio_uring: server + all n clients on the single io_uring ring, every
+# 4. uringio: server + all n clients on the single io_uring ring, every
 #    send/recv is its own SQE, no worker threads, no epoll.
 # ---------------------------------------------------------------------
 
-async def aio_uring_fanout(n, port):
-    print(f'Running aio_uring sockets fanout (io_uring), n={n}')
+async def uringio_fanout(n, port):
+    print(f'Running uringio sockets fanout (io_uring), n={n}')
 
-    server_sock = await aio_uring.prep_socket(
+    server_sock = await uringio.prep_socket(
         domain=socket.AF_INET, socktype=socket.SOCK_STREAM
     )
     await server_sock.bind(host=HOST, port=port)
@@ -272,7 +272,7 @@ async def aio_uring_fanout(n, port):
             asyncio.create_task(handle(conn))
 
     async def one():
-        c = await aio_uring.prep_socket(
+        c = await uringio.prep_socket(
             domain=socket.AF_INET, socktype=socket.SOCK_STREAM
         )
         await c.connect(host=HOST, port=port)
@@ -335,9 +335,9 @@ def run():
         for n in conn_counts:
             run_step('uvloop', lambda n, p: asyncio.run(uvloop_fanout(n, p)), n, next_port())
 
-    with asyncio.Runner(loop_factory=aio_uring.AioUringLoop) as runner:
+    with asyncio.Runner(loop_factory=uringio.UringioLoop) as runner:
         for n in conn_counts:
-            run_step('aio_uring', lambda n, p: runner.run(aio_uring_fanout(n, p)), n, next_port())
+            run_step('uringio', lambda n, p: runner.run(uringio_fanout(n, p)), n, next_port())
 
     print('\n==== RESULTS ====')
     print(f'{"backend":20s} {"n":>6s} {"MB/s":>10s} {"round-trips/s":>15s} {"time":>8s}')

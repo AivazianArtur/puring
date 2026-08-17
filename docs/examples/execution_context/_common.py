@@ -1,7 +1,7 @@
 
 import sys
 sys.path.insert(0, '')
-import aio_uring
+import uringio
 
 
 HOST = '127.0.0.1'
@@ -9,13 +9,13 @@ PORT = 12878
 
 
 async def simple_socket_example():
-    server_sock = await aio_uring.prep_socket()
+    server_sock = await uringio.prep_socket()
     print(f'{server_sock = }')
     await server_sock.bind(HOST, PORT)
     await server_sock.listen(1)
     print(f'Server listening on {HOST}:{PORT}')
 
-    client_sock = await aio_uring.prep_socket()
+    client_sock = await uringio.prep_socket()
 
     await client_sock.connect(HOST, PORT)
     print('Client connected')
@@ -40,10 +40,10 @@ async def simple_socket_example():
 
 TEMPFILE = 'docs/assets/tempfile.txt'
 async def simple_file_example():
-    async with await aio_uring.open_file(path=TEMPFILE) as uring_file:
+    async with await uringio.open_file(path=TEMPFILE) as uring_file:
         print('File opened, fd:', uring_file)
 
-        data = b'Hello, aio_uring!\n'
+        data = b'Hello, uringio!\n'
         bytes_written = await uring_file.write(data=data)
         print('Bytes written:', bytes_written)
 

@@ -3,19 +3,19 @@ import sys
 sys.path.insert(0, '')
 
 import asyncio
-import aio_uring
+import uringio
 
 HOST = '127.0.0.1'
 PORT = 12878
 
 async def main():
-    server_sock = await aio_uring.prep_socket()
+    server_sock = await uringio.prep_socket()
     print(f'{server_sock = }')
     await server_sock.bind(HOST, PORT)
     await server_sock.listen(1)
     print(f'Server listening on {HOST}:{PORT}')
 
-    client_sock = await aio_uring.prep_socket()
+    client_sock = await uringio.prep_socket()
 
     await client_sock.connect(HOST, PORT)
     print('Client connected')
@@ -38,6 +38,6 @@ async def main():
     print('Sockets closed')
 
 
-# asyncio.run(main(), loop_factory=aio_uring.AioUringLoop)
-with asyncio.Runner(loop_factory=aio_uring.AioUringLoop) as runner:
+# asyncio.run(main(), loop_factory=uringio.UringioLoop)
+with asyncio.Runner(loop_factory=uringio.UringioLoop) as runner:
     runner.run(main())

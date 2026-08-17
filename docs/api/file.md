@@ -1,6 +1,6 @@
 # File
 
-`class File` — aio_uring file adapter
+`class File` — uringio file adapter
 
 ## Members
 

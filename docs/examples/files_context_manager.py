@@ -4,17 +4,17 @@ import sys
 sys.path.insert(0, '')
 
 import asyncio
-import aio_uring
+import uringio
 
 
 TEMPFILE = 'docs/assets/tempfile.txt'
 
 
 async def main():
-    async with await aio_uring.open_file(path=TEMPFILE) as uring_file:
+    async with await uringio.open_file(path=TEMPFILE) as uring_file:
         print('File opened, fd:', uring_file)
 
-        data = b'Hello, aio_uring!\n'
+        data = b'Hello, uringio!\n'
         bytes_written = await uring_file.write(data=data)
         print('Bytes written:', bytes_written)
 
@@ -27,5 +27,5 @@ async def main():
     print('File closed')
 
 
-asyncio.run(main(), loop_factory=aio_uring.AioUringLoop)
+asyncio.run(main(), loop_factory=uringio.UringioLoop)
 os.remove(TEMPFILE)

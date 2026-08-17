@@ -1,12 +1,12 @@
 #include "python_api/ops/files/files.h"
 
 PyObject *
-AioUring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_IS_AIO_URING();
+Uringio_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
+    ASSERT_LOOP_IS_URINGIO();
     ASSERT_LOOP_THREAD(running_loop);
     ASSERT_RING_LOOP_IS_CLOSING(running_loop);
 
-    AioUringFile *file = PyObject_GC_New(AioUringFile, &AioUringFileType);
+    UringioFile *file = PyObject_GC_New(UringioFile, &UringioFileType);
     if (!file) {
         return PyErr_NoMemory();
     }
@@ -86,19 +86,19 @@ AioUring_open(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
 }
 
 int
-AioUringFile_traverse(AioUringFile *self, visitproc visit, void *arg) {
+UringioFile_traverse(UringioFile *self, visitproc visit, void *arg) {
     Py_VISIT(self->loop);
     return 0;
 }
 
 int
-AioUringFile_clear(AioUringFile *self) {
+UringioFile_clear(UringioFile *self) {
     Py_CLEAR(self->loop);
     return 0;
 }
 
 PyObject *
-AioUringFile_aenter(AioUringFile *self, PyObject *Py_UNUSED(ignored)) {
+UringioFile_aenter(UringioFile *self, PyObject *Py_UNUSED(ignored)) {
     PyObject *future = create_future(self->loop);
     if (!future)
         return NULL;
@@ -109,7 +109,7 @@ AioUringFile_aenter(AioUringFile *self, PyObject *Py_UNUSED(ignored)) {
 }
 
 PyObject *
-AioUringFile_aexit(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_aexit(UringioFile *self, PyObject *args, PyObject *kwargs) {
     PyObject *exc_type = NULL;
     PyObject *exc_val = NULL;
     PyObject *exc_tb = NULL;
@@ -143,7 +143,7 @@ AioUringFile_aexit(AioUringFile *self, PyObject *args, PyObject *kwargs) {
 
     self->closed = 1;
 
-    int result = aio_uring_close_file(self->loop->ring, request_idx, self->fd, timeout_params);
+    int result = uringio_close_file(self->loop->ring, request_idx, self->fd, timeout_params);
     PyObject *validated_result = _check_file_result(result, self, request_idx, future);
     if (!validated_result) {
         self->closed = 0;
@@ -156,10 +156,10 @@ AioUringFile_aexit(AioUringFile *self, PyObject *args, PyObject *kwargs) {
 }
 
 void
-AioUringFile_dealloc(AioUringFile *self) {
+UringioFile_dealloc(UringioFile *self) {
     PyObject_GC_UnTrack(self);
     self->closed = true;
-    AioUringFile_clear(self);
+    UringioFile_clear(self);
     freefunc free_func = PyType_GetSlot(Py_TYPE(self), Py_tp_free);
     if (free_func) {
         free_func(self);
@@ -169,7 +169,7 @@ AioUringFile_dealloc(AioUringFile *self) {
 }
 
 PyObject *
-AioUringFile_close(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_close(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -198,13 +198,13 @@ AioUringFile_close(AioUringFile *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_RuntimeError, "Registry is full");
         return NULL;
     }
-    int result = aio_uring_close_file(self->loop->ring, request_idx, self->fd, timeout_params);
+    int result = uringio_close_file(self->loop->ring, request_idx, self->fd, timeout_params);
 
     return _check_file_result(result, self, request_idx, future);
 }
 
 PyObject *
-AioUringFile_read(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_read(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -255,7 +255,7 @@ AioUringFile_read(AioUringFile *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringFile_readv(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_readv(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -306,7 +306,7 @@ AioUringFile_readv(AioUringFile *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringFile_readv_raw(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_readv_raw(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -367,7 +367,7 @@ AioUringFile_readv_raw(AioUringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_readv(
+    int result = uringio_readv(
         self->loop->ring,
         request_idx,
         self->fd,
@@ -382,7 +382,7 @@ AioUringFile_readv_raw(AioUringFile *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringFile_write(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_write(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -427,7 +427,7 @@ AioUringFile_write(AioUringFile *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringFile_writev(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_writev(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -472,7 +472,7 @@ AioUringFile_writev(AioUringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_writev(
+    int result = uringio_writev(
         self->loop->ring,
         request_idx,
         self->fd,
@@ -487,7 +487,7 @@ AioUringFile_writev(AioUringFile *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringFile_writev_raw(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_writev_raw(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -553,7 +553,7 @@ AioUringFile_writev_raw(AioUringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_writev(
+    int result = uringio_writev(
         self->loop->ring,
         request_idx,
         self->fd,
@@ -568,7 +568,7 @@ AioUringFile_writev_raw(AioUringFile *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-AioUringFile_fsync(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_fsync(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -598,12 +598,12 @@ AioUringFile_fsync(AioUringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_fsync(self->loop->ring, request_idx, self->fd, timeout_params);
+    int result = uringio_fsync(self->loop->ring, request_idx, self->fd, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
 PyObject *
-AioUringFile_fdatasync(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_fdatasync(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -633,12 +633,12 @@ AioUringFile_fdatasync(AioUringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_fdatasync(self->loop->ring, request_idx, self->fd, timeout_params);
+    int result = uringio_fdatasync(self->loop->ring, request_idx, self->fd, timeout_params);
     return _check_file_result(result, self, request_idx, future);
 }
 
 PyObject *
-AioUringFile_splice(AioUringFile *self, PyObject *args, PyObject *kwargs) {
+UringioFile_splice(UringioFile *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -687,14 +687,14 @@ AioUringFile_splice(AioUringFile *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = aio_uring_splice(
+    int result = uringio_splice(
         self->loop->ring, request_idx, src, offset_src, dst, offset_dst, count, flag, timeout_params
     );
     return _check_file_result(result, self, request_idx, future);
 }
 
 PyObject *
-_check_file_result(int result, AioUringFile *file, int request_idx, PyObject *future) {
+_check_file_result(int result, UringioFile *file, int request_idx, PyObject *future) {
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");

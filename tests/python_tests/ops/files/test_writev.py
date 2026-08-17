@@ -2,11 +2,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import aio_uring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
 @pytest.fixture
@@ -23,9 +23,9 @@ def temp_file_path(tmp_path):
         pytest_param(buffers=None, id='buffers_wrong_type_none'),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_writev__validation_error(temp_file_path, buffers):
-    uring_file = await aio_uring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
 
     with pytest.raises(expected_exception=TypeError):
         uring_file.writev(buffers=buffers)
@@ -33,9 +33,9 @@ async def test_writev__validation_error(temp_file_path, buffers):
     await uring_file.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_writev__closed_file_raises_error(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
     await uring_file.close()
 
     with pytest.raises(expected_exception=BrokenPipeError):
@@ -49,9 +49,9 @@ async def test_writev__closed_file_raises_error(temp_file_path):
         pytest_param(chunks=[b'hello ', b'world', b'!'], id='multiple_buffers'),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_writev__success(temp_file_path, chunks):
-    uring_file = await aio_uring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
 
     total_len = sum(len(c) for c in chunks)
     written = await uring_file.writev(buffers=chunks)
@@ -64,9 +64,9 @@ async def test_writev__success(temp_file_path, chunks):
     assert content == b''.join(chunks)
 
 
-@aio_uring_test
+@uringio_test
 async def test_writev__with_offset(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
 
     chunks = [b'AAA', b'BBB']
     written = await uring_file.writev(buffers=chunks, offset=20)

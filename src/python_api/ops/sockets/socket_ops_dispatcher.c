@@ -2,7 +2,7 @@
 
 int
 accept_dispatcher(
-    AioUringSocket *self,
+    UringioSocket *self,
     StreamStrategy stream_strategy,
     int request_idx,
     struct sockaddr *addr,
@@ -15,13 +15,13 @@ accept_dispatcher(
 
     switch (stream_strategy) {
     case MULTISHOT:
-        result = aio_uring_accept_multishot(
+        result = uringio_accept_multishot(
             self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, len, flags, timeout_params
         );
         break;
     case ONESHOT:
     default:
-        result = aio_uring_accept(
+        result = uringio_accept(
             self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, len, flags, timeout_params
         );
     }
@@ -30,7 +30,7 @@ accept_dispatcher(
 
 int
 recv_dispatcher(
-    AioUringSocket *self,
+    UringioSocket *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream_strategy,
     int request_idx,
@@ -44,7 +44,7 @@ recv_dispatcher(
     // case FIXED:
     //     buf_idx = get_buffer_idx(buffer_payload->idx_registry);
     //     buffer_payload->buf_idx = buf_idx;
-    //     result = aio_uring_recv_fixed(
+    //     result = uringio_recv_fixed(
     //         self->loop->ring,
     //         request_idx,
     //         self->sock_fd,
@@ -58,7 +58,7 @@ recv_dispatcher(
     case PROVIDED:
     case BUF_RING:
         if (stream_strategy == MULTISHOT) {
-            result = aio_uring_recv_multishot(
+            result = uringio_recv_multishot(
                 self->loop->ring,
                 request_idx,
                 self->sock_fd,
@@ -68,7 +68,7 @@ recv_dispatcher(
                 timeout_params
             );
         } else {
-            result = aio_uring_recv_buffer_select(
+            result = uringio_recv_buffer_select(
                 self->loop->ring,
                 request_idx,
                 self->sock_fd,
@@ -83,7 +83,7 @@ recv_dispatcher(
     case BUF_NO_VAL:
     case FIXED: // TEMP
     default:
-        result = aio_uring_recv(
+        result = uringio_recv(
             self->loop->ring,
             request_idx,
             self->sock_fd,
@@ -98,7 +98,7 @@ recv_dispatcher(
 
 int
 recvmsg_dispatcher(
-    AioUringSocket *self,
+    UringioSocket *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream_strategy,
     int request_idx,
@@ -113,7 +113,7 @@ recvmsg_dispatcher(
     // case FIXED:
     //     buf_idx = get_buffer_idx(buffer_payload->idx_registry);
     //     buffer_payload->buf_idx = buf_idx;
-    //     result = aio_uring_recvmsg_fixed(
+    //     result = uringio_recvmsg_fixed(
     //         self->loop->ring,
     //         request_idx,
     //         self->sock_fd,
@@ -127,7 +127,7 @@ recvmsg_dispatcher(
     case PROVIDED:
     case BUF_RING:
         if (stream_strategy == MULTISHOT) {
-            result = aio_uring_recvmsg_multishot(
+            result = uringio_recvmsg_multishot(
                 self->loop->ring,
                 request_idx,
                 self->sock_fd,
@@ -137,7 +137,7 @@ recvmsg_dispatcher(
                 timeout_params
             );
         } else {
-            result = aio_uring_recvmsg_buffer_select(
+            result = uringio_recvmsg_buffer_select(
                 self->loop->ring, request_idx, self->sock_fd, buffer_payload->bgid, is_poll_first, timeout_params
             );
         }
@@ -146,7 +146,7 @@ recvmsg_dispatcher(
     case BUF_NO_VAL:
     case FIXED: // TEMP
     default:
-        result = aio_uring_recvmsg(
+        result = uringio_recvmsg(
             self->loop->ring,
             request_idx,
             self->sock_fd,
@@ -161,7 +161,7 @@ recvmsg_dispatcher(
 
 int
 send_dispatcher(
-    AioUringSocket *self,
+    UringioSocket *self,
     BufferPayload *buffer_payload,
     TransferMode transfer_mode,
     int request_idx,
@@ -175,7 +175,7 @@ send_dispatcher(
             int buf_idx;
             buf_idx = get_buffer_idx(buffer_payload->idx_registry);
             buffer_payload->buf_idx = buf_idx;
-            result = aio_uring_send_zc_fixed(
+            result = uringio_send_zc_fixed(
                 self->loop->ring,
                 request_idx,
                 self->sock_fd,
@@ -186,7 +186,7 @@ send_dispatcher(
                 timeout_params
             );
         } else {
-            result = aio_uring_send_zc(
+            result = uringio_send_zc(
                 self->loop->ring,
                 request_idx,
                 self->sock_fd,
@@ -197,7 +197,7 @@ send_dispatcher(
             );
         }
     } else {
-        result = aio_uring_send(
+        result = uringio_send(
             self->loop->ring,
             request_idx,
             self->sock_fd,
@@ -212,7 +212,7 @@ send_dispatcher(
 
 int
 sendmsg_dispatcher(
-    AioUringSocket *self,
+    UringioSocket *self,
     BufferPayload *buffer_payload,
     TransferMode transfer_mode,
     int request_idx,
@@ -227,7 +227,7 @@ sendmsg_dispatcher(
     case ZERO_COPY:
         buf_idx = get_buffer_idx(buffer_payload->idx_registry);
         buffer_payload->buf_idx = buf_idx;
-        result = aio_uring_sendmsg_zc(
+        result = uringio_sendmsg_zc(
             self->loop->ring,
             request_idx,
             self->sock_fd,
@@ -242,7 +242,7 @@ sendmsg_dispatcher(
         break;
     case NORMAL_TRANSFER:
     default:
-        result = aio_uring_sendmsg(
+        result = uringio_sendmsg(
             self->loop->ring,
             request_idx,
             self->sock_fd,

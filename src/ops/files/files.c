@@ -39,7 +39,7 @@ open_file(
 }
 
 int
-aio_uring_read(
+uringio_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -65,7 +65,7 @@ aio_uring_read(
 }
 
 int
-aio_uring_readv(
+uringio_readv(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -95,7 +95,7 @@ aio_uring_readv(
 }
 
 int
-aio_uring_write(
+uringio_write(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -120,7 +120,7 @@ aio_uring_write(
 }
 
 int
-aio_uring_writev(
+uringio_writev(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -147,7 +147,7 @@ aio_uring_writev(
 }
 
 int
-aio_uring_close_file(struct io_uring *ring, int request_idx, int fd, const struct TimeoutParams timeout_params) {
+uringio_close_file(struct io_uring *ring, int request_idx, int fd, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_close(sqe, fd);
@@ -164,7 +164,7 @@ aio_uring_close_file(struct io_uring *ring, int request_idx, int fd, const struc
 }
 
 int
-aio_uring_fsync(
+uringio_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -189,7 +189,7 @@ aio_uring_fsync(
 }
 
 int
-aio_uring_fdatasync(
+uringio_fdatasync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -214,7 +214,7 @@ aio_uring_fdatasync(
 }
 
 int
-aio_uring_splice(
+uringio_splice(
     struct io_uring *ring,
     int request_idx,
     int fd_in,

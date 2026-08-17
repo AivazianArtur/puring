@@ -2,7 +2,7 @@
 
 ## liburing
 
-aio_uring vendors and statically links liburing.
+uringio vendors and statically links liburing.
 
 Project:
 https://github.com/axboe/liburing

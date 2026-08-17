@@ -1,7 +1,7 @@
 #include "sockets.h"
 
 int
-aio_uring_recv_fixed(
+uringio_recv_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -32,7 +32,7 @@ aio_uring_recv_fixed(
 }
 
 int
-aio_uring_recvmsg_fixed(
+uringio_recvmsg_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,

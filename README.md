@@ -1,7 +1,7 @@
-# aio_uring
-![Linux](https://img.shields.io/badge/Linux-%23FFFFFF.svg?style=for-the-badge&logo=linux&logoColor=black) ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FAivazianArtur%2Faio_uring%2Frefs%2Fheads%2Fmain%2Fpyproject.toml) ![GitHub Release](https://img.shields.io/github/v/release/AivazianArtur/aio_uring)
+# uringio
+![Linux](https://img.shields.io/badge/Linux-%23FFFFFF.svg?style=for-the-badge&logo=linux&logoColor=black) ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FAivazianArtur%2Furingio%2Frefs%2Fheads%2Fmain%2Fpyproject.toml) ![GitHub Release](https://img.shields.io/github/v/release/AivazianArtur/uringio)
 
-aio_uring brings true asynchronous file I/O to Python with a native event loop built on [io_uring](https://unixism.net/loti/), implemented as C extension for CPython.
+uringio brings true asynchronous file I/O to Python with a native event loop built on [io_uring](https://unixism.net/loti/), implemented as C extension for CPython.
 
 ⚠️ Currently in active development, so API and internals may change and will be evolved.
 
@@ -9,23 +9,23 @@ aio_uring brings true asynchronous file I/O to Python with a native event loop b
 ### Files
 ```python
 async def main():
-    async with aio_uring.open_file(path='testfile.txt') as file:
-        data = b'Hello, aio_uring!\n'
+    async with uringio.open_file(path='testfile.txt') as file:
+        data = b'Hello, uringio!\n'
         await file.write(data=data)
         result = await file.read()
 
-asyncio.run(main(), loop_factory=aio_uring.AioUringLoop)
+asyncio.run(main(), loop_factory=uringio.UringioLoop)
 ```
 
 ### Sockets
 ```python
 async def main():
-    async with await aio_uring.prep_socket() as socket:
+    async with await uringio.prep_socket() as socket:
         await socket.connect('127.0.0.1', 9000)
         await socket.send(b'hello')
         data = await socket.recv()
 
-asyncio.run(main(), loop_factory=aio_uring.AioUringLoop)
+asyncio.run(main(), loop_factory=uringio.UringioLoop)
 ```
 
 ### `Fixed` buffers - One of io_uring optimization features
@@ -33,10 +33,10 @@ asyncio.run(main(), loop_factory=aio_uring.AioUringLoop)
 async def main():
     loop = asyncio.get_running_loop()
     buf = bytearray(4096)
-    with loop.buffer_mode(mode=aio_uring.BUFFER_MODE.FIXED, buffers=[buf]):
+    with loop.buffer_mode(mode=uringio.BUFFER_MODE.FIXED, buffers=[buf]):
         await simple_file_example()
 
-asyncio.run(main(), loop_factory=aio_uring.AioUringLoop)
+asyncio.run(main(), loop_factory=uringio.UringioLoop)
 ```
 
 **See the whole [user guide](docs/USER_GUIDE.md)**
@@ -47,31 +47,31 @@ asyncio.run(main(), loop_factory=aio_uring.AioUringLoop)
 > make run-examples
 
 ## Benchmarks 
-**`aio_uring` shows that true file async I/O provided by `io_uring` is superior over current solutions and shows x2 and almost x3 performance:**
+**`uringio` shows that true file async I/O provided by `io_uring` is superior over current solutions and shows x2 and almost x3 performance:**
 
 #### Write files sequentially
 ![sequential write files](docs/assets/benchmark_results/files/sequential_write_files.png)
 #### Write files using vector operations
 ![vectored write](docs/assets/benchmark_results/files/vectored_write.png)
 
-**`aio_uring` also shows better performance over other solutions in `socket` operations:**
+**`uringio` also shows better performance over other solutions in `socket` operations:**
 #### Socket connection storm
 ![many connections](docs/assets/benchmark_results/sockets/many_connections.png)
 
-**⚠️ But `aio_uring` and `io_uring` are not a magic wands, so there are scenarios when its better not to use it. For example:**
+**⚠️ But `uringio` and `io_uring` are not a magic wands, so there are scenarios when its better not to use it. For example:**
 
 #### Load test of concurrent TCP connections with I/O operations
 ![echo fanout](docs/assets/benchmark_results/sockets/concurrent_echo_fanout.png)
 
-As you can see, with little amount of connections there is no reason to use `aio_uring` because of `CQE`s and `SQE`s overhead. However, when it comes to many connections - it is the only backend that not degrading under pressure.
+As you can see, with little amount of connections there is no reason to use `uringio` because of `CQE`s and `SQE`s overhead. However, when it comes to many connections - it is the only backend that not degrading under pressure.
 
 Read more about benchmark results in [Benchmarks analysis page](docs/BENCHMARKS_ANALYSIS.md)
 
 ## Installation
 **Warning! Linux only**
-aio_uring requires linux kernel version 6.11 or greater and Python 3.12 or greater.
+uringio requires linux kernel version 6.11 or greater and Python 3.12 or greater.
 Library is available on PyPI, so use pip to install it:
-> pip install aio_uring
+> pip install uringio
 
 ## Build and use
 To build and install use
@@ -93,13 +93,13 @@ While working with code, dont forget to
 
 ## Architecture
 ### io_uring
-aio_uring is written natively in CPython and brings the new event loop, based on io_uring.
+uringio is written natively in CPython and brings the new event loop, based on io_uring.
 
 What is io_uring and how it works, explained shortly by us - [here](docs/IO_URING.md)
 
 ### Presenting new objects
 - Main:
-    - AioUringLoop
+    - UringioLoop
     - File
     - Socket
 - Helpers:

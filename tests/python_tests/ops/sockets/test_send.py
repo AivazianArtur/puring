@@ -2,11 +2,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import aio_uring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 from tests.python_tests.tests_utils.socket_pair import make_connected_pair
 
 
@@ -17,7 +17,7 @@ from tests.python_tests.tests_utils.socket_pair import make_connected_pair
         pytest_param(data=None, id='data_wrong_type_none'),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_send__validation_error(data):
     server_conn, client_sock, server_sock = await make_connected_pair()
 
@@ -29,7 +29,7 @@ async def test_send__validation_error(data):
     await server_sock.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_send__no_req_params():
     server_conn, client_sock, server_sock = await make_connected_pair()
 
@@ -41,16 +41,16 @@ async def test_send__no_req_params():
     await server_sock.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_send__closed_socket_raises_error():
-    sock = await aio_uring.prep_socket()
+    sock = await uringio.prep_socket()
     await sock.close()
 
     with pytest.raises(expected_exception=OSError):
         await sock.send(data=b'hello')
 
 
-@aio_uring_test
+@uringio_test
 async def test_send__success():
     server_conn, client_sock, server_sock = await make_connected_pair()
 
@@ -63,7 +63,7 @@ async def test_send__success():
     await server_sock.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_send__bytearray_input():
     server_conn, client_sock, server_sock = await make_connected_pair()
 

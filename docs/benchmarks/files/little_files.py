@@ -13,14 +13,14 @@ except ImportError:
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 
 
 # ---- Config -----------------------------------------------------------
 # This isn't a throughput test - the files are tiny and stay warm in the
 # dentry/inode cache after the first pass. It's isolating the fixed cost
 # of open()+close() itself: one syscall pair per file for the sync/thread
-# variants, vs one (or two, batched) io_uring submissions for aio_uring.
+# variants, vs one (or two, batched) io_uring submissions for uringio.
 # That fixed cost is what dominates workloads like serving many small
 # static assets or scanning a directory tree.
 
@@ -90,18 +90,18 @@ async def uvloop_open_close(depth):
 
 
 # -------------------------------------------------------------------
-# 3. aio_uring: open+close as two io_uring SQEs per file, no worker
+# 3. uringio: open+close as two io_uring SQEs per file, no worker
 #    threads involved. Swept over concurrency depth the same way, to
 #    show how submission batching changes the picture as depth grows.
 # -------------------------------------------------------------------
 
-async def aio_uring_open_close(depth):
-    print(f'Running aio_uring open/close (io_uring), depth={depth}')
+async def uringio_open_close(depth):
+    print(f'Running uringio open/close (io_uring), depth={depth}')
     sem = asyncio.Semaphore(depth)
 
     async def one(path):
         async with sem:
-            f = await aio_uring.open_file(path=path)
+            f = await uringio.open_file(path=path)
             await f.close()
 
     start = time.perf_counter()
@@ -128,10 +128,10 @@ def run():
             t = asyncio.run(uvloop_open_close(depth))
             results.append(('uvloop', depth, t))
 
-    with asyncio.Runner(loop_factory=aio_uring.AioUringLoop) as runner:
+    with asyncio.Runner(loop_factory=uringio.UringioLoop) as runner:
         for depth in DEPTHS:
-            t = runner.run(aio_uring_open_close(depth))
-            results.append(('aio_uring', depth, t))
+            t = runner.run(uringio_open_close(depth))
+            results.append(('uringio', depth, t))
 
     print('\n==== RESULTS ====')
     print(f'{"backend":10s} {"depth":>6s} {"ops/s":>10s} {"avg latency":>14s} {"time":>8s}')

@@ -1,7 +1,7 @@
 #include "sockets.h"
 
 int
-aio_uring_accept_multishot(
+uringio_accept_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -26,7 +26,7 @@ aio_uring_accept_multishot(
 }
 
 int
-aio_uring_recv_multishot(
+uringio_recv_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -59,7 +59,7 @@ aio_uring_recv_multishot(
 }
 
 int
-aio_uring_recvmsg_multishot(
+uringio_recvmsg_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -92,7 +92,7 @@ aio_uring_recvmsg_multishot(
 }
 
 RecvMsgMultishotResult
-aio_uring_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len) {
+uringio_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len) {
     RecvMsgMultishotResult result = {NULL, 0, true};
 
     struct io_uring_recvmsg_out *out = io_uring_recvmsg_validate(buf, buf_len, msghdr);
@@ -106,6 +106,6 @@ aio_uring_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msgh
 }
 
 bool
-is_aio_uring_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe) {
+is_uringio_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe) {
     return !(cqe->flags & IORING_CQE_F_MORE);
 }

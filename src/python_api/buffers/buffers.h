@@ -98,7 +98,7 @@ _get_buffer_metadata(
     PyObject *buffers_obj,
     BufferMode mode,
     PayloadType payload_type,
-    // TODO: in next version need to get values from aio_uring parameters(aio_uring initialization)
+    // TODO: in next version need to get values from uringio parameters(uringio initialization)
     int amount,
     int bufsize
 );

@@ -11,13 +11,13 @@
 #include "python_api/buffers/buffers.h"
 #include "python_api/execution_context/execution_context_enums.h"
 
-extern PyTypeObject AioUringBufferModeCtxType;
-extern PyTypeObject AioUringStreamStrategyCtxType;
-extern PyTypeObject AioUringTransferModeCtxType;
-extern PyTypeObject AioUringExecutionContextCtxType;
+extern PyTypeObject UringioBufferModeCtxType;
+extern PyTypeObject UringioStreamStrategyCtxType;
+extern PyTypeObject UringioTransferModeCtxType;
+extern PyTypeObject UringioExecutionContextCtxType;
 
 
-typedef struct AioUringLoop AioUringLoop;
+typedef struct UringioLoop UringioLoop;
 
 typedef struct ExecutionContext {
     BufferMode buffer_mode;
@@ -27,42 +27,42 @@ typedef struct ExecutionContext {
 } ExecutionContext;
 
 typedef struct BufferModeCtx {
-    PyObject_HEAD AioUringLoop *loop;
+    PyObject_HEAD UringioLoop *loop;
     BufferMode payload;
     PyObject *token;
     BufferPayload *buffer_payload;
 } BufferModeCtx;
 
 typedef struct StreamStrategyCtx {
-    PyObject_HEAD AioUringLoop *loop;
+    PyObject_HEAD UringioLoop *loop;
     StreamStrategy payload;
     PyObject *token;
 } StreamStrategyCtx;
 
 typedef struct TransferModeCtx {
-    PyObject_HEAD AioUringLoop *loop;
+    PyObject_HEAD UringioLoop *loop;
     TransferMode payload;
     PyObject *token;
 } TransferModeCtx;
 
 typedef struct ExecutionContextCtx {
-    PyObject_HEAD AioUringLoop *loop;
+    PyObject_HEAD UringioLoop *loop;
     ExecutionContext *payload;
     PyObject *token;
     BufferPayload *buffer_payload;
 } ExecutionContextCtx;
 
 BufferModeCtx *
-AioUringLoop_buffer_mode(AioUringLoop *self, PyObject *args, PyObject *kwargs);
+UringioLoop_buffer_mode(UringioLoop *self, PyObject *args, PyObject *kwargs);
 
 StreamStrategyCtx *
-AioUringLoop_stream_strategy(AioUringLoop *self, PyObject *args, PyObject *kwargs);
+UringioLoop_stream_strategy(UringioLoop *self, PyObject *args, PyObject *kwargs);
 
 TransferModeCtx *
-AioUringLoop_transfer_mode(AioUringLoop *self, PyObject *args, PyObject *kwargs);
+UringioLoop_transfer_mode(UringioLoop *self, PyObject *args, PyObject *kwargs);
 
 ExecutionContextCtx *
-AioUringLoop_execution_context(AioUringLoop *self, PyObject *args, PyObject *kwargs);
+UringioLoop_execution_context(UringioLoop *self, PyObject *args, PyObject *kwargs);
 
 void
 free_exec_context(PyObject *capsule);

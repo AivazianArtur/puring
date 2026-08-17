@@ -3,11 +3,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import aio_uring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import aio_uring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
 class _Iovec(ctypes.Structure):
@@ -50,9 +50,9 @@ def temp_file_path(tmp_path):
         ),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_readv_raw__validation_error(temp_file_path, iovecs):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     with pytest.raises(expected_exception=ValueError):
         uring_file.readv_raw(iovecs=iovecs)
@@ -60,9 +60,9 @@ async def test_readv_raw__validation_error(temp_file_path, iovecs):
     await uring_file.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_readv_raw__non_contiguous_buffer_raises_error(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     buf = bytearray(ctypes.sizeof(_Iovec) * 2)
     non_contiguous = memoryview(buf)[::2]
@@ -73,9 +73,9 @@ async def test_readv_raw__non_contiguous_buffer_raises_error(temp_file_path):
     await uring_file.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_readv_raw__closed_file_raises_error(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
     await uring_file.close()
 
     buf = bytearray(16)
@@ -105,9 +105,9 @@ async def test_readv_raw__closed_file_raises_error(temp_file_path):
         ),
     ),
 )
-@aio_uring_test
+@uringio_test
 async def test_readv_raw__success(temp_file_path, buffer_sizes, nowait):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     buffers = [bytearray(size) for size in buffer_sizes]
     iovecs = _build_iovecs(buffers)
@@ -121,9 +121,9 @@ async def test_readv_raw__success(temp_file_path, buffer_sizes, nowait):
     await uring_file.close()
 
 
-@aio_uring_test
+@uringio_test
 async def test_readv_raw__full_roundtrip(temp_file_path):
-    uring_file = await aio_uring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     buf1 = bytearray(500)
     buf2 = bytearray(500)
