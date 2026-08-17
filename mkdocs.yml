@@ -1,4 +1,5 @@
 site_name: uringio
+site_url: https://AivazianArtur.github.io/uringio/
 site_description: High-performance io_uring wrapper for Python
 repo_url: https://github.com/AivazianArtur/uringio
 edit_uri: ''
@@ -7,15 +8,18 @@ docs_dir: docs_site
 site_dir: site
 
 theme:
-  name: readthedocs
-  highlightjs: true
-  hljs_languages:
-    - yaml
-    - rust
+  name: material
+  features:
+    - navigation.sections
+    - toc.integrate
+    - content.code.copy
+  palette:
+    scheme: slate
 
 markdown_extensions:
   - admonition
-  - pymdownx.highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
