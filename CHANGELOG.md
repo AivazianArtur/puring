@@ -23,6 +23,7 @@
 ### Updated
 - Makefile: fixed sanitaizer stage, added new stages.
 - GitHub CI: partly added tests stage
+- Project and its internals renamed from `puring` to `uringio`
 ### Fixed
 - Bunch of memory related bug fixes
 ### Removed

@@ -36,12 +36,12 @@ include_dirs = sorted({
 include_dirs += [rel(LIBURING_DIR / 'src' / 'include')]
 
 extra_compile_args = []
-if os.environ.get('PURING_DEBUG'):
-    extra_compile_args.append('-DPURING_DEBUG')
+if os.environ.get('URINGIO_DEBUG'):
+    extra_compile_args.append('-DURINGIO_DEBUG')
 
 
 ext = Extension(
-    'puring',
+    'uringio',
     sources=sources,
     include_dirs=include_dirs,
     extra_objects=[rel(LIBURING_LIB)],

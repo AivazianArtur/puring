@@ -1,7 +1,7 @@
 #include "files.h"
 
 int
-puring_read_buffer_select(
+uringio_read_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -30,7 +30,7 @@ puring_read_buffer_select(
 }
 
 int
-puring_readv_buffer_select(
+uringio_readv_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int fd,

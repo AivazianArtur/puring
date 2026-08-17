@@ -51,29 +51,29 @@ test_bind_listen_connect_accept__full_flow(void) {
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = 0;
 
-    int bret = puring_bind(&ring, 1, listen_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
-    TEST_ASSERT(bret == 1, "puring_bind submit should succeed");
+    int bret = uringio_bind(&ring, 1, listen_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
+    TEST_ASSERT(bret == 1, "uringio_bind submit should succeed");
     int bres = wait_one_cqe(&ring);
     TEST_ASSERT(bres == 0, "bind should succeed");
 
     socklen_t alen = sizeof(addr);
     TEST_ASSERT(getsockname(listen_fd, (struct sockaddr *)&addr, &alen) == 0, "getsockname failed");
 
-    int lret = puring_listen(&ring, 2, listen_fd, 1, NO_TO);
-    TEST_ASSERT(lret == 1, "puring_listen submit should succeed");
+    int lret = uringio_listen(&ring, 2, listen_fd, 1, NO_TO);
+    TEST_ASSERT(lret == 1, "uringio_listen submit should succeed");
     int lres = wait_one_cqe(&ring);
     TEST_ASSERT(lres == 0, "listen should succeed");
 
     struct sockaddr_storage peer = {0};
     socklen_t peerlen = sizeof(peer);
-    int aret = puring_accept(&ring, 3, listen_fd, (struct sockaddr *)&peer, &peerlen, 0, NO_TO);
-    TEST_ASSERT(aret == 1, "puring_accept submit should succeed");
+    int aret = uringio_accept(&ring, 3, listen_fd, (struct sockaddr *)&peer, &peerlen, 0, NO_TO);
+    TEST_ASSERT(aret == 1, "uringio_accept submit should succeed");
 
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
     TEST_ASSERT(client_fd >= 0, "posix socket() for client failed");
 
-    int cret = puring_connect(&ring, 4, client_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
-    TEST_ASSERT(cret == 1, "puring_connect submit should succeed");
+    int cret = uringio_connect(&ring, 4, client_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
+    TEST_ASSERT(cret == 1, "uringio_connect submit should succeed");
 
     int accepted_fd = -1;
     for (int i = 0; i < 2; i++) {
@@ -98,7 +98,7 @@ test_bind_listen_connect_accept__full_flow(void) {
 }
 
 static void
-test_puring_connect__refused_on_closed_port(void) {
+test_uringio_connect__refused_on_closed_port(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -116,7 +116,7 @@ test_puring_connect__refused_on_closed_port(void) {
     int client_fd = socket(AF_INET, SOCK_STREAM, 0);
     TEST_ASSERT(client_fd >= 0, "posix socket() failed");
 
-    int ret = puring_connect(&ring, 1, client_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
+    int ret = uringio_connect(&ring, 1, client_fd, (struct sockaddr *)&addr, sizeof(addr), NO_TO);
     TEST_ASSERT(ret == 1, "submit should still succeed");
 
     int res = wait_one_cqe(&ring);
@@ -129,7 +129,7 @@ test_puring_connect__refused_on_closed_port(void) {
 /* ---------- send / recv ---------- */
 
 static void
-test_puring_send_recv__roundtrip(void) {
+test_uringio_send_recv__roundtrip(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -137,14 +137,14 @@ test_puring_send_recv__roundtrip(void) {
     TEST_ASSERT(make_tcp_pair(&cfd, &sfd) == 0, "make_tcp_pair failed");
 
     const char *msg = "hello over io_uring";
-    int sret = puring_send(&ring, 1, cfd, msg, strlen(msg), 0, NO_TO);
-    TEST_ASSERT(sret == 1, "puring_send submit should succeed");
+    int sret = uringio_send(&ring, 1, cfd, msg, strlen(msg), 0, NO_TO);
+    TEST_ASSERT(sret == 1, "uringio_send submit should succeed");
     int sres = wait_one_cqe(&ring);
     TEST_ASSERT(sres == (int)strlen(msg), "send should report full length");
 
     char buf[64] = {0};
-    int rret = puring_recv(&ring, 2, sfd, buf, sizeof(buf), 0, NO_TO);
-    TEST_ASSERT(rret == 1, "puring_recv submit should succeed");
+    int rret = uringio_recv(&ring, 2, sfd, buf, sizeof(buf), 0, NO_TO);
+    TEST_ASSERT(rret == 1, "uringio_recv submit should succeed");
     int rres = wait_one_cqe(&ring);
     TEST_ASSERT(rres == (int)strlen(msg), "recv should report exactly the sent length");
     TEST_ASSERT(memcmp(buf, msg, strlen(msg)) == 0, "recv content mismatch");
@@ -155,7 +155,7 @@ test_puring_send_recv__roundtrip(void) {
 }
 
 static void
-test_puring_recv__peer_closed_returns_zero(void) {
+test_uringio_recv__peer_closed_returns_zero(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -164,7 +164,7 @@ test_puring_recv__peer_closed_returns_zero(void) {
     close(cfd);
 
     char buf[16];
-    int ret = puring_recv(&ring, 1, sfd, buf, sizeof(buf), 0, NO_TO);
+    int ret = uringio_recv(&ring, 1, sfd, buf, sizeof(buf), 0, NO_TO);
     TEST_ASSERT(ret == 1, "submit should succeed");
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 0, "recv on peer-closed socket should return 0 (EOF)");
@@ -176,7 +176,7 @@ test_puring_recv__peer_closed_returns_zero(void) {
 /* ---------- sendto / recvfrom ---------- */
 
 static void
-test_puring_sendto_recvfrom__roundtrip(void) {
+test_uringio_sendto_recvfrom__roundtrip(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -189,10 +189,10 @@ test_puring_sendto_recvfrom__roundtrip(void) {
 
     const char *msg = "udp via sendto";
 
-    int sret = puring_sendto(
+    int sret = uringio_sendto(
         &ring, 1, client_fd, msg, strlen(msg), (struct sockaddr *)&server_addr, sizeof(server_addr), 0, NO_TO
     );
-    TEST_ASSERT(sret == 1, "puring_sendto submit should succeed");
+    TEST_ASSERT(sret == 1, "uringio_sendto submit should succeed");
     int sres = wait_one_cqe(&ring);
     TEST_ASSERT(sres == (int)strlen(msg), "sendto should report full length");
 
@@ -202,10 +202,10 @@ test_puring_sendto_recvfrom__roundtrip(void) {
     struct msghdr *msg_hdr = malloc(sizeof(struct msghdr) + sizeof(struct iovec));
     TEST_ASSERT(msg_hdr != NULL, "malloc for msghdr failed");
 
-    int rret = puring_recvfrom(
+    int rret = uringio_recvfrom(
         &ring, 2, server_fd, buf, sizeof(buf), (struct sockaddr *)&peer, sizeof(peer), 0, msg_hdr, NO_TO
     );
-    TEST_ASSERT(rret == 1, "puring_recvfrom submit should succeed");
+    TEST_ASSERT(rret == 1, "uringio_recvfrom submit should succeed");
     int rres = wait_one_cqe(&ring);
     TEST_ASSERT(rres == (int)strlen(msg), "recvfrom should report exactly the sent length");
     TEST_ASSERT(memcmp(buf, msg, strlen(msg)) == 0, "recvfrom content mismatch");
@@ -219,7 +219,7 @@ test_puring_sendto_recvfrom__roundtrip(void) {
 /* ---------- sendmsg / recvmsg ---------- */
 
 static void
-test_puring_sendmsg_recvmsg__roundtrip_multiple_iovecs(void) {
+test_uringio_sendmsg_recvmsg__roundtrip_multiple_iovecs(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -233,8 +233,8 @@ test_puring_sendmsg_recvmsg__roundtrip_multiple_iovecs(void) {
         {.iov_base = part2, .iov_len = strlen(part2)},
     };
 
-    int sret = puring_sendmsg(&ring, 1, cfd, send_iov, 2, NULL, 0, 0, NO_TO);
-    TEST_ASSERT(sret == 1, "puring_sendmsg submit should succeed");
+    int sret = uringio_sendmsg(&ring, 1, cfd, send_iov, 2, NULL, 0, 0, NO_TO);
+    TEST_ASSERT(sret == 1, "uringio_sendmsg submit should succeed");
     int sres = wait_one_cqe(&ring);
     int total = (int)(strlen(part1) + strlen(part2));
     TEST_ASSERT(sres == total, "sendmsg should report full combined length");
@@ -246,8 +246,8 @@ test_puring_sendmsg_recvmsg__roundtrip_multiple_iovecs(void) {
         {.iov_base = rbuf2, .iov_len = sizeof(rbuf2)},
     };
 
-    int rret = puring_recvmsg(&ring, 2, sfd, recv_iov, 2, 0, NO_TO);
-    TEST_ASSERT(rret == 1, "puring_recvmsg submit should succeed");
+    int rret = uringio_recvmsg(&ring, 2, sfd, recv_iov, 2, 0, NO_TO);
+    TEST_ASSERT(rret == 1, "uringio_recvmsg submit should succeed");
     int rres = wait_one_cqe(&ring);
     TEST_ASSERT(rres == total, "recvmsg should report full combined length");
     TEST_ASSERT(memcmp(rbuf1, "hello se", 8) == 0, "recvmsg iov1 mismatch");
@@ -261,7 +261,7 @@ test_puring_sendmsg_recvmsg__roundtrip_multiple_iovecs(void) {
 /* ---------- recv_fixed / recvmsg_fixed ---------- */
 
 static void
-test_puring_recv_fixed__success(void) {
+test_uringio_recv_fixed__success(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -275,8 +275,8 @@ test_puring_recv_fixed__success(void) {
     const char *msg = "fixed recv works";
     TEST_ASSERT(write(cfd, msg, strlen(msg)) == (ssize_t)strlen(msg), "write failed");
 
-    int ret = puring_recv_fixed(&ring, 1, sfd, recv_buf, strlen(msg), 0, /*buf_index=*/0, NO_TO);
-    TEST_ASSERT(ret == 1, "puring_recv_fixed submit should succeed");
+    int ret = uringio_recv_fixed(&ring, 1, sfd, recv_buf, strlen(msg), 0, /*buf_index=*/0, NO_TO);
+    TEST_ASSERT(ret == 1, "uringio_recv_fixed submit should succeed");
     int res = wait_one_cqe(&ring);
     printf("recv_fixed res = %d\n", res);
     TEST_ASSERT(res == (int)strlen(msg), "recv_fixed should report exact length");
@@ -291,7 +291,7 @@ test_puring_recv_fixed__success(void) {
 /* ---------- recv_buffer_select / recvmsg_buffer_select ---------- */
 
 static void
-test_puring_recv_buffer_select__success(void) {
+test_uringio_recv_buffer_select__success(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -305,8 +305,8 @@ test_puring_recv_buffer_select__success(void) {
     const char *msg = "buffer select recv";
     TEST_ASSERT(write(cfd, msg, strlen(msg)) == (ssize_t)strlen(msg), "write failed");
 
-    int ret = puring_recv_buffer_select(&ring, 1, sfd, sizeof(pool), bgid, 0, NO_TO);
-    TEST_ASSERT(ret == 1, "puring_recv_buffer_select submit should succeed");
+    int ret = uringio_recv_buffer_select(&ring, 1, sfd, sizeof(pool), bgid, 0, NO_TO);
+    TEST_ASSERT(ret == 1, "uringio_recv_buffer_select submit should succeed");
 
     struct io_uring_cqe *cqe;
     TEST_ASSERT(io_uring_wait_cqe(&ring, &cqe) == 0, "wait_cqe failed");
@@ -322,7 +322,7 @@ test_puring_recv_buffer_select__success(void) {
 /* ---------- accept_multishot ---------- */
 
 static void
-test_puring_accept_multishot__accepts_two_connections(void) {
+test_uringio_accept_multishot__accepts_two_connections(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -340,8 +340,8 @@ test_puring_accept_multishot__accepts_two_connections(void) {
 
     struct sockaddr_storage peer = {0};
     socklen_t peerlen = sizeof(peer);
-    int ret = puring_accept_multishot(&ring, 1, listen_fd, (struct sockaddr *)&peer, &peerlen, 0, NO_TO);
-    TEST_ASSERT(ret == 1, "puring_accept_multishot submit should succeed");
+    int ret = uringio_accept_multishot(&ring, 1, listen_fd, (struct sockaddr *)&peer, &peerlen, 0, NO_TO);
+    TEST_ASSERT(ret == 1, "uringio_accept_multishot submit should succeed");
 
     int c1 = socket(AF_INET, SOCK_STREAM, 0);
     TEST_ASSERT(connect(c1, (struct sockaddr *)&addr, sizeof(addr)) == 0, "connect #1 failed");
@@ -374,7 +374,7 @@ test_puring_accept_multishot__accepts_two_connections(void) {
 /* ---------- recv_multishot ---------- */
 
 static void
-test_puring_recv_multishot__receives_two_messages(void) {
+test_uringio_recv_multishot__receives_two_messages(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -395,8 +395,8 @@ test_puring_recv_multishot__receives_two_messages(void) {
     }
     io_uring_buf_ring_advance(buf_ring, (int)nr_bufs);
 
-    int ret = puring_recv_multishot(&ring, 1, sfd, /*len=*/0, bgid, 0, NO_TO);
-    TEST_ASSERT(ret == 1, "puring_recv_multishot submit should succeed");
+    int ret = uringio_recv_multishot(&ring, 1, sfd, /*len=*/0, bgid, 0, NO_TO);
+    TEST_ASSERT(ret == 1, "uringio_recv_multishot submit should succeed");
 
     const char *msg1 = "first";
     TEST_ASSERT(write(cfd, msg1, strlen(msg1)) == (ssize_t)strlen(msg1), "write #1 failed");
@@ -435,7 +435,7 @@ test_puring_recv_multishot__receives_two_messages(void) {
 /* ---------- send_zc ---------- */
 
 static void
-test_puring_send_zc__two_completions(void) {
+test_uringio_send_zc__two_completions(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
@@ -443,8 +443,8 @@ test_puring_send_zc__two_completions(void) {
     TEST_ASSERT(make_tcp_pair(&cfd, &sfd) == 0, "make_tcp_pair failed");
 
     const char *msg = "zerocopy send";
-    int ret = puring_send_zc(&ring, 1, cfd, msg, strlen(msg), 0, NO_TO);
-    TEST_ASSERT(ret == 1, "puring_send_zc submit should succeed");
+    int ret = uringio_send_zc(&ring, 1, cfd, msg, strlen(msg), 0, NO_TO);
+    TEST_ASSERT(ret == 1, "uringio_send_zc submit should succeed");
 
     struct io_uring_cqe *cqe1;
     TEST_ASSERT(io_uring_wait_cqe(&ring, &cqe1) == 0, "wait_cqe #1 (data) failed");
@@ -473,15 +473,15 @@ test_puring_send_zc__two_completions(void) {
 /* ---------- close_socket ---------- */
 
 static void
-test_puring_close_socket__success(void) {
+test_uringio_close_socket__success(void) {
     struct io_uring ring;
     TEST_ASSERT(ring_init(&ring) == 0, "ring_init failed");
 
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     TEST_ASSERT(fd >= 0, "posix socket() failed");
 
-    int ret = puring_close_socket(&ring, 1, fd, NO_TO);
-    TEST_ASSERT(ret == 1, "puring_close_socket submit should succeed");
+    int ret = uringio_close_socket(&ring, 1, fd, NO_TO);
+    TEST_ASSERT(ret == 1, "uringio_close_socket submit should succeed");
     int res = wait_one_cqe(&ring);
     TEST_ASSERT(res == 0, "close should succeed");
 
@@ -498,23 +498,23 @@ main(void) {
     RUN_TEST(test_prep_socket__unsupported_domain_returns_minus_two);
 
     RUN_TEST(test_bind_listen_connect_accept__full_flow);
-    RUN_TEST(test_puring_connect__refused_on_closed_port);
+    RUN_TEST(test_uringio_connect__refused_on_closed_port);
 
-    RUN_TEST(test_puring_send_recv__roundtrip);
-    RUN_TEST(test_puring_recv__peer_closed_returns_zero);
+    RUN_TEST(test_uringio_send_recv__roundtrip);
+    RUN_TEST(test_uringio_recv__peer_closed_returns_zero);
 
-    RUN_TEST(test_puring_sendto_recvfrom__roundtrip);
-    RUN_TEST(test_puring_sendmsg_recvmsg__roundtrip_multiple_iovecs);
+    RUN_TEST(test_uringio_sendto_recvfrom__roundtrip);
+    RUN_TEST(test_uringio_sendmsg_recvmsg__roundtrip_multiple_iovecs);
 
-    // RUN_TEST(test_puring_recv_fixed__success);
-    RUN_TEST(test_puring_recv_buffer_select__success);
+    // RUN_TEST(test_uringio_recv_fixed__success);
+    RUN_TEST(test_uringio_recv_buffer_select__success);
 
-    RUN_TEST(test_puring_accept_multishot__accepts_two_connections);
-    RUN_TEST(test_puring_recv_multishot__receives_two_messages);
+    RUN_TEST(test_uringio_accept_multishot__accepts_two_connections);
+    RUN_TEST(test_uringio_recv_multishot__receives_two_messages);
 
-    RUN_TEST(test_puring_send_zc__two_completions);
+    RUN_TEST(test_uringio_send_zc__two_completions);
 
-    RUN_TEST(test_puring_close_socket__success);
+    RUN_TEST(test_uringio_close_socket__success);
 
     fprintf(stderr, "\n%d/%d tests passed\n", g_tests_run - g_tests_failed, g_tests_run);
     return g_tests_failed > 0 ? 1 : 0;

@@ -4,17 +4,17 @@ import sys
 sys.path.insert(0, '')
 
 import asyncio
-import puring
+import uringio
 
 
 TEMPFILE = 'docs/assets/tempfile.txt'
 
 
 async def main():
-    async with await puring.open_file(path=TEMPFILE) as uring_file:
+    async with await uringio.open_file(path=TEMPFILE) as uring_file:
         print('File opened, fd:', uring_file)
 
-        data = b'Hello, puring!\n'
+        data = b'Hello, uringio!\n'
         bytes_written = await uring_file.write(data=data)
         print('Bytes written:', bytes_written)
 
@@ -27,5 +27,5 @@ async def main():
     print('File closed')
 
 
-asyncio.run(main(), loop_factory=puring.PuringLoop)
+asyncio.run(main(), loop_factory=uringio.UringioLoop)
 os.remove(TEMPFILE)

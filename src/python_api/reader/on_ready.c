@@ -1,7 +1,7 @@
 #include "reader.h"
 
 void
-on_uring_ready(PuringLoop *self) {
+on_uring_ready(UringioLoop *self) {
     struct io_uring_cqe *cqe;
 
     while (io_uring_peek_cqe(self->ring, &cqe) == 0) {
@@ -102,14 +102,14 @@ on_uring_ready(PuringLoop *self) {
                 break;
             case IORING_OP_OPENAT2:
                 if (slot->file) {
-                    PuringFile *file = (PuringFile *)slot->file;
+                    UringioFile *file = (UringioFile *)slot->file;
                     file->fd = cqe->res;
                     result = (PyObject *)slot->file;
                 }
                 break;
             case IORING_OP_SOCKET:
                 if (slot->socket) {
-                    PuringSocket *sock = (PuringSocket *)slot->socket;
+                    UringioSocket *sock = (UringioSocket *)slot->socket;
                     sock->sock_fd = cqe->res;
                     result = (PyObject *)slot->socket;
                 }
@@ -133,7 +133,7 @@ on_uring_ready(PuringLoop *self) {
                 if (slot->socket) {
                     struct sockaddr_storage *peer_addr = (struct sockaddr_storage *)slot->addr;
 
-                    PuringSocket *conn = PyObject_GC_New(PuringSocket, &PuringSocketType);
+                    UringioSocket *conn = PyObject_GC_New(UringioSocket, &UringioSocketType);
                     if (!conn) {
                         PyErr_SetString(PyExc_RuntimeError, "Can't create socket");
                         PyErr_Print();
@@ -179,16 +179,16 @@ on_uring_ready(PuringLoop *self) {
                     unsigned bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
                     void *buf = (char *)slot->buffer_payload->linear->buffer +
                                 (bid * slot->buffer_payload->linear->len);
-                    RecvMsgMultishotResult out = puring_recvmsg_validate_multishot(
+                    RecvMsgMultishotResult out = uringio_recvmsg_validate_multishot(
                         buf, cqe->res, slot->msghdr, cqe->res
                     );
                     if (out.is_null == true) {
                         PyErr_SetString(PyExc_RuntimeError, "Operation result is not valid.");
                         PyErr_Print();
                     }
-                    if (is_puring_recvmsg_multishot_resubmit_required(cqe)) {
+                    if (is_uringio_recvmsg_multishot_resubmit_required(cqe)) {
                         TimeoutParams timeout_params = {0};
-                        puring_recvmsg_multishot(
+                        uringio_recvmsg_multishot(
                             slot->socket->loop->ring,
                             index,
                             slot->socket->sock_fd,

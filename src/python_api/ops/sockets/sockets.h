@@ -15,73 +15,73 @@
 #include "python_api/loop/loop.h"
 #include "python_macroses.h"
 
-extern PyTypeObject *PuringLoopType;
-extern PyTypeObject PuringSocketType;
+extern PyTypeObject *UringioLoopType;
+extern PyTypeObject UringioSocketType;
 
-typedef struct PuringSocket {
+typedef struct UringioSocket {
     PyObject_HEAD
 
         int sock_fd;
-    PuringLoop *loop;
+    UringioLoop *loop;
     int domain;
     struct sockaddr *addr;
     bool closed;
-} PuringSocket;
+} UringioSocket;
 
 PyObject *
-Puring_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
+Uringio_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
 
 int
-PuringSocket_traverse(PuringSocket *self, visitproc visit, void *arg);
+UringioSocket_traverse(UringioSocket *self, visitproc visit, void *arg);
 
 int
-PuringSocket_clear(PuringSocket *self);
+UringioSocket_clear(UringioSocket *self);
 
 PyObject *
-PuringSocket_aenter(PuringSocket *self, PyObject *Py_UNUSED(ignored));
+UringioSocket_aenter(UringioSocket *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-PuringSocket_aexit(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_aexit(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 void
-PuringSocket_dealloc(PuringSocket *self);
+UringioSocket_dealloc(UringioSocket *self);
 
 PyObject *
-PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_bind(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_connect(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_listen(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_accept(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_close(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_send(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_recv(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_sendto(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_recvfrom(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_sendmsg(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs);
+UringioSocket_recvmsg(UringioSocket *self, PyObject *args, PyObject *kwargs);
 
 int
 recv_dispatcher(
-    PuringSocket *self,
+    UringioSocket *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream_strategy,
     int request_idx,
@@ -91,7 +91,7 @@ recv_dispatcher(
 
 int
 recvmsg_dispatcher(
-    PuringSocket *self,
+    UringioSocket *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream_strategy,
     int request_idx,
@@ -102,7 +102,7 @@ recvmsg_dispatcher(
 
 int
 send_dispatcher(
-    PuringSocket *self,
+    UringioSocket *self,
     BufferPayload *buffer_payload,
     TransferMode transfer_mode,
     int request_idx,
@@ -113,7 +113,7 @@ send_dispatcher(
 
 int
 sendmsg_dispatcher(
-    PuringSocket *self,
+    UringioSocket *self,
     BufferPayload *buffer_payload,
     TransferMode transfer_mode,
     int request_idx,
@@ -126,7 +126,7 @@ sendmsg_dispatcher(
 
 int
 accept_dispatcher(
-    PuringSocket *self,
+    UringioSocket *self,
     StreamStrategy stream_strategy,
     int request_idx,
     struct sockaddr *addr,
@@ -135,7 +135,7 @@ accept_dispatcher(
 );
 
 PyObject *
-_check_sockets_result(int result, PuringSocket *socket, int request_idx, PyObject *future);
+_check_sockets_result(int result, UringioSocket *socket, int request_idx, PyObject *future);
 
 struct sockaddr_storage *
 _serialize_address(const char *host, int port, int domain);

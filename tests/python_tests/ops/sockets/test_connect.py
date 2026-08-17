@@ -4,11 +4,11 @@ import threading
 
 sys.path.insert(0, '')
 
-import puring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import puring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
 @pytest.fixture
@@ -45,9 +45,9 @@ def listening_server():
         pytest_param(host='127.0.0.1', port=1.5, id='port_wrong_type_float'),
     ),
 )
-@puring_test
+@uringio_test
 async def test_connect__validation_error(host, port):
-    sock = await puring.prep_socket()
+    sock = await uringio.prep_socket()
 
     with pytest.raises(expected_exception=TypeError):
         sock.connect(host=host, port=port)
@@ -55,9 +55,9 @@ async def test_connect__validation_error(host, port):
     await sock.close()
 
 
-@puring_test
+@uringio_test
 async def test_connect__invalid_ip_raises_error():
-    sock = await puring.prep_socket()
+    sock = await uringio.prep_socket()
 
     with pytest.raises(expected_exception=ConnectionRefusedError):
         sock.connect(host='not-an-ip-address', port=0)
@@ -65,18 +65,18 @@ async def test_connect__invalid_ip_raises_error():
     await sock.close()
 
 
-@puring_test
+@uringio_test
 async def test_connect__closed_socket_raises_error():
-    sock = await puring.prep_socket()
+    sock = await uringio.prep_socket()
     await sock.close()
 
     with pytest.raises(expected_exception=OSError):
         await sock.connect(host='127.0.0.1', port=0)
 
 
-@puring_test
+@uringio_test
 async def test_connect__refused_raises_oserror():
-    sock = await puring.prep_socket()
+    sock = await uringio.prep_socket()
 
     with pytest.raises(expected_exception=OSError):
         await sock.connect(host='127.0.0.1', port=1)
@@ -84,11 +84,11 @@ async def test_connect__refused_raises_oserror():
     await sock.close()
 
 
-@puring_test
+@uringio_test
 async def test_connect__success(listening_server):
     host, port = listening_server
 
-    sock = await puring.prep_socket()
+    sock = await uringio.prep_socket()
     result = await sock.connect(host=host, port=port)
     assert result == 0
 

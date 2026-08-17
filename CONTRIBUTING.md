@@ -1,5 +1,5 @@
-# Contributing to puring
-Welcome! And thank you a lot for your interest in contributing to puring! \
+# Contributing to uringio
+Welcome! And thank you a lot for your interest in contributing to uringio! \
 Main goal of project is to bring production ready library for interaction with io_uring in Python, with support of NoGIL activity in Python.
 
 **Special thanks for saving personal time of creating contribution docs to https://github.com/diggsweden/open-source-project-template**

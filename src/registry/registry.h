@@ -10,8 +10,8 @@
 
 #define DEFAULT_REGISTRY_SIZE 25000
 
-typedef struct PuringSocket PuringSocket;
-typedef struct PuringFile PuringFile;
+typedef struct UringioSocket UringioSocket;
+typedef struct UringioFile UringioFile;
 typedef struct BufferPayload BufferPayload;
 
 typedef struct RequestSlot {
@@ -20,8 +20,8 @@ typedef struct RequestSlot {
     StreamStrategy stream_strategy;
     BufferPayload *buffer_payload;
     int opcode;
-    PuringFile *file;
-    PuringSocket *socket;
+    UringioFile *file;
+    UringioSocket *socket;
     struct sockaddr_storage *addr;
     struct msghdr *msghdr;
 } RequestSlot;
@@ -46,8 +46,8 @@ registry_add(
     BufferPayload *buffer_payload,
     StreamStrategy stream_strategy,
     int opcode,
-    PuringFile *file,
-    PuringSocket *socket,
+    UringioFile *file,
+    UringioSocket *socket,
     struct sockaddr_storage *sockaddr,
     struct msghdr *msghdr
 );

@@ -23,67 +23,67 @@
 #include "python_api/timer/timer.h"
 #include "python_macroses.h"
 
-extern PyTypeObject *PuringLoopType;
-extern PyTypeObject PuringFileType;
+extern PyTypeObject *UringioLoopType;
+extern PyTypeObject UringioFileType;
 
-typedef struct PuringFile {
+typedef struct UringioFile {
     PyObject_HEAD
 
         int fd;
-    PuringLoop *loop;
+    UringioLoop *loop;
     bool closed;
-} PuringFile;
+} UringioFile;
 
 PyObject *
-Puring_open(PyObject *module, PyObject *args, PyObject *kwargs);
+Uringio_open(PyObject *module, PyObject *args, PyObject *kwargs);
 
 int
-PuringFile_traverse(PuringFile *self, visitproc visit, void *arg);
+UringioFile_traverse(UringioFile *self, visitproc visit, void *arg);
 
 int
-PuringFile_clear(PuringFile *self);
+UringioFile_clear(UringioFile *self);
 
 PyObject *
-PuringFile_aenter(PuringFile *self, PyObject *Py_UNUSED(ignored));
+UringioFile_aenter(UringioFile *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-PuringFile_aexit(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_aexit(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 void
-PuringFile_dealloc(PuringFile *self);
+UringioFile_dealloc(UringioFile *self);
 
 PyObject *
-PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_read(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_readv(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_readv_raw(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_write(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_writev(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_writev_raw(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_close(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_fsync(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_fdatasync(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs);
+UringioFile_splice(UringioFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-_check_file_result(int result, PuringFile *file, int request_idx, PyObject *future);
+_check_file_result(int result, UringioFile *file, int request_idx, PyObject *future);
 
 PyObject *
 create_resolve_enum(void);
@@ -97,7 +97,7 @@ _raise_file_exception_group(PyObject *body_exc_type, PyObject *body_exc_val, PyO
 
 int
 read_dispatcher(
-    PuringFile *self,
+    UringioFile *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream,
     int request_idx,
@@ -108,7 +108,7 @@ read_dispatcher(
 
 int
 readv_dispatcher(
-    PuringFile *self,
+    UringioFile *self,
     BufferPayload *buffer_payload,
     int request_idx,
     int offset,
@@ -118,5 +118,5 @@ readv_dispatcher(
 
 int
 write_dispatcher(
-    PuringFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
+    UringioFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
 );

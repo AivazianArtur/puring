@@ -1,6 +1,6 @@
 # File
 
-`class File` — Puring file adapter
+`class File` — uringio file adapter
 
 ## Members
 

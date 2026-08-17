@@ -2,11 +2,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import puring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import puring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
 @pytest.fixture
@@ -33,9 +33,9 @@ def temp_file_path(tmp_path):
         ),
     ),
 )
-@puring_test
+@uringio_test
 async def test_readv__validation_error(temp_file_path, offset):
-    uring_file = await puring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     with pytest.raises(expected_exception=TypeError):
         uring_file.readv(
@@ -46,9 +46,9 @@ async def test_readv__validation_error(temp_file_path, offset):
     await uring_file.close()
 
 
-@puring_test
+@uringio_test
 async def test_readv__closed_file_raises_error(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
     await uring_file.close()
     with pytest.raises(expected_exception=BrokenPipeError):
         uring_file.readv(buffers=[bytearray(16)])
@@ -101,9 +101,9 @@ async def test_readv__closed_file_raises_error(temp_file_path):
         ),
     ),
 )
-@puring_test
+@uringio_test
 async def test_readv__success(temp_file_path, buffers, offset, nowait):
-    uring_file = await puring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
     kwargs = {}
     if buffers is not None:
         kwargs['buffers'] = buffers
@@ -117,9 +117,9 @@ async def test_readv__success(temp_file_path, buffers, offset, nowait):
     await uring_file.close()
 
 
-@puring_test
+@uringio_test
 async def test_readv__full_roundtrip(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path)
+    uring_file = await uringio.open_file(path=temp_file_path)
 
     buf1 = bytearray(500)
     buf2 = bytearray(500)

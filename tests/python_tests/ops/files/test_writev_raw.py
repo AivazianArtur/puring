@@ -3,11 +3,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import puring
+import uringio
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import puring_test
+from tests.python_tests.tests_utils.runner import uringio_test
 
 
 class _Iovec(ctypes.Structure):
@@ -51,9 +51,9 @@ def temp_file_path(tmp_path):
         ),
     ),
 )
-@puring_test
+@uringio_test
 async def test_writev_raw__validation_error(temp_file_path, iovecs):
-    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
 
     with pytest.raises(expected_exception=ValueError):
         uring_file.writev_raw(buffers=iovecs)
@@ -61,9 +61,9 @@ async def test_writev_raw__validation_error(temp_file_path, iovecs):
     await uring_file.close()
 
 
-@puring_test
+@uringio_test
 async def test_writev_raw__non_contiguous_buffer_raises_error(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
 
     buf = bytearray(ctypes.sizeof(_Iovec) * 2)
     non_contiguous = memoryview(buf)[::2]
@@ -74,9 +74,9 @@ async def test_writev_raw__non_contiguous_buffer_raises_error(temp_file_path):
     await uring_file.close()
 
 
-@puring_test
+@uringio_test
 async def test_writev_raw__offset_accepts_int(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
 
     buf = bytearray(b'0123456789abcdef')
     iovecs = _build_iovecs([buf])
@@ -86,9 +86,9 @@ async def test_writev_raw__offset_accepts_int(temp_file_path):
     await uring_file.close()
 
 
-@puring_test
+@uringio_test
 async def test_writev_raw__closed_file_raises_error(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
     await uring_file.close()
 
     buf = bytearray(b'hello')
@@ -118,9 +118,9 @@ async def test_writev_raw__closed_file_raises_error(temp_file_path):
         ),
     ),
 )
-@puring_test
+@uringio_test
 async def test_writev_raw__success(temp_file_path, chunks, flags):
-    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
 
     iovecs = _build_iovecs(chunks)
     total_len = sum(len(c) for c in chunks)
@@ -138,9 +138,9 @@ async def test_writev_raw__success(temp_file_path, chunks, flags):
     assert content == b''.join(bytes(c) for c in chunks)
 
 
-@puring_test
+@uringio_test
 async def test_writev_raw__full_roundtrip(temp_file_path):
-    uring_file = await puring.open_file(path=temp_file_path, flags=-1)
+    uring_file = await uringio.open_file(path=temp_file_path, flags=-1)
 
     buf1 = bytearray(b'A' * 500)
     buf2 = bytearray(b'B' * 500)

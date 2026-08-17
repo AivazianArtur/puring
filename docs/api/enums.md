@@ -10,4 +10,4 @@
 | `TRANSFER_MODE` | `enum.IntEnum` | `create_transfer_mode_enum()` |
 | `PAYLOAD_TYPE` | `enum.IntEnum` | `create_payload_type_enum()` |
 
-Members not declared in `puring_init.c` — defined in `create_*_enum()` implementations.
+Members not declared in `uringio_init.c` — defined in `create_*_enum()` implementations.

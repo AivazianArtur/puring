@@ -1,12 +1,12 @@
 #include "python_api/ops/sockets/sockets.h"
 
 PyObject *
-Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
-    ASSERT_LOOP_IS_PURING();
+Uringio_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs) {
+    ASSERT_LOOP_IS_URINGIO();
     ASSERT_LOOP_THREAD(running_loop);
     ASSERT_RING_LOOP_IS_CLOSING(running_loop);
 
-    PuringSocket *sock = PyObject_GC_New(PuringSocket, &PuringSocketType);
+    UringioSocket *sock = PyObject_GC_New(UringioSocket, &UringioSocketType);
     if (!sock) {
         return PyErr_NoMemory();
     }
@@ -66,19 +66,19 @@ Puring_prep_socket(PyObject *Py_UNUSED(module), PyObject *args, PyObject *kwargs
 }
 
 int
-PuringSocket_traverse(PuringSocket *self, visitproc visit, void *arg) {
+UringioSocket_traverse(UringioSocket *self, visitproc visit, void *arg) {
     Py_VISIT(self->loop);
     return 0;
 }
 
 int
-PuringSocket_clear(PuringSocket *self) {
+UringioSocket_clear(UringioSocket *self) {
     Py_CLEAR(self->loop);
     return 0;
 }
 
 PyObject *
-PuringSocket_aenter(PuringSocket *self, PyObject *Py_UNUSED(ignored)) {
+UringioSocket_aenter(UringioSocket *self, PyObject *Py_UNUSED(ignored)) {
     PyObject *future = create_future(self->loop);
     if (!future)
         return NULL;
@@ -89,7 +89,7 @@ PuringSocket_aenter(PuringSocket *self, PyObject *Py_UNUSED(ignored)) {
 }
 
 PyObject *
-PuringSocket_aexit(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_aexit(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     PyObject *exc_type = NULL;
     PyObject *exc_val = NULL;
     PyObject *exc_tb = NULL;
@@ -123,7 +123,7 @@ PuringSocket_aexit(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 
     self->closed = 1;
 
-    int result = puring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
+    int result = uringio_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
     PyObject *validated_result = _check_sockets_result(result, self, request_idx, future);
     if (!validated_result) {
         self->closed = 0;
@@ -136,14 +136,14 @@ PuringSocket_aexit(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 void
-PuringSocket_dealloc(PuringSocket *self) {
+UringioSocket_dealloc(UringioSocket *self) {
     PyObject_GC_UnTrack(self);
     self->closed = true;
     if (self->addr) {
         free(self->addr);
         self->addr = NULL;
     }
-    PuringSocket_clear(self);
+    UringioSocket_clear(self);
     freefunc free_func = PyType_GetSlot(Py_TYPE(self), Py_tp_free);
     if (free_func) {
         free_func(self);
@@ -153,7 +153,7 @@ PuringSocket_dealloc(PuringSocket *self) {
 }
 
 PyObject *
-PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_bind(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -194,7 +194,7 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = puring_bind(
+    int result = uringio_bind(
         self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, addrlen, timeout_params
     );
 
@@ -203,7 +203,7 @@ PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_connect(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -243,7 +243,7 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = puring_connect(
+    int result = uringio_connect(
         self->loop->ring, request_idx, self->sock_fd, (struct sockaddr *)addr, addrlen, timeout_params
     );
     free(addr);
@@ -251,7 +251,7 @@ PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_listen(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -283,12 +283,12 @@ PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = puring_listen(self->loop->ring, request_idx, self->sock_fd, backlog, timeout_params);
+    int result = uringio_listen(self->loop->ring, request_idx, self->sock_fd, backlog, timeout_params);
     return _check_sockets_result(result, self, request_idx, future);
 }
 
 PyObject *
-PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_accept(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -338,7 +338,7 @@ PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_close(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -368,7 +368,7 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     self->closed = true;
-    int result = puring_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
+    int result = uringio_close_socket(self->loop->ring, request_idx, self->sock_fd, timeout_params);
     PyObject *validated_result = _check_sockets_result(result, self, request_idx, future);
     if (!validated_result) {
         self->closed = false;
@@ -377,7 +377,7 @@ PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_send(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -425,7 +425,7 @@ PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_recv(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -475,7 +475,7 @@ PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_sendto(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -529,7 +529,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = puring_sendto(
+    int result = uringio_sendto(
         self->loop->ring,
         request_idx,
         self->sock_fd,
@@ -545,7 +545,7 @@ PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_recvfrom(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -623,7 +623,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    int result = puring_recvfrom(
+    int result = uringio_recvfrom(
         self->loop->ring,
         request_idx,
         self->sock_fd,
@@ -640,7 +640,7 @@ PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_sendmsg(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {
@@ -721,7 +721,7 @@ PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyObject *
-PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs) {
+UringioSocket_recvmsg(UringioSocket *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self->loop);
     ASSERT_RING_LOOP_IS_CLOSING(self->loop);
     if (self->closed) {

@@ -32,11 +32,11 @@ jobs:
         run: |
           python -m pip install pytest mypy
           python -m pip install wheelhouse/*.whl
-          python -c "import puring"
+          python -c "import uringio"
 
       - name: Verify type stubs against runtime API
         run: |
-          python -m mypy.stubtest puring \
+          python -m mypy.stubtest uringio \
             --allowlist stubtest_allowlist.txt \
             --concise
 

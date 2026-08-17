@@ -1,7 +1,7 @@
 #include "files.h"
 
 int
-puring_read_fixed(
+uringio_read_fixed(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -25,7 +25,7 @@ puring_read_fixed(
 }
 
 int
-puring_write_fixed(
+uringio_write_fixed(
     struct io_uring *ring,
     int request_idx,
     int fd,

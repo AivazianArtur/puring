@@ -39,7 +39,7 @@ open_file(
 }
 
 int
-puring_read(
+uringio_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -65,7 +65,7 @@ puring_read(
 }
 
 int
-puring_readv(
+uringio_readv(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -95,7 +95,7 @@ puring_readv(
 }
 
 int
-puring_write(
+uringio_write(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -120,7 +120,7 @@ puring_write(
 }
 
 int
-puring_writev(
+uringio_writev(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -147,7 +147,7 @@ puring_writev(
 }
 
 int
-puring_close_file(struct io_uring *ring, int request_idx, int fd, const struct TimeoutParams timeout_params) {
+uringio_close_file(struct io_uring *ring, int request_idx, int fd, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_close(sqe, fd);
@@ -164,7 +164,7 @@ puring_close_file(struct io_uring *ring, int request_idx, int fd, const struct T
 }
 
 int
-puring_fsync(
+uringio_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -189,7 +189,7 @@ puring_fsync(
 }
 
 int
-puring_fdatasync(
+uringio_fdatasync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -214,7 +214,7 @@ puring_fdatasync(
 }
 
 int
-puring_splice(
+uringio_splice(
     struct io_uring *ring,
     int request_idx,
     int fd_in,

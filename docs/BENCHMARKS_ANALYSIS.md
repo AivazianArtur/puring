@@ -27,18 +27,18 @@
 ##### Results
 This benchmark shows strong size of io_uring - it sending data straight to Kernel in Submission Queue and not using blocking file syscalls
 ##### Benchmark essence
-This benchmark evaluates the performance of sequentially writing large amounts of data to disk in a Python environment on Linux. Puring here is the only backend that offers native async operations
+This benchmark evaluates the performance of sequentially writing large amounts of data to disk in a Python environment on Linux. uringio here is the only backend that offers native async operations
 ##### Compared methods
 - Standard synchronous sequential write
 - Asyncio, running same synchronous script in another thread
 - Uvloop, running same synchronous script in another thread
-- Puring, sequential writing with own implementation of write
-- Puring, same thing in Fixed mode
+- uringio, sequential writing with own implementation of write
+- uringio, same thing in Fixed mode
 
 #### Write files using vector operations
 ![vectored write](assets/benchmark_results/files/vectored_write.png)
 ##### Results
-Another benchmark that shows strong part of puring - native async file operations is faster that vectored operations in concurrently.
+Another benchmark that shows strong part of uringio - native async file operations is faster that vectored operations in concurrently.
 ##### Benchmark essence
 The test simulates writing a large array of data to disk or a file descriptor using scatter-gather I/O and parallel writing.
 ##### Compared methods
@@ -47,16 +47,16 @@ The test simulates writing a large array of data to disk or a file descriptor us
 - Asyncio, running same synchronous script concurrently
 - Uvloop, synchronous script in another thread
 - Uvloop, synchronous script concurrently
-- Puring, own implementation of writev
-- Puring, sequential writing
-- Puring, concurrent writing
-- Puring, concurrent writing in Fixed mode
+- uringio, own implementation of writev
+- uringio, sequential writing
+- uringio, concurrent writing
+- uringio, concurrent writing in Fixed mode
 
 #### Read files using vector operations
 ![vectored read](assets/benchmark_results/files/vectored_read.png)
 ##### Results
 First benchmark that shows that io_uring is not a red pill. When there is no real device I/O operations and data is inside Kernels cache - standard ride operations are not blocking thread and SQE and CQE handling is overhead here. \
-However, when data is not inside cache puring is still a bit slower. I think there is a lot of rooms for optimizations to be faster, for example O_DIRECT support
+However, when data is not inside cache uringio is still a bit slower. I think there is a lot of rooms for optimizations to be faster, for example O_DIRECT support
 ##### Benchmark essence
 The benchmark measures the throughput of vectorized reading of a big file. There is actually two measures - with warmed cache and cold cache  
 ##### Compared methods
@@ -66,14 +66,14 @@ The benchmark measures the throughput of vectorized reading of a big file. There
 - Asyncio scalar concurrent read
 - Uvloop vectored read
 - Uvloop scalar concurrent read
-- Puring vectored read
-- Puring vectored read in FIXED mode
-- Puring scalar concurrent read
+- uringio vectored read
+- uringio vectored read in FIXED mode
+- uringio scalar concurrent read
 
 #### Open/close operation on little files in different depth
 ![little files](assets/benchmark_results/files/little_files.png)
 ##### Results
-This benchmark shows quite interesting result - puring is fastest in context of async writing, but standard synchronous write is much faster. \
+This benchmark shows quite interesting result - uringio is fastest in context of async writing, but standard synchronous write is much faster. \
 Its faster because file metadata is stored in the kernel's hot cache. In this scenario, there is no disk latency, and the overhead CQE/SQE is higher than direct system calls. \
 However, in real server applications, synchronous we cant rely on this layer of cache.
 ##### Benchmark essence
@@ -82,21 +82,21 @@ Evaluating the performance of file operations for open/close multiple small file
 - Synchronous approach
 - Asyncio, same synchronous approach but through threadpool
 - Uvloop, same synchronous approach but through threadpool
-- Puring, the only true asynchronous python backed for file I/O  
+- uringio, the only true asynchronous python backed for file I/O  
 
 #### Many random reads on files
 ![random_read_files_io](assets/benchmark_results/files/random_read_files.png)
 ##### Results
 This benchmark confirms 2 important points from benchmarks above:
   - All asynchronous backends, including io_uring, did not give boost in cases when all data can be stored in kernel's cache
-  - There are rooms for optimizations of `puring`, because it is quite surprising that it is not the fastest asyncio backend, while it is the only backend with native asyncio support    
+  - There are rooms for optimizations of `uringio`, because it is quite surprising that it is not the fastest asyncio backend, while it is the only backend with native asyncio support    
 ##### Benchmark essence
 This benchmark simulates a random small read load from the disk. No COLD cache, just straightforward approach
 ##### Compared methods
 - Synchronous read
 - Asyncio, same synchronous approach but through threadpool
 - Uvloop, same synchronous approach but through threadpool
-- Puring, the only true asynchronous python backed for file I/O  
+- uringio, the only true asynchronous python backed for file I/O  
 
 ### Socket
 **Benchmarks are inside docs/benchmarks/sockets/**
@@ -104,7 +104,7 @@ This benchmark simulates a random small read load from the disk. No COLD cache, 
 #### Socket connection storm
 ![many connections](assets/benchmark_results/sockets/many_connections.png)
 ##### Results
-This benchmark shows how puring, by its io_uring nature, is optimized for scaling with the lowest latency and highest speed. \
+This benchmark shows how uringio, by its io_uring nature, is optimized for scaling with the lowest latency and highest speed. \
 But also there is a thing that chart above dont show - we need some optimization for fastest socket closing, because in a lot of cases there were OSError98  
 ##### Benchmark essence
 This benchmark is measuring time that need for establishing, transmitting data, and closing 100/500/2000 connections.
@@ -112,7 +112,7 @@ This benchmark is measuring time that need for establishing, transmitting data, 
 - stdlib socket handling. 1 thread = 1 connection
 - Asyncio, concurrent socket handling. Based on epoll
 - Uvloop, concurrent socket handling. Based on epoll
-- Puring, concurrent socket handling. Based on io_uring
+- uringio, concurrent socket handling. Based on io_uring
 
 #### Load test of concurrent TCP connections with I/O operations
 ![echo fanout](assets/benchmark_results/sockets/concurrent_echo_fanout.png)
@@ -120,13 +120,13 @@ This benchmark is measuring time that need for establishing, transmitting data, 
 Quite interesting results with two conclusions:
 
 - On little amount of connections there is no need to use io_uring based backends - SQE/CQE handling is overhead here 
-- But with increase of connections puring is faster than others, and its performance keeps almost on constant level
+- But with increase of connections uringio is faster than others, and its performance keeps almost on constant level
 
-But also there is a thing that chart above dont show - we need some optimization for fastest socket closing, because in a lot of cases there were OSError98. See the [issue](https://github.com/AivazianArtur/puring/issues/26)
+But also there is a thing that chart above dont show - we need some optimization for fastest socket closing, because in a lot of cases there were OSError98. See the [issue](https://github.com/AivazianArtur/uringio/issues/26)
 ##### Benchmark essence
 Load testing of TCP echo server in fanout mode - parallel concurrent connections sending and receiving data
 ##### Compared methods
 - stdlib socket handling. 1 thread = 1 connection
 - Asyncio, concurrent socket handling. Based on epoll
 - Uvloop, concurrent socket handling. Based on epoll
-- Puring, concurrent socket handling. Based on io_uring
+- uringio, concurrent socket handling. Based on io_uring

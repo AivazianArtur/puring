@@ -11,9 +11,9 @@
 #include "registry/registry.h"
 
 /*
- * PuringFile/PuringSocket both start with PyObject_HEAD, and registry.c only
+ * UringioFile/UringioSocket both start with PyObject_HEAD, and registry.c only
  * ever touches them through Py_INCREF/Py_DECREF (it never dereferences
- * puring-specific fields). Any real PyObject can stand in for them here.
+ * uringio-specific fields). Any real PyObject can stand in for them here.
  */
 static PyObject *
 make_future(void) {
@@ -97,7 +97,7 @@ test_registry_add__increfs_file_and_socket_when_present(void) {
     Py_ssize_t socket_before = Py_REFCNT(fake_socket);
 
     int idx = registry_add(
-        reg, future, NULL, ONESHOT, 1, (PuringFile *)fake_file, (PuringSocket *)fake_socket, NULL, NULL
+        reg, future, NULL, ONESHOT, 1, (UringioFile *)fake_file, (UringioSocket *)fake_socket, NULL, NULL
     );
     TEST_ASSERT(idx >= 0, "registry_add should succeed");
     TEST_ASSERT(Py_REFCNT(fake_file) == file_before + 1, "file should be increfed");
@@ -255,7 +255,7 @@ test_registry_destroy__releases_pending_slots(void) {
     Py_ssize_t socket_before = Py_REFCNT(fake_socket);
 
     int idx = registry_add(
-        reg, future, NULL, ONESHOT, 1, (PuringFile *)fake_file, (PuringSocket *)fake_socket, NULL, NULL
+        reg, future, NULL, ONESHOT, 1, (UringioFile *)fake_file, (UringioSocket *)fake_socket, NULL, NULL
     );
     TEST_ASSERT(idx >= 0, "registry_add should succeed");
 

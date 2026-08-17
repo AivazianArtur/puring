@@ -1,7 +1,7 @@
 #include "files.h"
 
 int
-puring_read_multishot(
+uringio_read_multishot(
     struct io_uring *ring, int request_idx, int fd, int offset, int bgid, const struct TimeoutParams timeout_params
 ) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);

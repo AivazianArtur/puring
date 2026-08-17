@@ -14,7 +14,7 @@ except ImportError:
 
 sys.path.insert(0, '')
 
-import puring
+import uringio
 
 
 CHUNK_SIZE = 256 * 1024
@@ -30,10 +30,10 @@ FILE_ASYNC_CONCURRENT = FILES_FOLDER + 'async_concurrent.bin'
 FILE_UV = FILES_FOLDER + 'uv.bin'
 FILE_UV_CONCURRENT = FILES_FOLDER + 'uv_concurrent.bin'
 
-FILE_PURING_VECTORED = FILES_FOLDER + 'vectored.bin'
-FILE_PURING_SEQ = FILES_FOLDER + 'scalar_seq.bin'
-FILE_SCALAR_CONCURRENT = FILES_FOLDER + 'puring_concurrent.bin'
-FILE_CONCURRENT_FIXED = FILES_FOLDER + 'puring_concurrent_fixed.bin'
+FILE_URINGIO_VECTORED = FILES_FOLDER + 'vectored.bin'
+FILE_URINGIO_SEQ = FILES_FOLDER + 'scalar_seq.bin'
+FILE_SCALAR_CONCURRENT = FILES_FOLDER + 'uringio_concurrent.bin'
+FILE_CONCURRENT_FIXED = FILES_FOLDER + 'uringio_concurrent_fixed.bin'
 
 
 DATA = [bytes([i % 256]) * CHUNK_SIZE for i in range(NR_CHUNKS)]
@@ -149,9 +149,9 @@ async def uvloop_write_concurrent():
     return time.perf_counter() - start
 
 
-async def puring_writev():
-    print('Running puring writev')
-    f = await puring.open_file(path=FILE_PURING_VECTORED)
+async def uringio_writev():
+    print('Running uringio writev')
+    f = await uringio.open_file(path=FILE_URINGIO_VECTORED)
 
     start = time.perf_counter()
 
@@ -166,9 +166,9 @@ async def puring_writev():
     return elapsed
 
 
-async def puring_write():
-    print('Running puring write sequential')
-    f = await puring.open_file(path=FILE_PURING_SEQ)
+async def uringio_write():
+    print('Running uringio write sequential')
+    f = await uringio.open_file(path=FILE_URINGIO_SEQ)
 
     start = time.perf_counter()
 
@@ -184,10 +184,10 @@ async def puring_write():
     return elapsed
 
 
-async def puring_write_concurrent():
-    print('Running puring write concurrent')
+async def uringio_write_concurrent():
+    print('Running uringio write concurrent')
 
-    f = await puring.open_file(path=FILE_SCALAR_CONCURRENT)
+    f = await uringio.open_file(path=FILE_SCALAR_CONCURRENT)
 
     start = time.perf_counter()
 
@@ -207,17 +207,17 @@ async def puring_write_concurrent():
     return elapsed
 
 
-async def puring_write_concurrent__fixed():
-    print('Running puring write concurrent FIXED')
-    f = await puring.open_file(path=FILE_CONCURRENT_FIXED)
+async def uringio_write_concurrent__fixed():
+    print('Running uringio write concurrent FIXED')
+    f = await uringio.open_file(path=FILE_CONCURRENT_FIXED)
 
     loop = asyncio.get_running_loop()
     buf = bytearray(len(DATA))
 
     start = time.perf_counter()
     with loop.buffer_mode(
-        mode=puring.BUFFER_MODE.FIXED,
-        payload_type=puring.PAYLOAD_TYPE.IOVEC,
+        mode=uringio.BUFFER_MODE.FIXED,
+        payload_type=uringio.PAYLOAD_TYPE.IOVEC,
         buffers=[buf],
     ):
         for _ in range(ITERATIONS):
@@ -271,19 +271,19 @@ def run():
         results.append(('uvloop write concurrent', t))
 
 
-    with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
+    with asyncio.Runner(loop_factory=uringio.UringioLoop) as runner:
 
-        t = runner.run(puring_writev())
-        results.append(('puring writev', t))
+        t = runner.run(uringio_writev())
+        results.append(('uringio writev', t))
 
-        t = runner.run(puring_write())
-        results.append(('puring write seq', t))
+        t = runner.run(uringio_write())
+        results.append(('uringio write seq', t))
 
-        t = runner.run(puring_write_concurrent())
-        results.append(('puring write concurrent', t))
+        t = runner.run(uringio_write_concurrent())
+        results.append(('uringio write concurrent', t))
     
-        t = runner.run(puring_write_concurrent__fixed())
-        results.append(('puring write concurrent FIXED', t))
+        t = runner.run(uringio_write_concurrent__fixed())
+        results.append(('uringio write concurrent FIXED', t))
 
     print('\n==== RESULTS ====')
 

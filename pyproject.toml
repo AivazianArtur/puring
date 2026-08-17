@@ -3,7 +3,7 @@ requires = ["setuptools>=72,<81", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "puring"
+name = "uringio"
 version = "0.4.0"
 requires-python = ">=3.12"
 authors = [
@@ -18,21 +18,21 @@ readme = "README.md"
 license = {file = "LICENSE"}
 
 [project.urls]
-#Homepage = "https://example.com"
-#Documentation = "https://readthedocs.org"
-Repository = "https://github.com/AivazianArtur/puring.git"
-Issues = "https://github.com/AivazianArtur/puring/issues"
-Changelog = "https://github.com/AivazianArtur/puring/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/AivazianArtur/uringio"
+Documentation = "https://aivazianartur.github.io/uringio/"
+Repository = "https://github.com/AivazianArtur/uringio.git"
+Issues = "https://github.com/AivazianArtur/uringio/issues"
+Changelog = "https://github.com/AivazianArtur/uringio/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["puring_stubs"]
+packages = ["uringio_stubs"]
 
 [tool.setuptools.package-data]
-"puring_stubs" = ["py.typed", "*.pyi"]
+"uringio_stubs" = ["py.typed", "*.pyi"]
 
 [tool.cibuildwheel]
 build = "cp312-* cp313-* cp314-*"
 skip = "*-musllinux_*"
 
 
-test-command = "python -c \"import puring\""
+test-command = "python -c \"import uringio\""

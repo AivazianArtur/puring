@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0, '')
 import asyncio
-import puring
+import uringio
 from _common import simple_file_example
 
 TEMPFILE = 'docs/assets/tempfile.txt'
@@ -12,12 +12,12 @@ async def execution_context():
 
     buf = bytearray(4096)
     with loop.execution_context(
-        stream_strategy=puring.STREAM_STRATEGY.MULTISHOT,
-        buffer_mode=puring.BUFFER_MODE.FIXED,
-        transfer_mode=puring.TRANSFER_MODE.ZERO_COPY,
+        stream_strategy=uringio.STREAM_STRATEGY.MULTISHOT,
+        buffer_mode=uringio.BUFFER_MODE.FIXED,
+        transfer_mode=uringio.TRANSFER_MODE.ZERO_COPY,
         buffers=[buf],
     ):
         await simple_file_example()
 
 if __name__ == '__main__':
-    asyncio.run(execution_context(), loop_factory=puring.PuringLoop)
+    asyncio.run(execution_context(), loop_factory=uringio.UringioLoop)

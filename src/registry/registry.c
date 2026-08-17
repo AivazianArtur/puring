@@ -82,8 +82,8 @@ registry_add(
     BufferPayload *buffer_payload,
     StreamStrategy stream_strategy,
     int opcode,
-    PuringFile *file,
-    PuringSocket *socket,
+    UringioFile *file,
+    UringioSocket *socket,
     struct sockaddr_storage *sockaddr,
     struct msghdr *msghdr
 ) {

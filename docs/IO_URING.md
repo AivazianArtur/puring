@@ -1,13 +1,13 @@
 # io_uring
 **io_uring is an efficient Linux implementation of the Proactor I/O model**
 
-Main way to interact with io_uring is [liburing](https://github.com/axboe/liburing), and `puring` use it too.
+Main way to interact with io_uring is [liburing](https://github.com/axboe/liburing), and `uringio` use it too.
 
 **If you are already familiar with io_uring, you can go to: [Architecture page](docs/ARCHITECTURE.md)**
 
 ## Specific concepts
 - **io_uring** - Linux API for async I/O, implements proactor pattern
-- **ring** - Instance of io_uring, contains two buffer rings - Submission Queue and Completion Queue 
+- **ring** - Instance of io_uring, contains two buffer rings - Submission Queue and Completion Queue
 - **Submission Queue [SQ]** - Queue buffer that acts as input topic - app writes async operation there, kernel read out of there
 - **Completion Queue [CQ]** - Queue buffer that acts as output topic - kernel writes result of done operation there, app read out of there
 
