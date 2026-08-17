@@ -11,7 +11,8 @@ jobs:
 
   docs:
     uses: ./.github/workflows/docs.yml
-
+    permissions:
+      contents: write
   tests:
     uses: ./.github/workflows/tests.yml
 
