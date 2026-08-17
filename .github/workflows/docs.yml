@@ -6,10 +6,10 @@ on:
       - main
     paths:
       - "README.md"
-      - "USER_GUIDE.md"
       - "docs/**"
       - "mkdocs.yml"
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: write
