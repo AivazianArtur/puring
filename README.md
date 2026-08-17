@@ -1,7 +1,7 @@
 # aio_uring
 ![Linux](https://img.shields.io/badge/Linux-%23FFFFFF.svg?style=for-the-badge&logo=linux&logoColor=black) ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FAivazianArtur%2Faio_uring%2Frefs%2Fheads%2Fmain%2Fpyproject.toml) ![GitHub Release](https://img.shields.io/github/v/release/AivazianArtur/aio_uring)
 
-aio_uring brings true asynchronous file I/O to Python with a native event loop built on [io_uring](https://unixism.net/loti/), implemented directly in CPython.
+aio_uring brings true asynchronous file I/O to Python with a native event loop built on [io_uring](https://unixism.net/loti/), implemented as C extension for CPython.
 
 ⚠️ Currently in active development, so API and internals may change and will be evolved.
 
