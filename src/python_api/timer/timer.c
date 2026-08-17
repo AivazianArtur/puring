@@ -1,7 +1,7 @@
 #include "python_api/timer/timer.h"
 
 PyObject *
-PuringLoop_timer(
+AioUringLoop_timer(
     PyObject *Py_UNUSED(module), // cppcheck-suppress funcArgNamesDifferent
     PyObject *args,
     PyObject *kwargs
@@ -12,7 +12,7 @@ PuringLoop_timer(
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", (char **)kwlist, &loop_obj, &timer_params_obj))) {
         return NULL;
     }
-    PuringLoop *loop = (PuringLoop *)loop_obj;
+    AioUringLoop *loop = (AioUringLoop *)loop_obj;
     ASSERT_LOOP_THREAD(loop);
     ASSERT_RING_LOOP_IS_CLOSING(loop);
 

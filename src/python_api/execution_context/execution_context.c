@@ -4,7 +4,7 @@
 #include "python_api/loop/loop.h"
 
 BufferModeCtx *
-PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
+AioUringLoop_buffer_mode(AioUringLoop *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
@@ -32,7 +32,7 @@ PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
     if (!buffer_payload)
         return NULL;
 
-    BufferModeCtx *buffer_mode_ctx = PyObject_New(BufferModeCtx, &PuringBufferModeCtxType);
+    BufferModeCtx *buffer_mode_ctx = PyObject_New(BufferModeCtx, &AioUringBufferModeCtxType);
     if (!buffer_mode_ctx) {
         free_buffer_payload(buffer_payload, true);
         PyErr_NoMemory();
@@ -46,7 +46,7 @@ PuringLoop_buffer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
 }
 
 StreamStrategyCtx *
-PuringLoop_stream_strategy(PuringLoop *self, PyObject *args, PyObject *kwargs) {
+AioUringLoop_stream_strategy(AioUringLoop *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
@@ -65,7 +65,7 @@ PuringLoop_stream_strategy(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    StreamStrategyCtx *stream_strategy_ctx = PyObject_New(StreamStrategyCtx, &PuringStreamStrategyCtxType);
+    StreamStrategyCtx *stream_strategy_ctx = PyObject_New(StreamStrategyCtx, &AioUringStreamStrategyCtxType);
     if (!stream_strategy_ctx) {
         PyErr_NoMemory();
         return NULL;
@@ -76,7 +76,7 @@ PuringLoop_stream_strategy(PuringLoop *self, PyObject *args, PyObject *kwargs) {
 }
 
 TransferModeCtx *
-PuringLoop_transfer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
+AioUringLoop_transfer_mode(AioUringLoop *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
@@ -95,7 +95,7 @@ PuringLoop_transfer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    TransferModeCtx *transfer_mode_ctx = PyObject_New(TransferModeCtx, &PuringTransferModeCtxType);
+    TransferModeCtx *transfer_mode_ctx = PyObject_New(TransferModeCtx, &AioUringTransferModeCtxType);
     if (!transfer_mode_ctx) {
         PyErr_NoMemory();
         return NULL;
@@ -106,7 +106,7 @@ PuringLoop_transfer_mode(PuringLoop *self, PyObject *args, PyObject *kwargs) {
 }
 
 ExecutionContextCtx *
-PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs) {
+AioUringLoop_execution_context(AioUringLoop *self, PyObject *args, PyObject *kwargs) {
     ASSERT_LOOP_THREAD(self);
     ASSERT_RING_LOOP_IS_CLOSING(self);
 
@@ -167,7 +167,7 @@ PuringLoop_execution_context(PuringLoop *self, PyObject *args, PyObject *kwargs)
         return NULL;
     }
 
-    ExecutionContextCtx *execution_context_ctx = PyObject_New(ExecutionContextCtx, &PuringExecutionContextCtxType);
+    ExecutionContextCtx *execution_context_ctx = PyObject_New(ExecutionContextCtx, &AioUringExecutionContextCtxType);
     if (!execution_context_ctx) {
         PyErr_NoMemory();
         return NULL;

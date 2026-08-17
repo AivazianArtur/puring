@@ -1,7 +1,7 @@
 #include "sockets.h"
 
 int
-puring_recv_buffer_select(
+aio_uring_recv_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -35,7 +35,7 @@ puring_recv_buffer_select(
 }
 
 int
-puring_recvmsg_buffer_select(
+aio_uring_recvmsg_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int sockfd,

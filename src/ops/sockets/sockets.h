@@ -22,7 +22,7 @@ int
 prep_socket(struct io_uring *ring, int request_idx, int domain, int type, const struct TimeoutParams timeout_params);
 
 int
-puring_bind(
+aio_uring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -32,7 +32,7 @@ puring_bind(
 );
 
 int
-puring_connect(
+aio_uring_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -42,10 +42,10 @@ puring_connect(
 );
 
 int
-puring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params);
+aio_uring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params);
 
 int
-puring_accept(
+aio_uring_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -56,10 +56,10 @@ puring_accept(
 );
 
 int
-puring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params);
+aio_uring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params);
 
 int
-puring_send(
+aio_uring_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -70,7 +70,7 @@ puring_send(
 );
 
 int
-puring_recv(
+aio_uring_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -81,7 +81,7 @@ puring_recv(
 );
 
 int
-puring_sendto(
+aio_uring_sendto(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -94,7 +94,7 @@ puring_sendto(
 );
 
 int
-puring_recvfrom(
+aio_uring_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -108,7 +108,7 @@ puring_recvfrom(
 );
 
 int
-puring_sendmsg(
+aio_uring_sendmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -121,7 +121,7 @@ puring_sendmsg(
 );
 
 int
-puring_recvmsg(
+aio_uring_recvmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -132,7 +132,7 @@ puring_recvmsg(
 );
 
 int
-puring_recv_fixed(
+aio_uring_recv_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -144,7 +144,7 @@ puring_recv_fixed(
 );
 
 int
-puring_send_zc(
+aio_uring_send_zc(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -155,7 +155,7 @@ puring_send_zc(
 );
 
 int
-puring_send_zc_fixed(
+aio_uring_send_zc_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -167,7 +167,7 @@ puring_send_zc_fixed(
 );
 
 int
-puring_sendmsg_zc(
+aio_uring_sendmsg_zc(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -181,7 +181,7 @@ puring_sendmsg_zc(
 );
 
 int
-puring_recvmsg_fixed(
+aio_uring_recvmsg_fixed(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -193,7 +193,7 @@ puring_recvmsg_fixed(
 );
 
 int
-puring_recv_buffer_select(
+aio_uring_recv_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -204,7 +204,7 @@ puring_recv_buffer_select(
 );
 
 int
-puring_recvmsg_buffer_select(
+aio_uring_recvmsg_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -214,7 +214,7 @@ puring_recvmsg_buffer_select(
 );
 
 int
-puring_accept_multishot(
+aio_uring_accept_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -225,7 +225,7 @@ puring_accept_multishot(
 );
 
 int
-puring_recv_multishot(
+aio_uring_recv_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -236,7 +236,7 @@ puring_recv_multishot(
 );
 
 int
-puring_recvmsg_multishot(
+aio_uring_recvmsg_multishot(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -247,7 +247,7 @@ puring_recvmsg_multishot(
 );
 
 RecvMsgMultishotResult
-puring_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len);
+aio_uring_recvmsg_validate_multishot(void *buf, int buf_len, struct msghdr *msghdr, int len);
 
 bool
-is_puring_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe);
+is_aio_uring_recvmsg_multishot_resubmit_required(const struct io_uring_cqe *cqe);

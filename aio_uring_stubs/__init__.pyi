@@ -1,4 +1,4 @@
-"""Type stubs for the `puring` C extension (io_uring-backed asyncio loop)."""
+"""Type stubs for the `aio_uring` C extension (io_uring-backed asyncio loop)."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ class PAYLOAD_TYPE(enum.IntEnum):
 TimeoutParamsLike = Any
 
 
-# --- Context managers returned by PuringLoop.buffer_mode()/stream_strategy()/
+# --- Context managers returned by AioUringLoop.buffer_mode()/stream_strategy()/
 #     transfer_mode()/execution_context() -----------------------------------
 
 class BufferModeCtx:
@@ -66,7 +66,7 @@ class ExecutionContextCtx:
 # --- File -------------------------------------------------------------------
 
 class File:
-    """Puring file adapter returned by :func:`puring.open_file`."""
+    """aio_uring file adapter returned by :func:`aio_uring.open_file`."""
 
     fd: int  # readonly
 
@@ -127,7 +127,7 @@ class File:
 # --- Socket -------------------------------------------------------------------
 
 class Socket:
-    """Puring socket adapter returned by :func:`puring.prep_socket`."""
+    """aio_uring socket adapter returned by :func:`aio_uring.prep_socket`."""
 
     async def bind(
         self, host: str, port: int, timeout_params: TimeoutParamsLike = ...
@@ -189,9 +189,9 @@ class Socket:
     ) -> Optional[bool]: ...
 
 
-# --- PuringLoop ---------------------------------------------------------------
+# --- AioUringLoop ---------------------------------------------------------------
 
-class PuringLoop(asyncio.BaseEventLoop):
+class AioUringLoop(asyncio.BaseEventLoop):
     """asyncio-compatible event loop backed by io_uring."""
 
     def __init__(self, registry_size: int = 0) -> None: ...
@@ -226,7 +226,7 @@ class PuringLoop(asyncio.BaseEventLoop):
 # --- Module-level functions ---------------------------------------------------
 
 def timer(
-    uring_loop: PuringLoop,
+    uring_loop: AioUringLoop,
     timer_params: Optional[Any] = None,  # object with int fields: sec, nsec, count
 ) -> Awaitable[None]:
     """Sets a timer."""

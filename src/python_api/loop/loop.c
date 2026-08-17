@@ -1,7 +1,7 @@
 #include "loop.h"
 
 PyObject *
-PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+AioUringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     int registry_size = 0;
 
     static const char *kwlist[] = {"registry_size", NULL};
@@ -12,7 +12,7 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     if (!registry)
         return PyErr_NoMemory();
 
-    PuringLoop *self = (PuringLoop *)type->tp_alloc(type, 0);
+    AioUringLoop *self = (AioUringLoop *)type->tp_alloc(type, 0);
     if (!self) {
         registry_destroy(registry);
         return PyErr_NoMemory();
@@ -32,8 +32,8 @@ PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
 }
 
 int
-PuringLoop_init(
-    PuringLoop *self
+AioUringLoop_init(
+    AioUringLoop *self
     // PyObject *args,
     // PyObject *kwargs
 ) {
@@ -92,7 +92,7 @@ PuringLoop_init(
 }
 
 int
-PuringLoop_traverse(PuringLoop *self, visitproc visit, void *arg) {
+AioUringLoop_traverse(AioUringLoop *self, visitproc visit, void *arg) {
     if (PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_MANAGED_DICT)) {
 #if PY_VERSION_HEX >= 0x030D0000
         PyObject_VisitManagedDict((PyObject *)self, visit, arg);
@@ -111,7 +111,7 @@ PuringLoop_traverse(PuringLoop *self, visitproc visit, void *arg) {
 }
 
 int
-PuringLoop_clear(PuringLoop *self) {
+AioUringLoop_clear(AioUringLoop *self) {
     Py_CLEAR(self->readers);
     Py_CLEAR(self->writers);
     Py_CLEAR(self->execution_context_var);
@@ -132,11 +132,11 @@ PuringLoop_clear(PuringLoop *self) {
 }
 
 void
-PuringLoop_dealloc(PuringLoop *self) {
+AioUringLoop_dealloc(AioUringLoop *self) {
     PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack(self);
 
-    PuringLoop_clear(self);
+    AioUringLoop_clear(self);
 
     if (self->wakeup_fd >= 0) {
         close(self->wakeup_fd);
@@ -155,7 +155,7 @@ PuringLoop_dealloc(PuringLoop *self) {
 }
 
 PyObject *
-PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored)) {
+AioUringLoop_close(AioUringLoop *self, PyObject *Py_UNUSED(ignored)) {
     ASSERT_LOOP_THREAD(self);
 
     if (self->ring == NULL)
@@ -183,7 +183,7 @@ PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored)) {
 }
 
 PyObject *
-PuringLoop_run_once(PuringLoop *self) {
+AioUringLoop_run_once(AioUringLoop *self) {
     ASSERT_PYTHON_THREAD(self);
     struct __kernel_timespec ts = compute_timeout(self);
 
@@ -198,7 +198,7 @@ PuringLoop_run_once(PuringLoop *self) {
 }
 
 PyObject *
-PuringLoop_write_to_self(PuringLoop *self) {
+AioUringLoop_write_to_self(AioUringLoop *self) {
     if (self->wakeup_fd < 0) {
         PyErr_SetString(PyExc_RuntimeError, "wakeup_fd is not initialized");
         return NULL;

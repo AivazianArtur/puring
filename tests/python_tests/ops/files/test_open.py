@@ -5,11 +5,11 @@ sys.path.insert(0, '')
 
 from pathlib import Path
 
-import puring
+import aio_uring
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import puring_test
+from tests.python_tests.tests_utils.runner import aio_uring_test
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def temp_file_path(tmp_path):
             path=None,
             dirfd=0,
             flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=1,
             id='path_wrong_type',
         ),
@@ -40,7 +40,7 @@ def temp_file_path(tmp_path):
             path=b'/example_path',
             dirfd=0,
             flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=1,
             id='path_bytes_type',
         ),
@@ -48,7 +48,7 @@ def temp_file_path(tmp_path):
             path='',
             dirfd=None,
             flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=1,
             id='dirfd_wrong_type',
         ),
@@ -56,7 +56,7 @@ def temp_file_path(tmp_path):
             path='',
             dirfd='not_an_int',
             flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=1,
             id='dirfd_wrong_type_str',
         ),
@@ -64,7 +64,7 @@ def temp_file_path(tmp_path):
             path='',
             dirfd=0,
             flags=None,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=0,
             id='flags_wrong_type',
         ),
@@ -72,7 +72,7 @@ def temp_file_path(tmp_path):
             path='',
             dirfd=0,
             flags=1.5,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=1,
             id='flags_wrong_type_float',
         ),
@@ -88,13 +88,13 @@ def temp_file_path(tmp_path):
             path='',
             dirfd=0,
             flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=None,
             id='mode_wrong_type',
         ),
     ),
 )
-@puring_test
+@aio_uring_test
 async def test_open__validation_error(
     path,
     dirfd,
@@ -103,7 +103,7 @@ async def test_open__validation_error(
     mode,
 ):
     with pytest.raises(TypeError):
-        await puring.open_file(
+        await aio_uring.open_file(
             path=path,
             dirfd=dirfd,
             flags=flags,
@@ -112,13 +112,13 @@ async def test_open__validation_error(
         )
 
 
-@puring_test
+@aio_uring_test
 async def test_open__no_req_params():
     with pytest.raises(TypeError) as err:
-        await puring.open_file(
+        await aio_uring.open_file(
             dirfd=0,
             flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=0,
         )
 
@@ -136,55 +136,55 @@ async def test_open__no_req_params():
         ),
         pytest_param(
             flags=0,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=0,
             id='resolve_default',
         ),
         pytest_param(
             flags=0,
-            resolve=puring.ResolveFlags.NO_MAGICLINKS,
+            resolve=aio_uring.ResolveFlags.NO_MAGICLINKS,
             mode=0,
             id='resolve_flag_NO_MAGICLINKS',
         ),
         pytest_param(
             flags=0,
-            resolve=puring.ResolveFlags.NO_SYMLINKS,
+            resolve=aio_uring.ResolveFlags.NO_SYMLINKS,
             mode=0,
             id='resolve_flag_NO_SYMLINKS',
         ),
         pytest_param(
             flags=0,
-            resolve=puring.ResolveFlags.BENEATH,
+            resolve=aio_uring.ResolveFlags.BENEATH,
             mode=0,
             id='resolve_flag_BENEATH',
         ),
         pytest_param(
             flags=0,
-            resolve=puring.ResolveFlags.IN_ROOT,
+            resolve=aio_uring.ResolveFlags.IN_ROOT,
             mode=0,
             id='resolve_flag_IN_ROOT',
         ),
         pytest_param(
             flags=0,
-            resolve=puring.ResolveFlags.CACHED,
+            resolve=aio_uring.ResolveFlags.CACHED,
             mode=0,
             id='resolve_flag',
         ),
         pytest_param(
             flags=os.O_RDONLY,
-            resolve=puring.ResolveFlags.NO_XDEV,
+            resolve=aio_uring.ResolveFlags.NO_XDEV,
             mode=0,
             id='realistic_flags',
         ),
         pytest_param(
             flags=os.O_RDONLY,
-            resolve=puring.ResolveFlags.NO_XDEV | puring.ResolveFlags.CACHED,
+            resolve=aio_uring.ResolveFlags.NO_XDEV | aio_uring.ResolveFlags.CACHED,
             mode=0,
             id='resolve_flags_combined',
         ),
     ),
 )
-@puring_test
+@aio_uring_test
 async def test_open__success(
     temp_file_path,
     flags,
@@ -212,7 +212,7 @@ async def test_open__success(
         kwargs['mode'] = mode
 
     try:
-        uring_file = await puring.open_file(**kwargs)
+        uring_file = await aio_uring.open_file(**kwargs)
         assert uring_file
         await uring_file.close()
     finally:
@@ -232,7 +232,7 @@ async def test_open__success(
         ),
     ),
 )
-@puring_test
+@aio_uring_test
 async def test_open__path_types_success(temp_file_path, path):
     if isinstance(path, str):
         path = str(temp_file_path)
@@ -240,7 +240,7 @@ async def test_open__path_types_success(temp_file_path, path):
     elif isinstance(path, Path):
         path = temp_file_path
 
-    uring_file = await puring.open_file(
+    uring_file = await aio_uring.open_file(
         path=path,
     )
 
@@ -249,9 +249,9 @@ async def test_open__path_types_success(temp_file_path, path):
     await uring_file.close()
 
 
-@puring_test
+@aio_uring_test
 async def test_open__dirfd_negative_value(temp_file_path):
-    uring_file = await puring.open_file(
+    uring_file = await aio_uring.open_file(
         path=temp_file_path,
         dirfd=-100,  # AT_FDCWD
     )

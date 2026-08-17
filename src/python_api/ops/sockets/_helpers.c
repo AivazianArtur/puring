@@ -1,7 +1,7 @@
 #include "python_api/ops/sockets/sockets.h"
 
 PyObject *
-_check_sockets_result(int result, PuringSocket *socket, int request_idx, PyObject *future) {
+_check_sockets_result(int result, AioUringSocket *socket, int request_idx, PyObject *future) {
     if (result < 1) {
         if (result == -1) {
             PyErr_SetString(PyExc_RuntimeError, "SQE is not awailable\n");

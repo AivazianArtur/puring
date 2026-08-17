@@ -2,7 +2,7 @@
 
 LIBURING_DIR := vendor/liburing
 LIBURING_LIB := $(LIBURING_DIR)/src/liburing.a
-STUBS_DIR := puring_stubs
+STUBS_DIR := aio_uring_stubs
 STUBTEST_ALLOWLIST := stubtest_allowlist.txt
 
 PYTHON := python3
@@ -81,7 +81,7 @@ ASAN_LIB := $(shell \
 		echo /lib64/libasan.so.8; \
 	fi)
 
-ASAN_CFLAGS := -O0 -g3 -DPURING_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all
+ASAN_CFLAGS := -O0 -g3 -DAIO_URING_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all
 ASAN_LDFLAGS := -fsanitize=address,undefined
 
 ASAN_OPTIONS := detect_leaks=0:abort_on_error=1:halt_on_error=1:strict_string_checks=1
@@ -477,7 +477,7 @@ docs-serve: docs-deps
 stubtest: install
 	@echo "START STUBTEST[.pyi vs runtime API]"
 	@echo "--------"
-	$(PY) -m mypy.stubtest puring \
+	$(PY) -m mypy.stubtest aio_uring \
 		--allowlist $(STUBTEST_ALLOWLIST) \
 		--concise
 	@echo "========"
@@ -514,7 +514,7 @@ help:
 	@echo "Detected package manager: $(PKG_MANAGER)"
 	@echo ""
 	@echo "── Build ──────────────────────────────────────────"
-	@echo "  make install              - build and install puring (venv)"
+	@echo "  make install              - build and install aio_uring (venv)"
 	@echo "  make build                - build wheel"
 	@echo "  make clean                - clean everything"
 	@echo ""

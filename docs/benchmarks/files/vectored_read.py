@@ -13,7 +13,7 @@ except ImportError:
 
 sys.path.insert(0, '')
 
-import puring
+import aio_uring
 
 
 # ---- Config ---------------------------------------------------------------
@@ -66,7 +66,7 @@ def drop_cache(path=SRC):
     """Evict the file's pages from the kernel page cache.
 
     Path-based (not tied to whichever fd later reads the file) so it works
-    the same way whether the next reader is os.readv, os.pread, or puring.
+    the same way whether the next reader is os.readv, os.pread, or aio_uring.
     Best-effort: only reliable when nothing else in the system is pinning
     those pages, which holds for a single-process benchmark like this one.
     """
@@ -182,13 +182,13 @@ async def uvloop_scalar_read_concurrent():
 
 
 # ---------------------------------------------------------------------
-# 5. puring readv: one IORING_OP_READV submission per iteration,
+# 5. aio_uring readv: one IORING_OP_READV submission per iteration,
 #    scattering into NR_CHUNKS buffers - no worker threads at all.
 # ---------------------------------------------------------------------
 
-async def puring_readv():
-    print('Running puring readv (single SQE per iteration)')
-    f = await puring.open_file(path=SRC)
+async def aio_uring_readv():
+    print('Running aio_uring readv (single SQE per iteration)')
+    f = await aio_uring.open_file(path=SRC)
     buffers = [bytearray(CHUNK_SIZE) for _ in range(NR_CHUNKS)]
 
     start = time.perf_counter()
@@ -201,13 +201,13 @@ async def puring_readv():
 
 
 # ---------------------------------------------------------------------
-# 6. puring scalar: NR_CHUNKS separate read() SQEs per iteration,
+# 6. aio_uring scalar: NR_CHUNKS separate read() SQEs per iteration,
 #    submitted concurrently and awaited together.
 # ---------------------------------------------------------------------
 
-async def puring_scalar_read_concurrent():
-    print('Running puring scalar read, concurrent per iteration')
-    f = await puring.open_file(path=SRC)
+async def aio_uring_scalar_read_concurrent():
+    print('Running aio_uring scalar read, concurrent per iteration')
+    f = await aio_uring.open_file(path=SRC)
 
     start = time.perf_counter()
     for base in offsets():
@@ -223,13 +223,13 @@ async def puring_scalar_read_concurrent():
 
 
 # ---------------------------------------------------------------------
-# 7. puring readv with FIXED (pre-registered) buffers - skips the
+# 7. aio_uring readv with FIXED (pre-registered) buffers - skips the
 #    per-call buffer mapping/pinning that the default mode pays for.
 # ---------------------------------------------------------------------
 
-async def puring_readv_fixed():
-    print('Running puring readv FIXED buffers')
-    f = await puring.open_file(path=SRC)
+async def aio_uring_readv_fixed():
+    print('Running aio_uring readv FIXED buffers')
+    f = await aio_uring.open_file(path=SRC)
     buffers = [bytearray(CHUNK_SIZE) for _ in range(NR_CHUNKS)]
     loop = asyncio.get_running_loop()
 
@@ -237,8 +237,8 @@ async def puring_readv_fixed():
 
     # If you'll face memory allocation error, up your limit ulimit -Hl
     with loop.buffer_mode(
-        mode=puring.BUFFER_MODE.FIXED,
-        payload_type=puring.PAYLOAD_TYPE.IOVEC,
+        mode=aio_uring.BUFFER_MODE.FIXED,
+        payload_type=aio_uring.PAYLOAD_TYPE.IOVEC,
         buffers=buffers,
     ):
         for off in offsets():
@@ -283,10 +283,10 @@ def run_suite(cold):
         timed_async('uvloop readv', uvloop_readv)
         timed_async('uvloop scalar concurrent', uvloop_scalar_read_concurrent)
 
-    with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
-        timed_async('puring readv', puring_readv, runner)
-        timed_async('puring scalar concurrent', puring_scalar_read_concurrent, runner)
-        # timed_async('puring readv FIXED', puring_readv_fixed, runner)
+    with asyncio.Runner(loop_factory=aio_uring.AioUringLoop) as runner:
+        timed_async('aio_uring readv', aio_uring_readv, runner)
+        timed_async('aio_uring scalar concurrent', aio_uring_scalar_read_concurrent, runner)
+        # timed_async('aio_uring readv FIXED', aio_uring_readv_fixed, runner)
 
     return results
 

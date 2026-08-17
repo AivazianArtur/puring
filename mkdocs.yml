@@ -1,6 +1,6 @@
-site_name: puring
+site_name: aio_uring
 site_description: High-performance io_uring wrapper for Python
-repo_url: https://github.com/AivazianArtur/puring
+repo_url: https://github.com/AivazianArtur/aio_uring
 edit_uri: ''
 
 docs_dir: docs_site
@@ -31,7 +31,7 @@ nav:
   - Benchmark analysis: benchmarks-analysis.md
   - API Reference:
       - Overview: api.md
-      - PuringLoop: api/loop.md
+      - AioUringLoop: api/loop.md
       - File: api/file.md
       - Socket: api/socket.md
       - Context Managers: api/context-managers.md

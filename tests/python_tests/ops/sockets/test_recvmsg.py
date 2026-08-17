@@ -2,11 +2,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import puring
+import aio_uring
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import puring_test
+from tests.python_tests.tests_utils.runner import aio_uring_test
 from tests.python_tests.tests_utils.socket_pair import make_connected_pair
 
 
@@ -16,7 +16,7 @@ from tests.python_tests.tests_utils.socket_pair import make_connected_pair
         pytest_param(buffers=123, id='buffers_wrong_type_int'),
     ),
 )
-@puring_test
+@aio_uring_test
 async def test_recvmsg__validation_error(buffers):
     server_conn, client_sock, server_sock = await make_connected_pair()
 
@@ -28,16 +28,16 @@ async def test_recvmsg__validation_error(buffers):
     await server_sock.close()
 
 
-@puring_test
+@aio_uring_test
 async def test_recvmsg__closed_socket_raises_error():
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
     await sock.close()
 
     with pytest.raises(expected_exception=OSError):
         await sock.recvmsg()
 
 
-@puring_test
+@aio_uring_test
 async def test_recvmsg__success():
     server_conn, client_sock, server_sock = await make_connected_pair()
 

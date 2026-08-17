@@ -2,11 +2,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import puring
+import aio_uring
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import puring_test
+from tests.python_tests.tests_utils.runner import aio_uring_test
 
 
 @pytest_parametrize(
@@ -19,9 +19,9 @@ from tests.python_tests.tests_utils.runner import puring_test
         pytest_param(host='127.0.0.1', port=1.5, id='port_wrong_type_float'),
     ),
 )
-@puring_test
+@aio_uring_test
 async def test_bind__validation_error(host, port):
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
 
     with pytest.raises(expected_exception=TypeError):
         sock.bind(host=host, port=port)
@@ -29,9 +29,9 @@ async def test_bind__validation_error(host, port):
     await sock.close()
 
 
-@puring_test
+@aio_uring_test
 async def test_bind__invalid_ip_raises_error():
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
 
     with pytest.raises(expected_exception=ConnectionRefusedError):
         sock.bind(host='not-an-ip-address', port=0)
@@ -39,18 +39,18 @@ async def test_bind__invalid_ip_raises_error():
     await sock.close()
 
 
-@puring_test
+@aio_uring_test
 async def test_bind__closed_socket_raises_error():
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
     await sock.close()
 
     with pytest.raises(expected_exception=OSError):
         await sock.bind(host='127.0.0.1', port=0)
 
 
-@puring_test
+@aio_uring_test
 async def test_bind__success():
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
 
     result = await sock.bind(host='127.0.0.1', port=0)
     assert result == 0
@@ -58,7 +58,7 @@ async def test_bind__success():
     await sock.close()
 
 
-@puring_test
+@aio_uring_test
 async def test_bind__specific_port_success():
     import socket as stdlib_socket
 
@@ -67,16 +67,16 @@ async def test_bind__specific_port_success():
     _, port = tmp.getsockname()
     tmp.close()
 
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
     result = await sock.bind(host='127.0.0.1', port=port)
     assert result == 0
 
     await sock.close()
 
 
-@puring_test
+@aio_uring_test
 async def test_bind__double_bind_raises_error():
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
     await sock.bind(host='127.0.0.1', port=0)
 
     with pytest.raises(expected_exception=OSError):

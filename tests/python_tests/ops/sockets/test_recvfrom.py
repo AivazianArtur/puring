@@ -3,11 +3,11 @@ import sys
 
 sys.path.insert(0, '')
 
-import puring
+import aio_uring
 import pytest
 
 from tests.python_tests.tests_utils.pytest_param import pytest_param, pytest_parametrize
-from tests.python_tests.tests_utils.runner import puring_test
+from tests.python_tests.tests_utils.runner import aio_uring_test
 
 
 @pytest_parametrize(
@@ -19,9 +19,9 @@ from tests.python_tests.tests_utils.runner import puring_test
         pytest_param(bufsize=1024, domain=1.5, id='domain_wrong_type_float'),
     ),
 )
-@puring_test
+@aio_uring_test
 async def test_recvfrom__validation_error(bufsize, domain):
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
 
     with pytest.raises(expected_exception=TypeError):
         sock.recvfrom(bufsize=bufsize, host='127.0.0.1', port=0, domain=domain)
@@ -29,18 +29,18 @@ async def test_recvfrom__validation_error(bufsize, domain):
     await sock.close()
 
 
-@puring_test
+@aio_uring_test
 async def test_recvfrom__closed_socket_raises_error():
-    sock = await puring.prep_socket()
+    sock = await aio_uring.prep_socket()
     await sock.close()
 
     with pytest.raises(expected_exception=BrokenPipeError):
         sock.recvfrom(host='127.0.0.1', port=0, domain=socket.AF_INET)
 
 
-@puring_test
+@aio_uring_test
 async def test_recvfrom__success():
-    sock = await puring.prep_socket(domain=socket.AF_INET, socktype=socket.SOCK_DGRAM)
+    sock = await aio_uring.prep_socket(domain=socket.AF_INET, socktype=socket.SOCK_DGRAM)
     await sock.bind(host='127.0.0.1', port=0)
 
     tmp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -48,7 +48,7 @@ async def test_recvfrom__success():
     _, port = tmp.getsockname()
     tmp.close()
 
-    sock = await puring.prep_socket(domain=socket.AF_INET, socktype=socket.SOCK_DGRAM)
+    sock = await aio_uring.prep_socket(domain=socket.AF_INET, socktype=socket.SOCK_DGRAM)
     await sock.bind(host='127.0.0.1', port=port)
 
     client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

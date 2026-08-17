@@ -1,6 +1,6 @@
 # Socket
 
-`class Socket` — Puring socket adapter
+`class Socket` — aio_uring socket adapter
 
 ## Methods
 

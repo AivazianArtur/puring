@@ -10,7 +10,7 @@
 #include "ring/ring.h"
 
 PyObject *
-PuringLoop_timer(PyObject *self, PyObject *args, PyObject *kwargs);
+AioUringLoop_timer(PyObject *self, PyObject *args, PyObject *kwargs);
 
 int
 parse_timer_params(PyObject *obj, TimerParams *out, StreamStrategy stream_strategy);

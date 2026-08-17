@@ -8,7 +8,7 @@
 
 ## Introduction
 ### io_uring
-`Puring` is written natively in CPython and brings the new event loop, based on `liburing` library - main lib to use `io_uring`.
+`aio_uring` is written natively in CPython and brings the new event loop, based on `liburing` library - main lib to use `io_uring`.
 `io_uring` is an alternate for `epoll` and other `reactor`-based systems.
 
 ## Domains
@@ -26,7 +26,7 @@ Main challenge to bring `io_uring` in Python was to connect Python event loop an
 
 1. From `io_uring` side main thing is `ring` itself. Ring contains two rings actually - `Submission Queue` with `SQE`(`E` is for `event`) and `Completion Queue` with `CQE`. It is really important to understand this concepts, but it all really gives us only one domain - `ring`. There is plan to bring interface to set some ring parametres in next version.
 
-2. From Python side there is main object too - `Event Loop`. Loop is complicated, and its complicity is shown in code: by `loop` domain with `PuringLoop` object and by `reader` domain.
+2. From Python side there is main object too - `Event Loop`. Loop is complicated, and its complicity is shown in code: by `loop` domain with `AioUringLoop` object and by `reader` domain.
 
 3. `Reader` is part of the loop that reads result of I/O multiplexing mechanism(the output part). In our case(`io_uring`) it reads directly result of operations, but when you work with `epoll` it reads signal about socket readiness.
 
@@ -34,14 +34,14 @@ Main challenge to bring `io_uring` in Python was to connect Python event loop an
 
 5. Next domain is `Ops`, which contains `File` and `Socket` objects. This domain is mirrorly presented in both c-layer and python-layer. Its purpose is to be an API of system operations.
 
-6. To read and write from/to `Files` and `Sokets`, we need buffers. And there is separate `Buffer` domain for this purpose. Users can use operations with their own buffers or rely on `puring` functionality of buffer creation. To separate this domain in code there is `BufferPayload` struct.
+6. To read and write from/to `Files` and `Sokets`, we need buffers. And there is separate `Buffer` domain for this purpose. Users can use operations with their own buffers or rely on `aio_uring` functionality of buffer creation. To separate this domain in code there is `BufferPayload` struct.
 
 7. But also `io_uring` gives us some workarounds for buffers and operation handling. There is three categories: `Buffer Mode`, `TransferMode` and `StreamStrategy`. While `BufferMode` is an established in `io_uring` and `liburing` definition, `TransferMode` and `StreamStrategy` are not so, but in some places in internet they are used like that. \
-    To use this optimization in `puring`, we are just initializing this modes inside context manager. For each of mode there is dedicated context manager, but also one more context manager to set them all at once - `ExecutionContext`, and this is the name of this domain. So:
-   1. `Buffer Modes`. Different types of optimizations around buffers, mainly around buffer ownership. Without optimizations, user is sending buffers with every syscall. 
-      1. `Fixed` - On initial stage user is giving his buffers, or relies on `puring`. Then, for every operation `io_uring` using this fixed buffers. Its on `puring` side to handle buffer indexes(`FixedBufferIdxRegistry`).
-      2. `Provided` - On initial stage its the same as for `Fixed`, but `io_uring` handles even buffer indexes. 
-      3. `Buffer Ring` - Modern optimization of `Provided` mode. Note, `io_uring` provides functionality to push or pop buffers from ring on the run, but support of this feature would be realized in future `puring` versions.
+    To use this optimization in `aio_uring`, we are just initializing this modes inside context manager. For each of mode there is dedicated context manager, but also one more context manager to set them all at once - `ExecutionContext`, and this is the name of this domain. So:
+   1. `Buffer Modes`. Different types of optimizations around buffers, mainly around buffer ownership. Without optimizations, user is sending buffers with every syscall.
+      1. `Fixed` - On initial stage user is giving his buffers, or relies on `aio_uring`. Then, for every operation `io_uring` using this fixed buffers. Its on `aio_uring` side to handle buffer indexes(`FixedBufferIdxRegistry`).
+      2. `Provided` - On initial stage its the same as for `Fixed`, but `io_uring` handles even buffer indexes.
+      3. `Buffer Ring` - Modern optimization of `Provided` mode. Note, `io_uring` provides functionality to push or pop buffers from ring on the run, but support of this feature would be realized in future `aio_uring` versions.
    2. `Transfer Mode`. At now there is only one optimization, but we need to create category for it(also in next version there would one more category):
       1. `Zero Copy` - Zero copy is concept for ops to reduce CPU load. This is `io_uring` implementation of this concept.
    3. `Stream Strategy` - Same thing with motivation for existence of this category, and there is only one optimization:
@@ -49,7 +49,7 @@ Main challenge to bring `io_uring` in Python was to connect Python event loop an
 
 8. `Timer` - as we are waiting for kernel to complete the operation, we can set timeouts. That and performing separate async timer operation are purpose of this layer.
 
-9. `Signals` - to process cancellation commands, like ctrl-z. 
+9. `Signals` - to process cancellation commands, like ctrl-z.
 
 ### Structure
 
@@ -78,13 +78,13 @@ All methods inside `ring.c` are only part of the `loop` initialization and destr
 
 Code is inside `src/python_api/loop`, where you can find:
 
-- loop.h - Defines `PuringLoop` object.
-- loop.c - API for `PuringLoop` and redefinitions of `BaseEventLoop` methods.
-- shutdown.c - Contains methods for shutting down the `PuringLoop`.
+- loop.h - Defines `AioUringLoop` object.
+- loop.c - API for `AioUringLoop` and redefinitions of `BaseEventLoop` methods.
+- shutdown.c - Contains methods for shutting down the `AioUringLoop`.
 - helpers.c - Contains specific helpers for redefinitions of `BaseEventLoop` methods.
 - future.c - Contains little wrapper for future creation. In next versions there will be `FuturePool`.
 
-> Initialization of most objects is happening inside `PuringLoop` construction and initialization, so desctruction too.
+> Initialization of most objects is happening inside `AioUringLoop` construction and initialization, so desctruction too.
 > Lays entirely in Python-layer.
 
 #### `Reader`
@@ -116,7 +116,7 @@ Code is inside `src/ops/` AND `src/python_api/ops`. There you can see `Socket` s
         - multishot.c - C API handlers for socket multishot OPS.
         - zerocopy.c - C API handlers for socket zerocopy OPS.
     - src/python_api/ops/sockets/
-        - sockets.h - Defines `Socket` object as `PuringSocket` struct.
+        - sockets.h - Defines `Socket` object as `AioUringSocket` struct.
         - sockets.c - Public API handler for all socket operations.
         - socket_ops_dispatcher.c - Helper functions to dispatch between same socket operations in different execution context.
         - _helpers.c - Some utility helpers, mostly validators.
@@ -127,7 +127,7 @@ Code is inside `src/ops/` AND `src/python_api/ops`. There you can see `Socket` s
          - buffer_select.c - C API handler for file OPS in Provided and Buffer Ring modes
          - zerocopy.c - C API handler for file zerocopy OPS
     - src/python_api/ops/files/
-         - files.h - Defines `File` object as `PuringFile` struct. 
+         - files.h - Defines `File` object as `AioUringFile` struct.
          - enums.c - Defines `ResolveFlags`, `StatxFlags` and `StatxMask` Enums for `open` operation and for now not implemented `statx` operation.
          - files.c - Public API handler for all file operations
          - files_ops_dispatcher.c - Helper functions to dispatch between same file operations in different execution context
@@ -179,9 +179,9 @@ Code is inside `src/python_api/signals` and `src/signals`, where we can see ever
 
 ## Python objects
 - Main:
-    - PuringLoop - Main object of library, by the way, users would not interact a lot with it. With initialization of loop there is initialization of all io_uring objects. Child of `BaseEventLoop` object with redefinition of loop's reader. For now custom reader is not really supporting every async operation through `io_uring` rings.
-    - File, internally is `PuringFile`. There is its own methods for every file operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Every operation is supported in `puring`, and `io_uring` specific operations, like `read` with `BUFFER_SELECT` `Buffer Mode`.
-    - Socket, internally is `PuringSocket`. There are its own methods for every socket operation in `io_uring`, so this object just use them and is compitable with `PuringLoop`. Almost every(for now) operation is supported in `puring`, and `io_uring` specific operations, like `accept` with `MULTISHOT` `StreamStrategy`.
+    - AioUringLoop - Main object of library, by the way, users would not interact a lot with it. With initialization of loop there is initialization of all io_uring objects. Child of `BaseEventLoop` object with redefinition of loop's reader. For now custom reader is not really supporting every async operation through `io_uring` rings.
+    - File, internally is `AioUringFile`. There is its own methods for every file operation in `io_uring`, so this object just use them and is compitable with `AioUringLoop`. Every operation is supported in `aio_uring`, and `io_uring` specific operations, like `read` with `BUFFER_SELECT` `Buffer Mode`.
+    - Socket, internally is `AioUringSocket`. There are its own methods for every socket operation in `io_uring`, so this object just use them and is compitable with `AioUringLoop`. Almost every(for now) operation is supported in `aio_uring`, and `io_uring` specific operations, like `accept` with `MULTISHOT` `StreamStrategy`.
 - Helpers:
     - BufferModeCtx - Special object to implement Pythons context manager of `BufferMode`
     - StreamStrategyCtx - Special object to implement Pythons context manager of `StreamStrategy`
@@ -193,5 +193,5 @@ Code is inside `src/python_api/signals` and `src/signals`, where we can see ever
     - TRANSFER_MODE - Enumeration of all possible `transfer mode`s variations, including `NORMAL` mode.
     - PAYLOAD_TYPE - Enumeration of buffer types - could be `LINEAR`, `IOVECS` or both. Users mainly don't need this, as it detect automatically. But in some cases it could be useful.
     - Resolve Flags - Is using for `File.open()` method only.
-    - Statx Flags - Flags for staticx operation. I tried to implement statx operation but faced some troubles, and in favour of time decided to delete method and implement it later, but to leave this enums for it. 
-    - StatxMask - Flags for statx operation. I tried to implement statx operation but faced some troubles, and in favour of time decided to delete method and implement it later, but to leave this enums for it. 
+    - Statx Flags - Flags for staticx operation. I tried to implement statx operation but faced some troubles, and in favour of time decided to delete method and implement it later, but to leave this enums for it.
+    - StatxMask - Flags for statx operation. I tried to implement statx operation but faced some troubles, and in favour of time decided to delete method and implement it later, but to leave this enums for it.

@@ -15,73 +15,73 @@
 #include "python_api/loop/loop.h"
 #include "python_macroses.h"
 
-extern PyTypeObject *PuringLoopType;
-extern PyTypeObject PuringSocketType;
+extern PyTypeObject *AioUringLoopType;
+extern PyTypeObject AioUringSocketType;
 
-typedef struct PuringSocket {
+typedef struct AioUringSocket {
     PyObject_HEAD
 
         int sock_fd;
-    PuringLoop *loop;
+    AioUringLoop *loop;
     int domain;
     struct sockaddr *addr;
     bool closed;
-} PuringSocket;
+} AioUringSocket;
 
 PyObject *
-Puring_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
+AioUring_prep_socket(PyObject *module, PyObject *args, PyObject *kwargs);
 
 int
-PuringSocket_traverse(PuringSocket *self, visitproc visit, void *arg);
+AioUringSocket_traverse(AioUringSocket *self, visitproc visit, void *arg);
 
 int
-PuringSocket_clear(PuringSocket *self);
+AioUringSocket_clear(AioUringSocket *self);
 
 PyObject *
-PuringSocket_aenter(PuringSocket *self, PyObject *Py_UNUSED(ignored));
+AioUringSocket_aenter(AioUringSocket *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-PuringSocket_aexit(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_aexit(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 void
-PuringSocket_dealloc(PuringSocket *self);
+AioUringSocket_dealloc(AioUringSocket *self);
 
 PyObject *
-PuringSocket_bind(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_bind(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_connect(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_connect(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_listen(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_listen(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_accept(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_accept(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_close(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_close(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_send(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_send(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_recv(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_recv(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_sendto(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_sendto(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_recvfrom(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_recvfrom(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_sendmsg(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_sendmsg(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringSocket_recvmsg(PuringSocket *self, PyObject *args, PyObject *kwargs);
+AioUringSocket_recvmsg(AioUringSocket *self, PyObject *args, PyObject *kwargs);
 
 int
 recv_dispatcher(
-    PuringSocket *self,
+    AioUringSocket *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream_strategy,
     int request_idx,
@@ -91,7 +91,7 @@ recv_dispatcher(
 
 int
 recvmsg_dispatcher(
-    PuringSocket *self,
+    AioUringSocket *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream_strategy,
     int request_idx,
@@ -102,7 +102,7 @@ recvmsg_dispatcher(
 
 int
 send_dispatcher(
-    PuringSocket *self,
+    AioUringSocket *self,
     BufferPayload *buffer_payload,
     TransferMode transfer_mode,
     int request_idx,
@@ -113,7 +113,7 @@ send_dispatcher(
 
 int
 sendmsg_dispatcher(
-    PuringSocket *self,
+    AioUringSocket *self,
     BufferPayload *buffer_payload,
     TransferMode transfer_mode,
     int request_idx,
@@ -126,7 +126,7 @@ sendmsg_dispatcher(
 
 int
 accept_dispatcher(
-    PuringSocket *self,
+    AioUringSocket *self,
     StreamStrategy stream_strategy,
     int request_idx,
     struct sockaddr *addr,
@@ -135,7 +135,7 @@ accept_dispatcher(
 );
 
 PyObject *
-_check_sockets_result(int result, PuringSocket *socket, int request_idx, PyObject *future);
+_check_sockets_result(int result, AioUringSocket *socket, int request_idx, PyObject *future);
 
 struct sockaddr_storage *
 _serialize_address(const char *host, int port, int domain);

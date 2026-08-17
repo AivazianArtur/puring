@@ -23,7 +23,7 @@ prep_socket(struct io_uring *ring, int request_idx, int domain, int type, const 
 }
 
 int
-puring_bind(
+aio_uring_bind(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -48,7 +48,7 @@ puring_bind(
 }
 
 int
-puring_connect(
+aio_uring_connect(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -72,7 +72,7 @@ puring_connect(
 }
 
 int
-puring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params) {
+aio_uring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_listen(sqe, fd, backlog);
@@ -89,7 +89,7 @@ puring_listen(struct io_uring *ring, int request_idx, int fd, int backlog, const
 }
 
 int
-puring_accept(
+aio_uring_accept(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -114,7 +114,7 @@ puring_accept(
 }
 
 int
-puring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params) {
+aio_uring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const struct TimeoutParams timeout_params) {
     SQE_WITH_OPTIONAL_TIMEOUT(ring, &timeout_params);
 
     io_uring_prep_close(sqe, sockfd);
@@ -131,7 +131,7 @@ puring_close_socket(struct io_uring *ring, int request_idx, int sockfd, const st
 }
 
 int
-puring_send(
+aio_uring_send(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -161,7 +161,7 @@ puring_send(
 }
 
 int
-puring_recv(
+aio_uring_recv(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -191,7 +191,7 @@ puring_recv(
 }
 
 int
-puring_sendto(
+aio_uring_sendto(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -223,7 +223,7 @@ puring_sendto(
 }
 
 int
-puring_recvfrom(
+aio_uring_recvfrom(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -270,7 +270,7 @@ puring_recvfrom(
 }
 
 int
-puring_sendmsg(
+aio_uring_sendmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,
@@ -315,7 +315,7 @@ puring_sendmsg(
 }
 
 int
-puring_recvmsg(
+aio_uring_recvmsg(
     struct io_uring *ring,
     int request_idx,
     int sockfd,

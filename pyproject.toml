@@ -3,7 +3,7 @@ requires = ["setuptools>=72,<81", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "puring"
+name = "aio_uring"
 version = "0.4.0"
 requires-python = ">=3.12"
 authors = [
@@ -20,19 +20,19 @@ license = {file = "LICENSE"}
 [project.urls]
 #Homepage = "https://example.com"
 #Documentation = "https://readthedocs.org"
-Repository = "https://github.com/AivazianArtur/puring.git"
-Issues = "https://github.com/AivazianArtur/puring/issues"
-Changelog = "https://github.com/AivazianArtur/puring/blob/main/CHANGELOG.md"
+Repository = "https://github.com/AivazianArtur/aio_uring.git"
+Issues = "https://github.com/AivazianArtur/aio_uring/issues"
+Changelog = "https://github.com/AivazianArtur/aio_uring/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["puring_stubs"]
+packages = ["aio_uring_stubs"]
 
 [tool.setuptools.package-data]
-"puring_stubs" = ["py.typed", "*.pyi"]
+"aio_uring_stubs" = ["py.typed", "*.pyi"]
 
 [tool.cibuildwheel]
 build = "cp312-* cp313-* cp314-*"
 skip = "*-musllinux_*"
 
 
-test-command = "python -c \"import puring\""
+test-command = "python -c \"import aio_uring\""

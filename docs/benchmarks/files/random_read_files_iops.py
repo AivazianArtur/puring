@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, '')
 
 # WARNING: Both linux only
-import puring
+import aio_uring
 is_uvloop_installed = False
 try:
     import uvloop
@@ -112,7 +112,7 @@ async def uvloop_random_read(offsets):
             os.close(fd)
 
 
-# ---- puring: every read is a plain io_uring SQE, no OS threads at all --
+# ---- aio_uring: every read is a plain io_uring SQE, no OS threads at all --
 async def _bounded_read(sem, f, offset):
     # f.read() submits its SQE the moment it's called, so we must gate the
     # *call*, not just the await, or the semaphore does nothing.
@@ -120,10 +120,10 @@ async def _bounded_read(sem, f, offset):
         return await f.read(offset=offset, size=READ_SIZE)
 
 
-async def puring_random_read(offsets):
-    print('Running puring concurrent random read (no threads)')
+async def aio_uring_random_read(offsets):
+    print('Running aio_uring concurrent random read (no threads)')
 
-    files = await asyncio.gather(*(puring.open_file(path=p) for p in FILE_PATHS))
+    files = await asyncio.gather(*(aio_uring.open_file(path=p) for p in FILE_PATHS))
     sem = asyncio.Semaphore(MAX_INFLIGHT)
     try:
         start = time.perf_counter()
@@ -160,9 +160,9 @@ def run():
         results.append(('uvloop_thread', t))
 
     evict_page_cache()
-    with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
-        t = runner.run(puring_random_read(offsets))
-    results.append(('puring_concurrent', t))
+    with asyncio.Runner(loop_factory=aio_uring.AioUringLoop) as runner:
+        t = runner.run(aio_uring_random_read(offsets))
+    results.append(('aio_uring_concurrent', t))
 
     print('\n==== RESULTS ====')
     print(f'{"backend":16s} {"IOPS":>12s} {"MB/s":>10s} {"time":>8s}')

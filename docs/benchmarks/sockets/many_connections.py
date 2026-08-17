@@ -16,7 +16,7 @@ except ImportError:
 
 sys.path.insert(0, '')
 
-import puring
+import aio_uring
 
 # ---- Config -----------------------------------------------------------
 # This isn't a throughput test - each connection moves 4 bytes each way.
@@ -44,7 +44,7 @@ def next_port():
     # A fresh port per sweep step, per backend, so a listening socket
     # the OS hasn't fully released yet from a previous step can never
     # collide with the next bind() - this is what caused EADDRINUSE
-    # when PORT_PURING was reused across n=100/500/2000.
+    # when PORT_AIO_URING was reused across n=100/500/2000.
     return next(_PORT_COUNTER)
 
 
@@ -193,14 +193,14 @@ async def uvloop_c10k(n, port):
 
 
 # ---------------------------------------------------------------------
-# 4. puring: server + all n clients on the single io_uring ring, no
+# 4. aio_uring: server + all n clients on the single io_uring ring, no
 #    worker threads and no epoll either.
 # ---------------------------------------------------------------------
 
-async def puring_c10k(n, port):
-    print(f'Running puring sockets (io_uring), n={n}')
+async def aio_uring_c10k(n, port):
+    print(f'Running aio_uring sockets (io_uring), n={n}')
 
-    server_sock = await puring.prep_socket(
+    server_sock = await aio_uring.prep_socket(
         domain=socket.AF_INET, socktype=socket.SOCK_STREAM
     )
     await server_sock.bind(host=HOST, port=port)
@@ -219,7 +219,7 @@ async def puring_c10k(n, port):
             asyncio.create_task(handle(conn))
 
     async def one():
-        c = await puring.prep_socket(
+        c = await aio_uring.prep_socket(
             domain=socket.AF_INET, socktype=socket.SOCK_STREAM
         )
         await c.connect(host=HOST, port=port)
@@ -271,9 +271,9 @@ def run():
         for n in conn_counts:
             run_step('uvloop', lambda n, p: asyncio.run(uvloop_c10k(n, p)), n, next_port())
 
-    with asyncio.Runner(loop_factory=puring.PuringLoop) as runner:
+    with asyncio.Runner(loop_factory=aio_uring.AioUringLoop) as runner:
         for n in conn_counts:
-            run_step('puring', lambda n, p: runner.run(puring_c10k(n, p)), n, next_port())
+            run_step('aio_uring', lambda n, p: runner.run(aio_uring_c10k(n, p)), n, next_port())
 
     print('\n==== RESULTS ====')
     print(f'{"backend":20s} {"n":>6s} {"conns/s":>10s} {"time":>8s}')

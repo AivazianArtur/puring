@@ -23,67 +23,67 @@
 #include "python_api/timer/timer.h"
 #include "python_macroses.h"
 
-extern PyTypeObject *PuringLoopType;
-extern PyTypeObject PuringFileType;
+extern PyTypeObject *AioUringLoopType;
+extern PyTypeObject AioUringFileType;
 
-typedef struct PuringFile {
+typedef struct AioUringFile {
     PyObject_HEAD
 
         int fd;
-    PuringLoop *loop;
+    AioUringLoop *loop;
     bool closed;
-} PuringFile;
+} AioUringFile;
 
 PyObject *
-Puring_open(PyObject *module, PyObject *args, PyObject *kwargs);
+AioUring_open(PyObject *module, PyObject *args, PyObject *kwargs);
 
 int
-PuringFile_traverse(PuringFile *self, visitproc visit, void *arg);
+AioUringFile_traverse(AioUringFile *self, visitproc visit, void *arg);
 
 int
-PuringFile_clear(PuringFile *self);
+AioUringFile_clear(AioUringFile *self);
 
 PyObject *
-PuringFile_aenter(PuringFile *self, PyObject *Py_UNUSED(ignored));
+AioUringFile_aenter(AioUringFile *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-PuringFile_aexit(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_aexit(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 void
-PuringFile_dealloc(PuringFile *self);
+AioUringFile_dealloc(AioUringFile *self);
 
 PyObject *
-PuringFile_read(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_read(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_readv(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_readv(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_readv_raw(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_readv_raw(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_write(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_write(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_writev(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_writev(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_writev_raw(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_writev_raw(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_close(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_close(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_fsync(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_fsync(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_fdatasync(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_fdatasync(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-PuringFile_splice(PuringFile *self, PyObject *args, PyObject *kwargs);
+AioUringFile_splice(AioUringFile *self, PyObject *args, PyObject *kwargs);
 
 PyObject *
-_check_file_result(int result, PuringFile *file, int request_idx, PyObject *future);
+_check_file_result(int result, AioUringFile *file, int request_idx, PyObject *future);
 
 PyObject *
 create_resolve_enum(void);
@@ -97,7 +97,7 @@ _raise_file_exception_group(PyObject *body_exc_type, PyObject *body_exc_val, PyO
 
 int
 read_dispatcher(
-    PuringFile *self,
+    AioUringFile *self,
     BufferPayload *buffer_payload,
     StreamStrategy stream,
     int request_idx,
@@ -108,7 +108,7 @@ read_dispatcher(
 
 int
 readv_dispatcher(
-    PuringFile *self,
+    AioUringFile *self,
     BufferPayload *buffer_payload,
     int request_idx,
     int offset,
@@ -118,5 +118,5 @@ readv_dispatcher(
 
 int
 write_dispatcher(
-    PuringFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
+    AioUringFile *self, BufferPayload *buffer_payload, int request_idx, int offset, TimeoutParams timeout_params
 );

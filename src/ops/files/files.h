@@ -26,7 +26,7 @@ open_file(
 );
 
 int
-puring_read(
+aio_uring_read(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -37,7 +37,7 @@ puring_read(
 );
 
 int
-puring_readv(
+aio_uring_readv(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -50,7 +50,7 @@ puring_readv(
 );
 
 int
-puring_write(
+aio_uring_write(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -61,7 +61,7 @@ puring_write(
 );
 
 int
-puring_writev(
+aio_uring_writev(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -74,7 +74,7 @@ puring_writev(
 );
 
 int
-puring_close_file(
+aio_uring_close_file(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -83,7 +83,7 @@ puring_close_file(
 );
 
 int
-puring_fsync(
+aio_uring_fsync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -92,7 +92,7 @@ puring_fsync(
 );
 
 int
-puring_fdatasync(
+aio_uring_fdatasync(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -101,7 +101,7 @@ puring_fdatasync(
 );
 
 int
-puring_splice(
+aio_uring_splice(
     struct io_uring *ring,
     int request_idx,
     int fd_in,
@@ -115,7 +115,7 @@ puring_splice(
 );
 
 int
-puring_read_fixed(
+aio_uring_read_fixed(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -127,7 +127,7 @@ puring_read_fixed(
 );
 
 int
-puring_write_fixed(
+aio_uring_write_fixed(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -139,7 +139,7 @@ puring_write_fixed(
 );
 
 int
-puring_read_buffer_select(
+aio_uring_read_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -150,7 +150,7 @@ puring_read_buffer_select(
 );
 
 int
-puring_readv_buffer_select(
+aio_uring_readv_buffer_select(
     struct io_uring *ring,
     int request_idx,
     int fd,
@@ -162,6 +162,6 @@ puring_readv_buffer_select(
 );
 
 int
-puring_read_multishot(
+aio_uring_read_multishot(
     struct io_uring *ring, int request_idx, int fd, int offset, int bgid, const struct TimeoutParams timeout_params
 );

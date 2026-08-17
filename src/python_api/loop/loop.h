@@ -15,9 +15,9 @@
 #include "ring/ring.h"
 #include "signals/signals.h"
 
-extern PyTypeObject *PuringLoopType;
+extern PyTypeObject *AioUringLoopType;
 
-typedef struct PuringLoop {
+typedef struct AioUringLoop {
     PyObject_HEAD
 
         struct io_uring *ring;
@@ -34,39 +34,39 @@ typedef struct PuringLoop {
     PyObject *execution_context_var;
 
     bool initialized;
-} PuringLoop;
+} AioUringLoop;
 
 PyObject *
-PuringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
+AioUringLoop_new(PyTypeObject *type, PyObject *args, PyObject *kwargs);
 
 int
-PuringLoop_init(
-    PuringLoop *self
+AioUringLoop_init(
+    AioUringLoop *self
     // PyObject *args,
     // PyObject *kwargs
 );
 
 
 int
-PuringLoop_traverse(PuringLoop *self, visitproc visit, void *arg);
+AioUringLoop_traverse(AioUringLoop *self, visitproc visit, void *arg);
 
 int
-PuringLoop_clear(PuringLoop *self);
+AioUringLoop_clear(AioUringLoop *self);
 
 void
-PuringLoop_dealloc(PuringLoop *self);
+AioUringLoop_dealloc(AioUringLoop *self);
 
 // PyObject*
-// PuringLoop_close_loop(PuringLoop *self, PyObject *args);
+// AioUringLoop_close_loop(AioUringLoop *self, PyObject *args);
 
 PyObject *
-PuringLoop_close(PuringLoop *self, PyObject *Py_UNUSED(ignored));
+AioUringLoop_close(AioUringLoop *self, PyObject *Py_UNUSED(ignored));
 
 PyObject *
-PuringLoop_run_once(PuringLoop *self);
+AioUringLoop_run_once(AioUringLoop *self);
 
 PyObject *
-PuringLoop_write_to_self(PuringLoop *self);
+AioUringLoop_write_to_self(AioUringLoop *self);
 
 // Shutdown
 void
@@ -76,12 +76,12 @@ graceful_shutdown(struct io_uring *ring, RequestRegistry *reg);
 
 // Helpers
 struct __kernel_timespec
-compute_timeout(PuringLoop *self);
+compute_timeout(AioUringLoop *self);
 void
-promote_scheduled(PuringLoop *self);
+promote_scheduled(AioUringLoop *self);
 void
-drain_ready(PuringLoop *self);
+drain_ready(AioUringLoop *self);
 
 // Future
 PyObject *
-create_future(PuringLoop *self);
+create_future(AioUringLoop *self);

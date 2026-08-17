@@ -3,19 +3,19 @@ import sys
 sys.path.insert(0, '')
 
 import asyncio
-import puring
+import aio_uring
 
 HOST = '127.0.0.1'
 PORT = 12877
 
 async def main():
-    async with await puring.prep_socket() as server_sock:
+    async with await aio_uring.prep_socket() as server_sock:
         print(f'{server_sock = }')
         await server_sock.bind(HOST, PORT)
         await server_sock.listen(1)
         print(f'Server listening on {HOST}:{PORT}')
 
-        async with await puring.prep_socket() as client_sock:
+        async with await aio_uring.prep_socket() as client_sock:
             await client_sock.connect(HOST, PORT)
             print('Client connected')
 
@@ -35,4 +35,4 @@ async def main():
     print('Sockets closed')
 
 
-asyncio.run(main(), loop_factory=puring.PuringLoop)
+asyncio.run(main(), loop_factory=aio_uring.AioUringLoop)
