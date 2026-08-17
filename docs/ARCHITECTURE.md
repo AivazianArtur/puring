@@ -8,7 +8,7 @@
 
 ## Introduction
 ### io_uring
-`uringio` is written natively in CPython and brings the new event loop, based on `liburing` library - main lib to use `io_uring`.
+`uringio` is written natively as C extension for CPython and brings the new event loop, based on `liburing` library - main lib to use `io_uring`.
 `io_uring` is an alternate for `epoll` and other `reactor`-based systems.
 
 ## Domains

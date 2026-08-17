@@ -26,8 +26,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install mkdocs-material
-        run: python -m pip install mkdocs-material
+      - name: Install dependencies
+        run: python -m pip install mkdocs pymdown-extensions
 
       - name: Create symlinked docs_site
         run: bash setup_symlinks.sh
