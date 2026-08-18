@@ -25,39 +25,39 @@ CTESTS_REGISTRY_BIN := $(CTESTS_DIR)/test_registry_bin
 SRC := src
 
 CTESTS_DEPS := \
-	$(SRC)/ops/files/files.c \
-	$(SRC)/ops/files/buffer_select.c \
-	$(SRC)/ops/files/fixed.c \
-	$(SRC)/ops/files/multishot.c \
-	$(SRC)/ring/ring.c \
-	$(SRC)/ring/sqe_helper.c \
-	$(SRC)/timer/timer.c
+    $(SRC)/ops/files/files.c \
+    $(SRC)/ops/files/buffer_select.c \
+    $(SRC)/ops/files/fixed.c \
+    $(SRC)/ops/files/multishot.c \
+    $(SRC)/ring/ring.c \
+    $(SRC)/ring/sqe_helper.c \
+    $(SRC)/timer/timer.c
 
 CTESTS_SOCKETS_DEPS := \
-	$(SRC)/ops/sockets/sockets.c \
-	$(SRC)/ops/sockets/buffer_select.c \
-	$(SRC)/ops/sockets/fixed.c \
-	$(SRC)/ops/sockets/multishot.c \
-	$(SRC)/ops/sockets/zerocopy.c \
-	$(SRC)/ring/ring.c \
-	$(SRC)/ring/sqe_helper.c \
-	$(SRC)/timer/timer.c
+    $(SRC)/ops/sockets/sockets.c \
+    $(SRC)/ops/sockets/buffer_select.c \
+    $(SRC)/ops/sockets/fixed.c \
+    $(SRC)/ops/sockets/multishot.c \
+    $(SRC)/ops/sockets/zerocopy.c \
+    $(SRC)/ring/ring.c \
+    $(SRC)/ring/sqe_helper.c \
+    $(SRC)/timer/timer.c
 
 CTESTS_BUFFERS_DEPS := \
-	$(SRC)/buffer_controllers/buffer_index.c \
-	$(SRC)/buffer_controllers/buffer_modes.c \
-	$(SRC)/ring/ring.c \
-	$(SRC)/ring/sqe_helper.c \
-	$(SRC)/timer/timer.c
+    $(SRC)/buffer_controllers/buffer_index.c \
+    $(SRC)/buffer_controllers/buffer_modes.c \
+    $(SRC)/ring/ring.c \
+    $(SRC)/ring/sqe_helper.c \
+    $(SRC)/timer/timer.c
 
 CTESTS_REGISTRY_DEPS := \
-	$(SRC)/registry/registry.c \
-	$(SRC)/python_api/buffers/buffers.c \
-	$(SRC)/buffer_controllers/buffer_index.c \
-	$(SRC)/buffer_controllers/buffer_modes.c \
-	$(SRC)/ring/ring.c \
-	$(SRC)/ring/sqe_helper.c \
-	$(SRC)/timer/timer.c
+    $(SRC)/registry/registry.c \
+    $(SRC)/python_api/buffers/buffers.c \
+    $(SRC)/buffer_controllers/buffer_index.c \
+    $(SRC)/buffer_controllers/buffer_modes.c \
+    $(SRC)/ring/ring.c \
+    $(SRC)/ring/sqe_helper.c \
+    $(SRC)/timer/timer.c
 
 CTESTS_INCLUDES := \
     -D_GNU_SOURCE \
@@ -75,11 +75,11 @@ CTESTS_INCLUDES := \
     -isystem vendor/liburing
 
 ASAN_LIB := $(shell \
-	if command -v ldconfig >/dev/null 2>&1; then \
-		ldconfig -p | awk '/libasan\.so/ {print $$NF; exit}'; \
-	else \
-		echo /lib64/libasan.so.8; \
-	fi)
+    if command -v ldconfig >/dev/null 2>&1; then \
+        ldconfig -p | awk '/libasan\.so/ {print $$NF; exit}'; \
+    else \
+        echo /lib64/libasan.so.8; \
+    fi)
 
 ASAN_CFLAGS := -O0 -g3 -DURINGIO_DEBUG -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all
 ASAN_LDFLAGS := -fsanitize=address,undefined
@@ -111,15 +111,15 @@ check-submodule:
 $(VENV_STAMP): Makefile
 	@echo "Creating/updating virtualenv..."
 	$(PYTHON) -m venv $(VENV)
-	$(PIP) install --upgrade pip setuptools wheel cibuildwheel pytest mypy twine build
+	$(PIP) install --upgrade pip setuptools wheel cibuildwheel pytest mypy build
 	touch $(VENV_STAMP)
 
 
 venv: install-python-venv $(VENV_STAMP)
 
-stage: venv
+stage: venv clean-artifacts
 	@echo "Building Linux wheels with cibuildwheel..."
-	rm -rf $(WHEELHOUSE)
+	mkdir -p $(WHEELHOUSE)
 	$(CIBUILDWHEEL) --platform linux --output-dir $(WHEELHOUSE)
 	@echo ""
 	@echo "Wheels:"
@@ -150,6 +150,12 @@ install-dev-tools:
 		clang-format \
 		python3-dev
 
+install-twine:
+	@command -v twine >/dev/null 2>&1 || { \
+		echo "Installing twine via apt..."; \
+		sudo apt update && sudo apt install -y twine; \
+	}
+
 else ifeq ($(PKG_MANAGER),dnf)
 install-python-venv:
 	@echo "Python venv is included with python3 on dnf-based systems, skipping."
@@ -173,6 +179,12 @@ install-dev-tools:
 		clang-format \
 		python3-devel
 
+install-twine:
+	@command -v twine >/dev/null 2>&1 || { \
+		echo "Installing twine via dnf..."; \
+		sudo dnf install -y twine; \
+	}
+
 else
 install-python-venv:
 	@echo "Unknown package manager '$(PKG_MANAGER)'. Please install python3-venv manually."
@@ -184,6 +196,10 @@ install-python-dev:
 
 install-dev-tools:
 	@echo "Unknown package manager '$(PKG_MANAGER)'. Please install dev tools manually."
+	@exit 1
+
+install-twine:
+	@echo "Unknown package manager '$(PKG_MANAGER)'. Please install twine manually."
 	@exit 1
 endif
 
@@ -494,21 +510,27 @@ stubs-check: stubtest check-stubs
 sdist: venv
 	$(PY) -m build --sdist
 
-dist-check: stage sdist
+dist-check: stage sdist install-twine
 	@echo "START TWINE CHECK"
 	@echo "--------"
-	$(PY) -m twine check $(WHEELHOUSE)/*.whl dist/*.tar.gz
+	twine check $(WHEELHOUSE)/*.whl dist/*.tar.gz
 	@echo "========"
 
 publish-test: dist-check
-	$(PY) -m twine upload --repository testpypi $(WHEELHOUSE)/*.whl dist/*.tar.gz
+	twine upload --repository testpypi $(WHEELHOUSE)/*.whl dist/*.tar.gz
 
 publish: dist-check
-	$(PY) -m twine upload $(WHEELHOUSE)/*.whl dist/*.tar.gz
+	twine upload $(WHEELHOUSE)/*.whl dist/*.tar.gz
 
-clean:
-	rm -rf build dist *.egg-info $(VENV)
+clean-artifacts:
+	@echo "Cleaning build artifacts and compiled objects..."
+	rm -rf build dist *.egg-info $(WHEELHOUSE) cpp-check-results
+	find . -type f \( -name '*.so' -o -name '*.o' \) -delete
 	-@$(MAKE) -C $(LIBURING_DIR) clean
+
+clean: clean-artifacts
+	@echo "Cleaning virtual environment..."
+	rm -rf $(VENV)
 
 help:
 	@echo "Detected package manager: $(PKG_MANAGER)"
@@ -516,10 +538,11 @@ help:
 	@echo "── Build ──────────────────────────────────────────"
 	@echo "  make install              - build and install uringio (venv)"
 	@echo "  make build                - build wheel"
-	@echo "  make clean                - clean everything"
+	@echo "  make clean                - clean everything including venv"
+	@echo "  make clean-artifacts      - clean build artifacts only (.so, .o, build/)"
 	@echo ""
 	@echo "── Lint ────────────────────────────────────────"
-	@echo "  make lint         - check code with linter and formatter.
+	@echo "  make lint                 - check code with linter and formatter."
 	@echo ""
 	@echo "── Examples ────────────────────────────────────────"
 	@echo "  make run-examples         - run all docs/examples/*.py under ASan"
@@ -531,21 +554,26 @@ help:
 	@echo "  make test-python                 - run pytest (Python only)"
 	@echo "  make test-python-asan            - ASan + UBSan pytest suite (Python only)"
 	@echo "  make test-python-asan-one TEST=path::name - run a single pytest test under ASan"
-	@echo "  make test-c-files               - run C-level tests on ops/files/files.c (plain)"
-	@echo "  make test-c-files-asan          - run C-level tests on ops/files/files.c under ASan + UBSan"
-	@echo "  make test-c-sockets             - run C-level tests on ops/sockets/sockets.c (plain)"
-	@echo "  make test-c-sockets-asan        - run C-level tests on ops/sockets/sockets.c under ASan + UBSan"
-	@echo "  make test-c-buffers             - run C-level tests on buffer_controllers/*.c (plain)"
-	@echo "  make test-c-buffers-asan        - run C-level tests on buffer_controllers/*.c under ASan + UBSan"
-	@echo "  make test-c-registry            - run C-level tests on registry/registry.c (plain)"
-	@echo "  make test-c-registry-asan       - run C-level tests on registry/registry.c under ASan + UBSan"
-	@echo "  make test-all             - run Python + C tests together (plain)"
-	@echo "  make test-all-asan        - run Python + C tests together under ASan + UBSan"
+	@echo "  make test-c-files                - run C-level tests on ops/files/files.c (plain)"
+	@echo "  make test-c-files-asan           - run C-level tests on ops/files/files.c under ASan + UBSan"
+	@echo "  make test-c-sockets              - run C-level tests on ops/sockets/sockets.c (plain)"
+	@echo "  make test-c-sockets-asan         - run C-level tests on ops/sockets/sockets.c under ASan + UBSan"
+	@echo "  make test-c-buffers              - run C-level tests on buffer_controllers/*.c (plain)"
+	@echo "  make test-c-buffers-asan         - run C-level tests on buffer_controllers/*.c under ASan + UBSan"
+	@echo "  make test-c-registry             - run C-level tests on registry/registry.c (plain)"
+	@echo "  make test-c-registry-asan        - run C-level tests on registry/registry.c under ASan + UBSan"
+	@echo "  make test-all                    - run Python + C tests together (plain)"
+	@echo "  make test-all-asan               - run Python + C tests together under ASan + UBSan"
+	@echo ""
+	@echo "── Publish ─────────────────────────────────────────"
+	@echo "  make publish              - upload wheels and sdist to PyPI"
+	@echo "  make publish-test         - upload wheels and sdist to TestPyPI"
+	@echo ""
 	@echo "── Sanitizers ─────────────────────────────────────"
 	@echo "  ASAN_LIB=$(ASAN_LIB)"
 
-.PHONY: all deps dev-deps build stage install clean help check-submodule venv \
-        install-python-venv install-python-dev install-dev-tools \
+.PHONY: all deps dev-deps build stage install clean clean-artifacts help check-submodule venv \
+        install-python-venv install-python-dev install-dev-tools install-twine \
         run-examples sanitize test-python test-python-asan test-python-asan-one \
         build-c-tests-files build-c-tests-sockets build-c-tests-buffers build-c-tests-registry \
         test-c-files test-c-files-asan test-c-sockets test-c-sockets-asan \
