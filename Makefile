@@ -111,7 +111,7 @@ check-submodule:
 $(VENV_STAMP): Makefile
 	@echo "Creating/updating virtualenv..."
 	$(PYTHON) -m venv $(VENV)
-	$(PIP) install --upgrade pip setuptools wheel cibuildwheel pytest mypy build
+	$(PIP) install --upgrade pip setuptools wheel cibuildwheel pytest mypy librt build
 	touch $(VENV_STAMP)
 
 
@@ -493,7 +493,8 @@ docs-serve: docs-deps
 stubtest: install
 	@echo "START STUBTEST[.pyi vs runtime API]"
 	@echo "--------"
-	$(PY) -m mypy.stubtest uringio \
+	@touch $(STUBTEST_ALLOWLIST)
+	MYPYPATH=$(STUBS_DIR) $(PY) -m mypy.stubtest uringio \
 		--allowlist $(STUBTEST_ALLOWLIST) \
 		--concise
 	@echo "========"
