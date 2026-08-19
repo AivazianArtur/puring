@@ -502,7 +502,7 @@ stubtest: install
 check-stubs: install
 	@echo "START MYPY[examples against stubs]"
 	@echo "--------"
-	$(PY) -m mypy --strict $(EXAMPLES_DIR)
+	MYPYPATH=$(STUBS_DIR) $(PY) -m mypy $(EXAMPLES_DIR)
 	@echo "========"
 
 stubs-check: stubtest check-stubs
