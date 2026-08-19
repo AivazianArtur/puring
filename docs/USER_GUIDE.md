@@ -35,7 +35,7 @@ Let's create simple example of writing and reading from file:
 ```python
 file = await uringio.open_file(path='path/to/file.txt')
 ``` 
-2. Write to file, asynchronously. Better use bytes in v0.4.0
+2. Write to file, asynchronously. Better use bytes in v0.4.1
 ```python
 await file.write(data=b'Hello uringio!\n')
 ```
@@ -206,7 +206,7 @@ asyncio.run(transfer_mode(), loop_factory=uringio.UringioLoop)
 There are `NORMAL` and `ZERO_COPY` values in `TRANSFER_MODE` Enum
 
 #### StreamStrategy
-To use Multishot operations, use `stream_strategy` context manager, with `uringio.STREAM_STRATEGY` Enum. In v0.4.0 its better to not use it: 
+To use Multishot operations, use `stream_strategy` context manager, with `uringio.STREAM_STRATEGY` Enum. In v0.4.1 its better to not use it: 
 ```python
 async def stream_strategy():
     loop = asyncio.get_running_loop()

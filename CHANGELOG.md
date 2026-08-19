@@ -1,3 +1,7 @@
+## v0.4.1
+### Fixed
+- Bunch of release and pypi publish fixes
+
 ## v0.4.0
 ### Added
 - Implemented new layer - Buffer Layer:
