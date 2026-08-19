@@ -1,16 +1,25 @@
 name: Build wheels
-
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   build-wheels:
-    name: Build Linux wheels
+    name: Build wheels (${{ matrix.python-version }})
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.12"
+            cibw-build: "cp312-*"
+          - python-version: "3.13"
+            cibw-build: "cp313-*"
+          - python-version: "3.14"
+            cibw-build: "cp314-*"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,18 +29,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install cibuildwheel
         run: python -m pip install --upgrade cibuildwheel
 
       - name: Build wheels
         run: python -m cibuildwheel --platform linux --output-dir wheelhouse
+        env:
+          CIBW_BUILD: ${{ matrix.cibw-build }}
 
       - name: Test wheels
         run: |
           python -m pip install pytest mypy
-          python -m pip install wheelhouse/*.whl
+          python -m pip install --no-index --find-links wheelhouse uringio
           python -c "import uringio"
 
       - name: Verify type stubs against runtime API
@@ -39,11 +50,13 @@ jobs:
           python -m mypy.stubtest uringio \
             --allowlist stubtest_allowlist.txt \
             --concise
+        env:
+          MYPYPATH: uringio_stubs
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: linux-wheels
+          name: linux-wheels-${{ matrix.python-version }}
           path: wheelhouse/*.whl
 
   build-sdist:
@@ -81,13 +94,13 @@ jobs:
     permissions:
       id-token: write
       contents: write
-
     steps:
       - name: Download wheels
         uses: actions/download-artifact@v4
         with:
-          name: linux-wheels
+          pattern: linux-wheels-*
           path: dist
+          merge-multiple: true
 
       - name: Download sdist
         uses: actions/download-artifact@v4

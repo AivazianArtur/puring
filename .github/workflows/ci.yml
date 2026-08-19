@@ -3,13 +3,21 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   linter:
     uses: ./.github/workflows/linter.yml
 
-  sanitizers:
-    uses: ./.github/workflows/sanitizers.yml
-
+  docs:
+    uses: ./.github/workflows/docs.yml
+    permissions:
+      contents: write
   tests:
     uses: ./.github/workflows/tests.yml
+
+  wheels:
+    uses: ./.github/workflows/wheels.yml
+    permissions:
+      contents: write
+      id-token: write
