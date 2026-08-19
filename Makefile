@@ -460,6 +460,7 @@ lint-aggressive: dev-deps
 lint-cppcheck: dev-deps
 	@echo "START LINTING[cppcheck]"
 	@echo "--------"
+	mkdir -p cpp-check-results
 
 	cppcheck \
 	--cppcheck-build-dir=cpp-check-results \
