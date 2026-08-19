@@ -272,7 +272,7 @@ class TimerParamsDict(TypedDict, total=False):
 
 def timer(
     uring_loop: UringioLoop,
-    timer_params: Optional[TimeoutParamsDict] = None,
+    timer_params: Optional[TimerParamsDict] = None,
 ) -> Awaitable[None]:
     """Sets a timer."""
     ...
