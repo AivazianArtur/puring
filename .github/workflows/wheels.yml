@@ -50,6 +50,8 @@ jobs:
           python -m mypy.stubtest uringio \
             --allowlist stubtest_allowlist.txt \
             --concise
+        env:
+          MYPYPATH: uringio_stubs/uringio
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
