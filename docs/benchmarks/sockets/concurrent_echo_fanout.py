@@ -3,7 +3,6 @@ import itertools
 import os
 import resource
 import socket
-import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -14,8 +13,6 @@ try:
     is_uvloop_installed = True
 except ImportError:
     pass
-
-sys.path.insert(0, '')
 
 import uringio
 

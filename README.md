@@ -8,8 +8,11 @@ uringio brings true asynchronous file I/O to Python with a native event loop bui
 ## Quick Examples
 ### Files
 ```python
+import asyncio
+import uringio
+
 async def main():
-    async with uringio.open_file(path='testfile.txt') as file:
+    async with await uringio.open_file(path='testfile.txt') as file:
         data = b'Hello, uringio!\n'
         await file.write(data=data)
         result = await file.read()
@@ -19,10 +22,13 @@ asyncio.run(main(), loop_factory=uringio.UringioLoop)
 
 ### Sockets
 ```python
+import asyncio
+import uringio
+
 async def main():
     async with await uringio.prep_socket() as socket:
         await socket.connect('127.0.0.1', 9000)
-        await socket.send(b'hello')
+        await socket.send(b'Hello, uringio!')
         data = await socket.recv()
 
 asyncio.run(main(), loop_factory=uringio.UringioLoop)
@@ -30,6 +36,9 @@ asyncio.run(main(), loop_factory=uringio.UringioLoop)
 
 ### `Fixed` buffers - One of io_uring optimization features
 ```python
+import asyncio
+import uringio
+
 async def main():
     loop = asyncio.get_running_loop()
     buf = bytearray(4096)
@@ -39,9 +48,9 @@ async def main():
 asyncio.run(main(), loop_factory=uringio.UringioLoop)
 ```
 
-**See the whole [user guide](docs/USER_GUIDE.md)**
+**See the whole [user guide](https://aivazianartur.github.io/uringio/docs/USER_GUIDE/)**
 
-**See [API page](docs/API.md)**
+**See [API page](https://aivazianartur.github.io/uringio/docs/API/)**
 
 **Also, you can watch examples inside `docs/examples` and run them under ASAN with**
 > make run-examples
@@ -50,22 +59,22 @@ asyncio.run(main(), loop_factory=uringio.UringioLoop)
 **`uringio` shows that true file async I/O provided by `io_uring` is superior over current solutions and shows x2 and almost x3 performance:**
 
 #### Write files sequentially
-![sequential write files](docs/assets/benchmark_results/files/sequential_write_files.png)
+![sequential write files](https://aivazianartur.github.io/uringio/docs/assets/benchmark_results/files/sequential_write_files.png)
 #### Write files using vector operations
-![vectored write](docs/assets/benchmark_results/files/vectored_write.png)
+![vectored write](https://aivazianartur.github.io/uringio/docs/assets/benchmark_results/files/vectored_write.png)
 
 **`uringio` also shows better performance over other solutions in `socket` operations:**
 #### Socket connection storm
-![many connections](docs/assets/benchmark_results/sockets/many_connections.png)
+![many connections](https://aivazianartur.github.io/uringio/docs/assets/benchmark_results/sockets/many_connections.png)
 
 **⚠️ But `uringio` and `io_uring` are not a magic wands, so there are scenarios when its better not to use it. For example:**
 
 #### Load test of concurrent TCP connections with I/O operations
-![echo fanout](docs/assets/benchmark_results/sockets/concurrent_echo_fanout.png)
+![echo fanout](https://aivazianartur.github.io/uringio/docs/assets/benchmark_results/sockets/concurrent_echo_fanout.png)
 
 As you can see, with little amount of connections there is no reason to use `uringio` because of `CQE`s and `SQE`s overhead. However, when it comes to many connections - it is the only backend that not degrading under pressure.
 
-Read more about benchmark results in [Benchmarks analysis page](docs/BENCHMARKS_ANALYSIS.md)
+Read more about benchmark results in [Benchmarks analysis page](https://aivazianartur.github.io/uringio/docs/BENCHMARKS_ANALYSIS/)
 
 ## Installation
 **Warning! Linux only**
@@ -89,13 +98,13 @@ Run tests under ASAN:
 While working with code, dont forget to
 > make lint
 
-**Watch more commands in [developer guide](docs/DEVELOPMENT.md) or inside `Makefile`. Currently tested only on Fedora 43 with 7.1.5 kernel version**
+**Watch more commands in [developer guide](https://aivazianartur.github.io/uringio/docs/DEVELOPMENT/) or inside `Makefile`. Currently tested only on Fedora 43 with 7.1.5 kernel version**
 
 ## Architecture
 ### io_uring
 uringio is written natively as C extension for CPython and brings the new event loop, based on io_uring.
 
-What is io_uring and how it works, explained shortly by us - [here](docs/IO_URING.md)
+What is io_uring and how it works, explained shortly by us - [here](https://aivazianartur.github.io/uringio/docs/IO_URING/)
 
 ### Presenting new objects
 - Main:
@@ -116,7 +125,7 @@ What is io_uring and how it works, explained shortly by us - [here](docs/IO_URIN
     - Statx Flags
     - StatxMask
 
-Whole documentation about their purposes and how they work is in [architecture page](docs/ARCHITECTURE.md)
+Whole documentation about their purposes and how they work is in [architecture page](https://aivazianartur.github.io/uringio/docs/ARCHITECTURE/)
 
 ### Structure
 
@@ -137,13 +146,13 @@ Structure of this project is trying to be simple - we have pure c-layer and pure
 - Timer
 - Signals
 
-To read about implementation details, go to [architecture page](docs/ARCHITECTURE.md)
+To read about implementation details, go to [architecture page](https://aivazianartur.github.io/uringio/docs/ARCHITECTURE/)
 
 ## Contributing
 
 We are looking for help with:
 
-1. Propose new features. You can choose something from our [roadmap](docs/ROADMAP.md) - you can add new checks yourself, but create an issue first.
+1. Propose new features. You can choose something from our [roadmap](https://aivazianartur.github.io/uringio/docs/ROADMAP/) - you can add new checks yourself, but create an issue first.
 2. Testing on different Linux Distros/Kernels. If you'll find some issues - create some on GitHub.
 3. Sharing experience in memory management, libraries architecture, cpython, io_uring, epoll and many other things.
 4. Write tests and benchmarks
@@ -151,10 +160,10 @@ We are looking for help with:
 
 
 **Read next**
-  - [Contributing guide](CONTRIBUTING.md)
-  - [Development guide](docs/DEVELOPMENT.md)
-  - [Code of Conduct](CODE_OF_CONDUCT.md)
-  - [Security](SECURITY.md)
+  - [Contributing guide](https://aivazianartur.github.io/uringio/CONTRIBUTING/)
+  - [Development guide](https://aivazianartur.github.io/uringio/docs/DEVELOPMENT/)
+  - [Code of Conduct](https://aivazianartur.github.io/uringio/CODE_OF_CONDUCT/)
+  - [Security](https://aivazianartur.github.io/uringio/SECURITY/)
 
 ## Roadmap
-See [here](docs/ROADMAP.md)
+See [here](https://aivazianartur.github.io/uringio/docs/ROADMAP/)

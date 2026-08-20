@@ -8,7 +8,8 @@ First off, install library with
 pip install uringio
 ```
 ### Initialize `UringioLoop`
-To start using `uringio` user need to initialize special `io_uring` loop - `UringioLoop` \
+To start using `uringio` user need to initialize special `io_uring` loop - `UringioLoop`
+
 Its quite simple:
 ```python
 asyncio.run(main(), loop_factory=uringio.UringioLoop)
@@ -52,7 +53,7 @@ await file.close()
 Now lets put it inside function:
 ```python
 async def file_simple_example():
-    file = await uringio.open_file(path=TEMPFILE)
+    file = await uringio.open_file(path='path/to/file.txt')
     await file.write(data=b'Hello, uringio!\n')
     await file.read()
     await file.close()
@@ -62,10 +63,11 @@ async def file_simple_example():
 
 See how easy it is actually to combine everything we know so far:
 ```python
+import asyncio
 import uringio
 
 async def file_simple_example():
-    file = await uringio.open_file(path=TEMPFILE)
+    file = await uringio.open_file(path='path/to/file.txt')
     await file.write(data=b'Hello, uringio!\n')
     await file.read()
     await file.close()
@@ -75,10 +77,11 @@ asyncio.run(file_simple_example(), loop_factory=uringio.UringioLoop)
 
 But actual code would be even simpler - with usage of file context manager
 ```python
+import asyncio
 import uringio
 
 async def file_simple_example():
-    async with await uringio.open_file(path=TEMPFILE) as file:
+    async with await uringio.open_file(path='path/to/file.txt') as file:
         await file.write(data=b'Hello, uringio!\n')
         await file.read()
 
@@ -135,6 +138,7 @@ Now let's put everything together into a simple client-server example;
 As with file operations, socket operations must be executed using the `UringioLoop`:
 
 ```python
+import asyncio
 import uringio
 
 async def socket_simple_example():
@@ -171,6 +175,7 @@ with asyncio.Runner(loop_factory=uringio.UringioLoop) as runner:
 
 And there is support of context manager protocol:
 ```python
+import asyncio
 import uringio
 
 async def socket_simple_example():
@@ -196,6 +201,9 @@ To use advanced features, use different types of context managers.
 #### TransferMode
 To use operations in zero-copy mode, use `UringioLoop.transfer_mode` context manager, with `uringio.TRANSFER_MODE` Enum:
 ```python
+import asyncio
+import uringio
+
 async def transfer_mode():
     loop = asyncio.get_running_loop()
     with loop.transfer_mode(mode=uringio.TRANSFER_MODE.ZERO_COPY):
@@ -208,6 +216,9 @@ There are `NORMAL` and `ZERO_COPY` values in `TRANSFER_MODE` Enum
 #### StreamStrategy
 To use Multishot operations, use `stream_strategy` context manager, with `uringio.STREAM_STRATEGY` Enum. In v0.4.1 its better to not use it: 
 ```python
+import asyncio
+import uringio
+
 async def stream_strategy():
     loop = asyncio.get_running_loop()
     with loop.stream_strategy(stream=uringio.STREAM_STRATEGY.MULTISHOT):
@@ -223,6 +234,9 @@ To use operations in zero-copy mode, use `UringioLoop.buffer_mode` context manag
 > Note, FIXED buffer mode currently working only with files
 
 ```python
+import asyncio
+import uringio
+
 async def buffer_mode():
     loop = asyncio.get_running_loop()
     buf = bytearray(4096)
@@ -237,6 +251,9 @@ There are `NORMAL`, `FIXED`, `PROVIDED` and `BUF_RING` values in `BUFFER_MODE` E
 #### ExecutionContext
 To set context manager with different types of all regimes above - use `UringioLoop.execution_context` context manager:
 ```python
+import asyncio
+import uringio
+
 async def execution_context():
     loop = asyncio.get_running_loop()
 

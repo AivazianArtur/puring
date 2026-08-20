@@ -1,7 +1,6 @@
 import asyncio
 import os
 import shutil
-import sys
 import time
 
 is_uvloop_installed = False
@@ -10,8 +9,6 @@ try:
     is_uvloop_installed = True
 except ImportError:
     pass
-
-sys.path.insert(0, '')
 
 import uringio
 

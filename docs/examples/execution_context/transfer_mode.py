@@ -1,5 +1,3 @@
-import sys
-sys.path.insert(0, '')
 import asyncio
 import uringio
 from _common import simple_socket_example
