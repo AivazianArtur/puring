@@ -1,3 +1,7 @@
+## v0.4.3
+### Updated
+- Update version inside pyproject and documentation
+
 ## v0.4.2
 ### Fixed
 - Documentation and examples fix
