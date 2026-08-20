@@ -13,6 +13,8 @@ try:
 except ImportError:
     pass
 
+import sys
+sys.path.insert(0, '')
 import uringio
 
 # ---- Config -----------------------------------------------------------

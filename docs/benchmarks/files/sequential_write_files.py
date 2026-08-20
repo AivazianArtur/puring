@@ -4,13 +4,16 @@ import shutil
 import time
 
 # WARNING: Both linux only
-import uringio
 is_uvloop_installed = False
 try:
     import uvloop
     is_uvloop_installed = True
 except ImportError:
     pass
+
+import sys
+sys.path.insert(0, '')
+import uringio
 
 CHUNK_SIZE = 1024 * 1024
 ITERATIONS = 2000
