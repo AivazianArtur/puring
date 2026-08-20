@@ -1,12 +1,12 @@
-import sys
-
-sys.path.insert(0, '')
-
 import asyncio
+import sys
+sys.path.insert(0, '')
 import uringio
+
 
 HOST = '127.0.0.1'
 PORT = 12877
+
 
 async def main():
     async with await uringio.prep_socket() as server_sock:

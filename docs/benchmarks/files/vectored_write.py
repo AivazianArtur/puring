@@ -1,7 +1,6 @@
 import asyncio
 import os
 import shutil
-import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -12,8 +11,8 @@ try:
 except ImportError:
     pass
 
+import sys
 sys.path.insert(0, '')
-
 import uringio
 
 

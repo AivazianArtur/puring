@@ -1,10 +1,8 @@
+import asyncio
 import sys
 sys.path.insert(0, '')
-import asyncio
 import uringio
 from _common import simple_file_example
-
-TEMPFILE = 'docs/assets/tempfile.txt'
 
 
 async def execution_context():

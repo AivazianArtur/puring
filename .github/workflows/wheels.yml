@@ -26,6 +26,14 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Rewrite README relative links for PyPI
+        run: |
+          sed -i -E 's|\((docs/[^)]+)\.md\)|(https://aivazianartur.github.io/uringio/\1/)|g' README.md
+          sed -i -E 's|\((docs/[^)]+)\)|(https://aivazianartur.github.io/uringio/\1)|g' README.md
+          sed -i -E 's|\((CONTRIBUTING\.md)\)|(https://aivazianartur.github.io/uringio/CONTRIBUTING/)|g' README.md
+          sed -i -E 's|\((CODE_OF_CONDUCT\.md)\)|(https://aivazianartur.github.io/uringio/CODE_OF_CONDUCT/)|g' README.md
+          sed -i -E 's|\((SECURITY\.md)\)|(https://aivazianartur.github.io/uringio/SECURITY/)|g' README.md
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -68,6 +76,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Rewrite README relative links for PyPI
+        run: |
+          sed -i -E 's|\((docs/[^)]+)\.md\)|(https://aivazianartur.github.io/uringio/\1/)|g' README.md
+          sed -i -E 's|\((docs/[^)]+)\)|(https://aivazianartur.github.io/uringio/\1)|g' README.md
+          sed -i -E 's|\((CONTRIBUTING\.md)\)|(https://aivazianartur.github.io/uringio/CONTRIBUTING/)|g' README.md
+          sed -i -E 's|\((CODE_OF_CONDUCT\.md)\)|(https://aivazianartur.github.io/uringio/CODE_OF_CONDUCT/)|g' README.md
+          sed -i -E 's|\((SECURITY\.md)\)|(https://aivazianartur.github.io/uringio/SECURITY/)|g' README.md
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -112,6 +128,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
+          skip-existing: true
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2

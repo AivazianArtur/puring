@@ -8,8 +8,11 @@ uringio brings true asynchronous file I/O to Python with a native event loop bui
 ## Quick Examples
 ### Files
 ```python
+import asyncio
+import uringio
+
 async def main():
-    async with uringio.open_file(path='testfile.txt') as file:
+    async with await uringio.open_file(path='testfile.txt') as file:
         data = b'Hello, uringio!\n'
         await file.write(data=data)
         result = await file.read()
@@ -19,10 +22,13 @@ asyncio.run(main(), loop_factory=uringio.UringioLoop)
 
 ### Sockets
 ```python
+import asyncio
+import uringio
+
 async def main():
     async with await uringio.prep_socket() as socket:
         await socket.connect('127.0.0.1', 9000)
-        await socket.send(b'hello')
+        await socket.send(b'Hello, uringio!')
         data = await socket.recv()
 
 asyncio.run(main(), loop_factory=uringio.UringioLoop)
@@ -30,6 +36,9 @@ asyncio.run(main(), loop_factory=uringio.UringioLoop)
 
 ### `Fixed` buffers - One of io_uring optimization features
 ```python
+import asyncio
+import uringio
+
 async def main():
     loop = asyncio.get_running_loop()
     buf = bytearray(4096)

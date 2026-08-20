@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import asyncio
 import enum
-from typing import Any, Awaitable, Optional, Sequence, TypedDict, Union, final
+from typing import Any, Optional, Sequence, TypedDict, Union, final
 from typing_extensions import disjoint_base
 
 # --- Enums exported from create_*_enum() in execution_context.c and ops/files/enums.c-----------
@@ -270,28 +270,28 @@ class TimerParamsDict(TypedDict, total=False):
     is_multishot: bool
 
 
-def timer(
+async def timer(
     uring_loop: UringioLoop,
     timer_params: Optional[TimerParamsDict] = None,
-) -> Awaitable[None]:
+) -> None:
     """Sets a timer."""
     ...
 
-def open_file(
+async def open_file(
     path: Union[str, "os.PathLike[str]"],
     dirfd: int = ...,
     flags: int = -1,
     resolve: int = 0,
     mode: int = 0o644,
     timeout_params: TimeoutParamsDict = ...,
-) -> Awaitable[File]:
+) -> File:
     """Opens a file and instantiates a :class:`File` object."""
     ...
 
-def prep_socket(
+async def prep_socket(
     domain: int = ...,  # socket.AF_INET
     socktype: int = ...,  # socket.SOCK_STREAM
     timeout_params: TimeoutParamsDict = ...,
-) -> Awaitable[Socket]:
+) -> Socket:
     """Opens a socket and instantiates a :class:`Socket` object."""
     ...

@@ -3,18 +3,18 @@ import os
 import random
 import shutil
 import time
-import sys
-
-sys.path.insert(0, '')
 
 # WARNING: Both linux only
-import uringio
 is_uvloop_installed = False
 try:
     import uvloop
     is_uvloop_installed = True
 except ImportError:
     pass
+
+import sys
+sys.path.insert(0, '')
+import uringio
 
 # ---- Config -----------------------------------------------------------
 FILES_FOLDER = 'docs/assets/benchmark_temp_iops/'

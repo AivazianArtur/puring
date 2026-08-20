@@ -30,8 +30,8 @@ This benchmark shows strong size of io_uring - it sending data straight to Kerne
 This benchmark evaluates the performance of sequentially writing large amounts of data to disk in a Python environment on Linux. uringio here is the only backend that offers native async operations
 ##### Compared methods
 - Standard synchronous sequential write
-- Asyncio, running same synchronous script in another thread
-- Uvloop, running same synchronous script in another thread
+- asyncio, running same synchronous script in another thread
+- uvloop, running same synchronous script in another thread
 - uringio, sequential writing with own implementation of write
 - uringio, same thing in Fixed mode
 
@@ -43,10 +43,10 @@ Another benchmark that shows strong part of uringio - native async file operatio
 The test simulates writing a large array of data to disk or a file descriptor using scatter-gather I/O and parallel writing.
 ##### Compared methods
 - Synchronous os.write
-- Asyncio, running same synchronous script in another thread
-- Asyncio, running same synchronous script concurrently
-- Uvloop, synchronous script in another thread
-- Uvloop, synchronous script concurrently
+- asyncio, running same synchronous script in another thread
+- asyncio, running same synchronous script concurrently
+- uvloop, synchronous script in another thread
+- uvloop, synchronous script concurrently
 - uringio, own implementation of writev
 - uringio, sequential writing
 - uringio, concurrent writing
@@ -62,10 +62,10 @@ The benchmark measures the throughput of vectorized reading of a big file. There
 ##### Compared methods
 - Synchronous vectored read(one big read)
 - Synchronous scalar read(many little read)
-- Asyncio vectored read
-- Asyncio scalar concurrent read
-- Uvloop vectored read
-- Uvloop scalar concurrent read
+- asyncio vectored read
+- asyncio scalar concurrent read
+- uvloop vectored read
+- uvloop scalar concurrent read
 - uringio vectored read
 - uringio vectored read in FIXED mode
 - uringio scalar concurrent read
@@ -73,15 +73,17 @@ The benchmark measures the throughput of vectorized reading of a big file. There
 #### Open/close operation on little files in different depth
 ![little files](assets/benchmark_results/files/little_files.png)
 ##### Results
-This benchmark shows quite interesting result - uringio is fastest in context of async writing, but standard synchronous write is much faster. \
-Its faster because file metadata is stored in the kernel's hot cache. In this scenario, there is no disk latency, and the overhead CQE/SQE is higher than direct system calls. \
+This benchmark shows quite interesting result - uringio is fastest in context of async writing, but standard synchronous write is much faster.
+
+Its faster because file metadata is stored in the kernel's hot cache. In this scenario, there is no disk latency, and the overhead CQE/SQE is higher than direct system calls.
+
 However, in real server applications, synchronous we cant rely on this layer of cache.
 ##### Benchmark essence
 Evaluating the performance of file operations for open/close multiple small files in Python environment with various levels of depth.
 ##### Compared methods
 - Synchronous approach
-- Asyncio, same synchronous approach but through threadpool
-- Uvloop, same synchronous approach but through threadpool
+- asyncio, same synchronous approach but through threadpool
+- uvloop, same synchronous approach but through threadpool
 - uringio, the only true asynchronous python backed for file I/O  
 
 #### Many random reads on files
@@ -94,8 +96,8 @@ This benchmark confirms 2 important points from benchmarks above:
 This benchmark simulates a random small read load from the disk. No COLD cache, just straightforward approach
 ##### Compared methods
 - Synchronous read
-- Asyncio, same synchronous approach but through threadpool
-- Uvloop, same synchronous approach but through threadpool
+- asyncio, same synchronous approach but through threadpool
+- uvloop, same synchronous approach but through threadpool
 - uringio, the only true asynchronous python backed for file I/O  
 
 ### Socket
@@ -110,8 +112,8 @@ But also there is a thing that chart above dont show - we need some optimization
 This benchmark is measuring time that need for establishing, transmitting data, and closing 100/500/2000 connections.
 ##### Compared methods
 - stdlib socket handling. 1 thread = 1 connection
-- Asyncio, concurrent socket handling. Based on epoll
-- Uvloop, concurrent socket handling. Based on epoll
+- asyncio, concurrent socket handling. Based on epoll
+- uvloop, concurrent socket handling. Based on epoll
 - uringio, concurrent socket handling. Based on io_uring
 
 #### Load test of concurrent TCP connections with I/O operations
@@ -127,6 +129,6 @@ But also there is a thing that chart above dont show - we need some optimization
 Load testing of TCP echo server in fanout mode - parallel concurrent connections sending and receiving data
 ##### Compared methods
 - stdlib socket handling. 1 thread = 1 connection
-- Asyncio, concurrent socket handling. Based on epoll
-- Uvloop, concurrent socket handling. Based on epoll
+- asyncio, concurrent socket handling. Based on epoll
+- uvloop, concurrent socket handling. Based on epoll
 - uringio, concurrent socket handling. Based on io_uring

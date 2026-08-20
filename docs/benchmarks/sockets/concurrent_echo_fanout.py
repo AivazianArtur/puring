@@ -3,7 +3,6 @@ import itertools
 import os
 import resource
 import socket
-import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -15,8 +14,8 @@ try:
 except ImportError:
     pass
 
+import sys
 sys.path.insert(0, '')
-
 import uringio
 
 

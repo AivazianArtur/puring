@@ -7,7 +7,6 @@ mkdir -p docs_site/docs
 
 ln -sf ../README.md                  docs_site/index.md
 
-# USER_GUIDE находится в docs/
 ln -sf ../docs/USER_GUIDE.md         docs_site/USER_GUIDE.md
 ln -sf ../docs/USER_GUIDE.md         docs_site/user-guide.md
 ln -sfn ../../docs/USER_GUIDE.md     docs_site/docs/USER_GUIDE.md
